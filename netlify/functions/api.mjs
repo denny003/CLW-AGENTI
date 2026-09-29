@@ -645,7 +645,11 @@ async function fetchCustomersData(customId, customTab, user = null) {
 
       if (customers.length > 0) {
         if (user && user.role !== 'admin' && user.role !== 'area_head') {
-          customers = customers.filter(c => c.agentId === user.agentCode || c.sourceAgent === user.agentCode);
+          const userAgent = normalizeAgentId(user.agentCode || '');
+          const seed = await loadSeed();
+          const hier = seed.hierarchy || { AG01: ['AG02'], AG03: ['AG04', 'AG05', 'AG06', 'AG07', 'AG08', 'AG09', 'AG10', 'AG11'] };
+          const allowed = new Set([userAgent, ...(hier[userAgent] || []).map(normalizeAgentId)]);
+          customers = customers.filter(c => allowed.has(normalizeAgentId(c.agentId)) || allowed.has(normalizeAgentId(c.sourceAgent)));
         }
         return { ok: true, source: 'google-sheets', count: customers.length, customers };
       }
@@ -657,7 +661,10 @@ async function fetchCustomersData(customId, customTab, user = null) {
     const seed = await loadSeed();
     let customers = seed.clients || [];
     if (user && user.role !== 'admin' && user.role !== 'area_head') {
-      customers = customers.filter(c => c.agentId === user.agentCode || c.sourceAgent === user.agentCode);
+      const userAgent = normalizeAgentId(user.agentCode || '');
+      const hier = seed.hierarchy || { AG01: ['AG02'], AG03: ['AG04', 'AG05', 'AG06', 'AG07', 'AG08', 'AG09', 'AG10', 'AG11'] };
+      const allowed = new Set([userAgent, ...(hier[userAgent] || []).map(normalizeAgentId)]);
+      customers = customers.filter(c => allowed.has(normalizeAgentId(c.agentId)) || allowed.has(normalizeAgentId(c.sourceAgent)));
     }
     return { ok: false, source: 'offline-cache', error: err.message, count: customers.length, customers };
   }
@@ -1334,6 +1341,141 @@ async function createDoc(tab, body, user, customId) {
   }
 }
 
+async function createCustomer(body, user, customId) {
+  const custSpreadsheetId = cleanEnvId(body?.spreadsheetId) || cleanEnvId(customId) || runtimeConfig.customers.spreadsheetId || OFFICIAL_SYSTEM_SPREADSHEETS.customers.spreadsheetId;
+  const tab = body?.tab || runtimeConfig.customers.tab || OFFICIAL_SYSTEM_SPREADSHEETS.customers.tab || 'clienti';
+
+  const name = String(body.name || body.customerName || '').trim();
+  if (!name) {
+    return json(400, { error: 'Ragione sociale obbligatoria per creare un nuovo cliente' });
+  }
+
+  const agentCode = normalizeAgentId(body.agentId || body.agentCode || user?.agentCode || 'AG01');
+  const city = String(body.city || '').trim();
+  const address = String(body.address || '').trim();
+  const tax = String(body.tax || body.taxCode || '').trim();
+  const type = String(body.type || 'Cliente').trim();
+  const postalCode = String(body.postalCode || '').trim();
+  const province = String(body.province || '').trim().toUpperCase();
+  const phone = String(body.phone || '').trim();
+  const mobile = String(body.mobile || '').trim();
+  const email = String(body.email || '').trim();
+
+  try {
+    const rows = await readRange(custSpreadsheetId, `'${tab}'!A1:P500`);
+    if (!rows || rows.length === 0) {
+      return json(500, { error: `Impossibile accedere al foglio "${tab}"` });
+    }
+
+    const header = rows[0].map(c => String(c || '').toLowerCase().trim());
+    const col = patterns => {
+      const pts = Array.isArray(patterns) ? patterns : [patterns];
+      return header.findIndex(h => pts.some(p => h.includes(p)));
+    };
+
+    const cTipoIdx = col(['c.tipo', 'ctipo']);
+    const tipoIdx = col(['tipo']);
+    const codeIdx = col(['codice', 'code']);
+    const nameIdx = col(['ragione', 'cliente', 'nome']);
+    const codAttIdx = col(['cod.att', 'codatt']);
+    const actIdx = col(['attivit']);
+    const agentIdx = col(['agente', 'agent']);
+    const addressIdx = col(['indirizzo', 'via']);
+    const capIdx = col(['cap']);
+    const cityIdx = col(['citt']);
+    const pvIdx = col(['pv', 'prov']);
+    const phoneIdx = col(['telefono', 'tel']);
+    const faxIdx = col(['telefax', 'fax']);
+    const mobileIdx = col(['cellulare', 'cell']);
+    const netIdx = col(['internet', 'sito', 'web']);
+    const emailIdx = col(['e-mail', 'email']);
+
+    // Calcola il codice progressivo massimo
+    let maxCode = 6500;
+    for (let i = 1; i < rows.length; i++) {
+      const rawC = rows[i]?.[codeIdx];
+      if (rawC != null) {
+        const n = parseInt(String(rawC).replace(/\D/g, ''), 10);
+        if (!isNaN(n) && n > maxCode && n < 100000) {
+          maxCode = n;
+        }
+      }
+    }
+    const newCode = String(body.code || (maxCode + 1));
+
+    // Formattazione codice agente conforme al foglio (es. AG001, AG002)
+    let agentCell = agentCode;
+    const numMatch = agentCode.match(/^AG0*(\d+)$/i);
+    if (numMatch) {
+      const n = parseInt(numMatch[1], 10);
+      agentCell = `AG${n < 10 ? '00' + n : (n < 100 ? '0' + n : n)}`;
+    }
+
+    const numCols = Math.max(16, header.length);
+    const newRow = new Array(numCols).fill('');
+    if (cTipoIdx >= 0) newRow[cTipoIdx] = 'CLI';
+    if (tipoIdx >= 0) newRow[tipoIdx] = type || 'Cliente';
+    if (codeIdx >= 0) newRow[codeIdx] = newCode;
+    if (nameIdx >= 0) newRow[nameIdx] = name;
+    if (codAttIdx >= 0) newRow[codAttIdx] = 'INS';
+    if (actIdx >= 0) newRow[actIdx] = type || 'Cliente';
+    if (agentIdx >= 0) newRow[agentIdx] = agentCell;
+    if (addressIdx >= 0) newRow[addressIdx] = address;
+    if (capIdx >= 0) newRow[capIdx] = postalCode;
+    if (cityIdx >= 0) newRow[cityIdx] = city;
+    if (pvIdx >= 0) newRow[pvIdx] = province;
+    if (phoneIdx >= 0) newRow[phoneIdx] = phone;
+    if (faxIdx >= 0) newRow[faxIdx] = '';
+    if (mobileIdx >= 0) newRow[mobileIdx] = mobile;
+    if (netIdx >= 0) newRow[netIdx] = '';
+    if (emailIdx >= 0) newRow[emailIdx] = email;
+
+    // Trova la prima riga vuota
+    let nextRow = -1;
+    for (let i = 1; i < rows.length; i++) {
+      const cA = String(rows[i]?.[0] || '').trim();
+      const cB = String(rows[i]?.[1] || '').trim();
+      const cC = String(rows[i]?.[2] || '').trim();
+      const cD = String(rows[i]?.[3] || '').trim();
+      if (!cA && !cB && !cC && !cD) {
+        nextRow = i + 1;
+        break;
+      }
+    }
+    if (nextRow < 0) {
+      nextRow = rows.length + 1;
+    }
+
+    try {
+      await updateRow(custSpreadsheetId, `'${tab}'!A${nextRow}:P${nextRow}`, [newRow]);
+    } catch {
+      await append(custSpreadsheetId, `'${tab}'!A:P`, [newRow]);
+    }
+
+    const customerObj = {
+      id: newCode,
+      code: newCode,
+      name,
+      type,
+      activity: type || 'Cliente',
+      agentId: normalizeAgentId(agentCell),
+      sourceAgent: agentCell,
+      address,
+      postalCode,
+      city,
+      province,
+      phone,
+      mobile,
+      email
+    };
+
+    return json(201, { ok: true, customer: customerObj, rowNumber: nextRow });
+  } catch (err) {
+    console.error(`Error saving customer to Google Sheets:`, err);
+    return json(500, { error: `Errore salvataggio cliente su Google Sheets: ${err.message}` });
+  }
+}
+
 // -------------------------------------------------------------
 // WORKFLOW & AGENT POWER TOOLS
 // -------------------------------------------------------------
@@ -1746,6 +1888,13 @@ export default async (request, context) => {
         user
       );
       return json(200, clRes);
+    }
+
+    if (path === 'customers' && request.method === 'POST') {
+      const user = session(request);
+      if (!user) return json(401, { error: 'Accesso non autorizzato' });
+      const body = await request.json().catch(() => ({}));
+      return createCustomer(body, user, url.searchParams.get('id') || undefined);
     }
 
     if (path === 'products' && request.method === 'GET') {

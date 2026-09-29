@@ -941,31 +941,76 @@ function bindEvents() {
   };
   $('submitBtn').onclick = submitOffer;
   $('newCustomerBtn').onclick = () => $('customerDialog').showModal();
-  $('confirmCustomer').onclick = e => {
+  $('confirmCustomer').onclick = async e => {
     e.preventDefault();
-    const name = $('newCustomerName').value.trim(), city = $('newCustomerCity').value.trim(), address = $('newCustomerAddress').value.trim(), agentId = $('assignedAgent').value;
-    if (!name || !city) return;
-    const customer = {
-      id: `LOCAL-${Date.now()}`,
-      name,
-      city,
-      address,
-      agentId,
-      sourceAgent: agentById[agentId]?.name || agentId,
-      phone: '',
-      mobile: '',
-      email: '',
-      postalCode: '',
-      province: '',
-      activity: '',
-      activityCode: ''
-    };
-    clients.push(customer);
-    renderCustomers(customer.id);
-    $('customerDialog').close();
-    $('customerForm').reset();
-    dbSet('dataset', { meta: dataMeta, articles: products, clients }).catch(() => {});
-    toast('Cliente salvato e assegnato');
+    const name = $('newCustomerName').value.trim();
+    const city = $('newCustomerCity').value.trim();
+    const address = $('newCustomerAddress').value.trim();
+    const tax = ($('newCustomerTax')?.value || '').trim();
+    const agentId = $('assignedAgent')?.value || currentAgentId() || 'AG01';
+    if (!name || !city) {
+      alert('Inserire almeno la ragione sociale e la città del cliente');
+      return;
+    }
+
+    const btn = $('confirmCustomer');
+    const prevText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Salvataggio su Google Sheets…';
+
+    let savedCustomer = null;
+    try {
+      const res = await fetch('/api/customers', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          city,
+          address,
+          tax,
+          agentId
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Errore salvataggio cliente');
+      savedCustomer = data.customer;
+    } catch (err) {
+      console.warn('Errore salvataggio remoto cliente, uso fallback locale:', err);
+      savedCustomer = {
+        id: `LOCAL-${Date.now()}`,
+        code: `LOCAL-${Date.now()}`,
+        name,
+        city,
+        address,
+        agentId,
+        sourceAgent: agentById[agentId]?.name || agentId,
+        phone: '',
+        mobile: '',
+        email: '',
+        postalCode: '',
+        province: '',
+        activity: 'Cliente',
+        activityCode: ''
+      };
+      toast('Cliente salvato in locale (Google Sheets non raggiungibile)');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = prevText;
+    }
+
+    if (savedCustomer) {
+      const existingIdx = clients.findIndex(c => String(c.id) === String(savedCustomer.id) || (c.name && c.name.toLowerCase() === savedCustomer.name.toLowerCase()));
+      if (existingIdx >= 0) {
+        clients[existingIdx] = savedCustomer;
+      } else {
+        clients.push(savedCustomer);
+      }
+      renderCustomers(savedCustomer.id);
+      $('customerDialog').close();
+      $('customerForm').reset();
+      await dbSet('dataset', { meta: dataMeta, articles: products, clients }).catch(() => {});
+      toast(`Cliente "${savedCustomer.name}" salvato su Google Sheets e assegnato`);
+    }
   };
   $('dataBtn').onclick = async () => {
     await loadData();
