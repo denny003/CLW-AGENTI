@@ -589,18 +589,36 @@ function persistOffer() {
   }));
 }
 
+let editingOriginOffer = '';
+
 function restoreOffer() {
   try {
     const d = JSON.parse(localStorage.getItem('offer-demo'));
     if (!d) return;
-    items = d.items || [];
+    if (d.originOfferNumber) editingOriginOffer = d.originOfferNumber;
+    items = (d.items || []).map(i => {
+      const existingProd = products.find(p => p.code === i.product?.code);
+      return {
+        product: existingProd || i.product || { code: 'N/A', description: 'Articolo', price: 0, vat: 22 },
+        qty: Number(i.qty) || 1,
+        discounts: i.discounts || [0, 0, 0, 0],
+        markup: Number(i.markup) || 0
+      };
+    });
     if (d.role && [...$('roleSelect').options].some(o => o.value === d.role)) $('roleSelect').value = d.role;
     $('notes').value = d.notes || '';
     $('validity').value = d.validity || '30 giorni';
     if (d.payment) $('payment').value = d.payment;
     if (d.shipping) $('shipping').value = d.shipping;
-    renderCustomers(d.customer || '');
-  } catch {}
+    let targetClient = d.customer;
+    if (d.customerName) {
+      const match = visibleClients().find(c => (c.name && c.name.toLowerCase() === d.customerName.toLowerCase()) || String(c.id) === String(d.customer));
+      if (match) targetClient = match.id;
+    }
+    renderCustomers(targetClient || '');
+  } catch (err) {
+    console.warn('Errore restoreOffer:', err);
+  }
 }
 
 function updateRoleView() {
@@ -674,6 +692,7 @@ function submissionPayload() {
     id: localStorage.getItem(`submission-${number}`) || crypto.randomUUID(),
     spreadsheetId: repoId,
     repositorySpreadsheetId: repoId,
+    originOfferId: editingOriginOffer || undefined,
     agentCode: agent.id,
     agentName: agent.name,
     customerId: c.id,
@@ -685,6 +704,8 @@ function submissionPayload() {
       shipping: $('shipping').value,
       validity: $('validity').value,
       notes: $('notes').value,
+      originOfferId: editingOriginOffer || undefined,
+      revisionOf: editingOriginOffer || undefined,
       lines: items.map(i => ({
         code: i.product.code,
         description: i.product.description,
@@ -716,9 +737,15 @@ async function sendSubmission(payload) {
   const number = payload.orderNumber || payload.offerNumber;
   const type = payload.documentType || (payload.orderNumber ? 'order' : 'offer');
   localStorage.setItem(`submission-${number}`, payload.id);
+  const hdrs = { 'content-type': 'application/json', 'accept': 'application/json' };
+  const token = localStorage.getItem('oa_session_token');
+  if (token) hdrs['Authorization'] = 'Bearer ' + token;
+  const user = currentUser || JSON.parse(localStorage.getItem('oa_session_user') || 'null');
+  if (user) hdrs['x-oa-user'] = encodeURIComponent(JSON.stringify(user));
+
   const response = await fetch(type === 'order' ? '/api/orders' : '/api/offers', {
     method: 'POST',
-    headers: { 'content-type': 'application/json', 'accept': 'application/json' },
+    headers: hdrs,
     credentials: 'same-origin',
     cache: 'no-store',
     body: JSON.stringify(payload)
@@ -1024,14 +1051,39 @@ function bindEvents() {
 
 async function start() {
   const params = new URLSearchParams(location.search);
+  const revParam = params.get('revision') || params.get('edit');
   documentType = params.get('type') === 'order' ? 'order' : 'offer';
-  $('documentTitle').textContent = documentType === 'order' ? 'ORDINE CLIENTE' : 'OFFERTA CLIENTE';
-  $('grandLabel').textContent = documentType === 'order' ? 'TOTALE ORDINE' : 'TOTALE OFFERTA';
-  $('submitBtn').textContent = documentType === 'order' ? 'Invia ordine' : 'Invia offerta';
-  $('documentDate').value = new Date().toLocaleDateString('it-IT');
-  document.title = documentType === 'order' ? 'Nuovo ordine' : 'Nuova offerta';
 
-  if (params.get('new') === '1') {
+  if (revParam) {
+    documentType = 'offer';
+    editingOriginOffer = revParam;
+    const isRev = !params.get('edit');
+    $('documentTitle').textContent = isRev ? 'REVISIONE OFFERTA' : 'MODIFICA OFFERTA';
+    $('grandLabel').textContent = 'TOTALE OFFERTA';
+    $('submitBtn').textContent = isRev ? 'Registra revisione su Google Sheets' : 'Aggiorna offerta su Google Sheets';
+    document.title = isRev ? `Revisione ${revParam}` : `Modifica ${revParam}`;
+
+    // Calcola il nuovo numero di revisione progressivo
+    const base = revParam.replace(/-R\d+$/i, '');
+    let revIdx = 1;
+    const m = revParam.match(/-R(\d+)$/i);
+    if (m) revIdx = parseInt(m[1], 10) + 1;
+    const nextRevNum = isRev ? `${base}-R${revIdx}` : revParam;
+
+    const savedNumbers = JSON.parse(localStorage.getItem('offer-numbers') || '{}');
+    const roleId = currentAgentId();
+    savedNumbers[roleId] = nextRevNum;
+    localStorage.setItem('offer-numbers', JSON.stringify(savedNumbers));
+  } else {
+    $('documentTitle').textContent = documentType === 'order' ? 'ORDINE CLIENTE' : 'OFFERTA CLIENTE';
+    $('grandLabel').textContent = documentType === 'order' ? 'TOTALE ORDINE' : 'TOTALE OFFERTA';
+    $('submitBtn').textContent = documentType === 'order' ? 'Invia ordine' : 'Invia offerta';
+    document.title = documentType === 'order' ? 'Nuovo ordine' : 'Nuova offerta';
+  }
+
+  $('documentDate').value = new Date().toLocaleDateString('it-IT');
+
+  if (params.get('new') === '1' && !revParam) {
     localStorage.removeItem('offer-demo');
     localStorage.removeItem(documentType === 'order' ? 'order-numbers' : 'offer-numbers');
   }
@@ -1057,6 +1109,27 @@ async function start() {
     renderOffer();
     renderCatalog();
     renderCompanyProfile();
+
+    if (revParam) {
+      let banner = $('revisionBanner');
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'revisionBanner';
+        banner.style.cssText = 'background:#eff6ff; border:1px solid #bfdbfe; color:#1e40af; padding:10px 14px; border-radius:8px; margin: 12px 0; font-size:.88rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;';
+        const container = document.querySelector('.main-head') || $('app');
+        if (container && container.parentNode) {
+          container.parentNode.insertBefore(banner, container.nextSibling);
+        }
+      }
+      banner.innerHTML = `
+        <div>
+          <strong>✏️ Revisione Offerta:</strong> Stai lavorando sui dati dell'offerta originale <code>${esc(revParam)}</code>.
+          <div style="font-size:.78rem; color:#2563eb; margin-top:2px;">Tutti gli articoli sono stati ricaricati. Puoi aggiungerne altri dal catalogo, variare quantità o prezzi, e ristampare o confermare.</div>
+        </div>
+        <a href="/index.html" class="btn secondary" style="padding:4px 10px; font-size:.78rem; text-decoration:none;">Torna al Registro</a>
+      `;
+    }
+
     $('syncLabel').textContent = navigator.onLine ? '🟢 Google Sheets collegato' : 'Modalità offline';
     $('offerCode').textContent = offerNumber();
   } catch (error) {

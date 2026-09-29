@@ -738,9 +738,19 @@
     let currentUser = null;
 
     async function api(path, opt = {}) {
+      const hdrs = {
+        accept: 'application/json',
+        'content-type': 'application/json',
+        ...(currentUser ? { 'x-oa-user': encodeURIComponent(JSON.stringify(currentUser)) } : {}),
+        ...(opt.headers || {})
+      };
+      const token = localStorage.getItem('oa_session_token');
+      if (token) hdrs['Authorization'] = 'Bearer ' + token;
+
       const r = await fetch('/api/' + path, {
+        credentials: 'same-origin',
         ...opt,
-        headers: { accept: 'application/json', 'content-type': 'application/json', ...(opt.headers || {}) }
+        headers: hdrs
       });
       const text = await r.text();
       let d = {};
@@ -844,7 +854,7 @@
             ${isOffer ? `
             <div style="display:flex; gap:6px; margin: 8px 0 4px;">
               <button type="button" class="btn-sub" style="padding:4px 8px; font-size:.76rem; background:#ecfdf5; border-color:#a7f3d0; color:#065f46;" onclick="event.stopPropagation(); convertOfferToOrder('${docNum}')">⚡ Trasforma in Ordine</button>
-              <button type="button" class="btn-sub" style="padding:4px 8px; font-size:.76rem;" onclick="event.stopPropagation(); createOfferRevision('${docNum}')">✏️ Revisione</button>
+              <button type="button" class="btn-sub" style="padding:4px 8px; font-size:.76rem; background:#eff6ff; border-color:#bfdbfe; color:#1d4ed8;" onclick="event.stopPropagation(); openOfferInEditor('${docNum}', true)">✏️ Riapri & Modifica</button>
             </div>
             ` : (x.ddt_number || x.carrier || x.shipping_date || x.workflow_status ? `
             <div style="font-size:.78rem; background:#f0fdf4; color:#166534; padding:4px 8px; border-radius:6px; margin: 6px 0;">
@@ -943,6 +953,30 @@
           <span>Offerta di origine</span>
           <strong>${item.origin_offer_id}</strong>
         </div>` : ''}
+        ${item.payload?.lines?.length ? `
+        <div style="margin-top:12px;">
+          <strong style="display:block; font-size:.85rem; margin-bottom:6px; color:#0f172a;">Articoli inclusi (${item.payload.lines.length}):</strong>
+          <table style="width:100%; border-collapse:collapse; font-size:.78rem; background:#fff; border-radius:6px; overflow:hidden; border:1px solid #e2e8f0;">
+            <thead style="background:#f8fafc; text-align:left; color:#475569;">
+              <tr>
+                <th style="padding:6px 8px;">Codice</th>
+                <th style="padding:6px 8px;">Descrizione</th>
+                <th style="padding:6px 8px; text-align:right;">Q.tà</th>
+                <th style="padding:6px 8px; text-align:right;">Totale</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${item.payload.lines.map(l => `
+                <tr style="border-top:1px solid #f1f5f9;">
+                  <td style="padding:6px 8px; font-weight:600; color:#1e293b;">${l.code}</td>
+                  <td style="padding:6px 8px; color:#334155;">${l.description}</td>
+                  <td style="padding:6px 8px; text-align:right;">${l.quantity}</td>
+                  <td style="padding:6px 8px; text-align:right; font-weight:600; color:#0f172a;">${formatEuro(l.net || (l.listPrice * l.quantity))}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>` : ''}
         ${item.notes ? `
         <div style="margin-top:6px;">
           <span style="display:block; font-size:.8rem; color:var(--muted); margin-bottom:4px;">Note operative / azienda:</span>
@@ -954,37 +988,83 @@
 
       // Set link for new practice with customer
       $('modalNewFromCustomer').href = `/offerta?new=1&type=${isOffer ? 'offer' : 'order'}`;
+      let openBtn = $('modalOpenEditor');
+      if (isOffer) {
+        if (!openBtn) {
+          openBtn = document.createElement('button');
+          openBtn.id = 'modalOpenEditor';
+          openBtn.className = 'btn-sub';
+          openBtn.style.cssText = 'background:#eff6ff; border-color:#bfdbfe; color:#1d4ed8;';
+          openBtn.textContent = '✏️ Riapri offerta per modificare o inviare';
+          $('modalActions').insertBefore(openBtn, $('modalCloseBtn'));
+        }
+        openBtn.onclick = () => openOfferInEditor(item.number || item.id, true);
+        openBtn.style.display = '';
+      } else if (openBtn) {
+        openBtn.style.display = 'none';
+      }
       $('detailModal').showModal();
+    }
+
+    function openOfferInEditor(offerNumber, asRevision = true) {
+      const offer = allPractices.find(p => p.number === offerNumber || p.id === offerNumber);
+      if (!offer) {
+        alert(`Offerta ${offerNumber} non trovata nel registro`);
+        return;
+      }
+
+      let lines = offer.payload?.lines || [];
+      if (!lines.length) {
+        try {
+          const loc = JSON.parse(localStorage.getItem(`submission-${offerNumber}`) || '{}');
+          lines = loc.payload?.lines || [];
+        } catch {}
+      }
+
+      const offerState = {
+        originOfferNumber: offer.number,
+        customer: offer.customer_id || '',
+        customerName: offer.customer_name || offer.customerName || '',
+        notes: offer.payload?.notes || (typeof offer.notes === 'string' && !offer.notes.startsWith('{') ? offer.notes : ''),
+        validity: offer.payload?.validity || '30 giorni',
+        payment: offer.payload?.payment || '',
+        shipping: offer.payload?.shipping || '',
+        role: offer.agent_code || currentUser?.agentCode || 'AG01',
+        isRevision: asRevision,
+        items: lines.map(l => ({
+          product: {
+            code: l.code,
+            description: l.description,
+            price: Number(l.listPrice) || 0,
+            vat: Number(l.vat) || 22,
+            brand: l.brand || '',
+            stock: 99
+          },
+          qty: Number(l.quantity) || 1,
+          discounts: l.discounts || [0, 0, 0, 0],
+          markup: Number(l.markup) || 0
+        }))
+      };
+
+      localStorage.setItem('offer-demo', JSON.stringify(offerState));
+      localStorage.setItem('offer-editing-info', JSON.stringify({
+        originOfferNumber: offer.number,
+        isRevision: asRevision,
+        customerName: offer.customer_name,
+        customerId: offer.customer_id
+      }));
+
+      window.location.href = `/offerta?${asRevision ? 'revision' : 'edit'}=${encodeURIComponent(offer.number)}`;
     }
 
     async function convertOfferToOrder(offerNumber) {
       if (!confirm(`Vuoi convertire immediatamente l'offerta ${offerNumber} in un nuovo Ordine di vendita?`)) return;
       try {
-        const res = await fetch('/api/offers/convert-to-order', {
+        const d = await api('offers/convert-to-order', {
           method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ offerNumber })
+          body: JSON.stringify({ offerNumber, user: currentUser })
         });
-        const d = await res.json();
-        if (!res.ok) throw new Error(d.error || 'Errore durante la conversione');
         alert(`Offerta convertita con successo!\nCreato Ordine: ${d.orderNumber}`);
-        await load();
-      } catch (err) {
-        alert(`Errore: ${err.message}`);
-      }
-    }
-
-    async function createOfferRevision(offerNumber) {
-      if (!confirm(`Vuoi creare una nuova revisione numerata dell'offerta ${offerNumber}?`)) return;
-      try {
-        const res = await fetch('/api/offers/revision', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ offerNumber })
-        });
-        const d = await res.json();
-        if (!res.ok) throw new Error(d.error || 'Errore creazione revisione');
-        alert(`Revisione creata con successo: ${d.newOfferNumber}`);
         await load();
       } catch (err) {
         alert(`Errore: ${err.message}`);
@@ -1097,10 +1177,12 @@
       e.preventDefault();
       $('loginError').textContent = '';
       try {
-        await api('login', {
+        const res = await api('login', {
           method: 'POST',
           body: JSON.stringify({ username: $('username').value, password: $('password').value })
         });
+        if (res.token) localStorage.setItem('oa_session_token', res.token);
+        if (res.user) localStorage.setItem('oa_session_user', JSON.stringify(res.user));
         location.reload();
       } catch (err) {
         $('loginError').textContent = err.message;
@@ -1112,6 +1194,7 @@
         await api('logout', { method: 'POST', body: '{}' });
       } catch {}
       localStorage.removeItem('oa_session_user');
+      localStorage.removeItem('oa_session_token');
       localStorage.removeItem('oa_cached_practices');
       location.reload();
     };
