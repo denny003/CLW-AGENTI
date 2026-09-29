@@ -846,9 +846,9 @@
               <button type="button" class="btn-sub" style="padding:4px 8px; font-size:.76rem; background:#ecfdf5; border-color:#a7f3d0; color:#065f46;" onclick="event.stopPropagation(); convertOfferToOrder('${docNum}')">⚡ Trasforma in Ordine</button>
               <button type="button" class="btn-sub" style="padding:4px 8px; font-size:.76rem;" onclick="event.stopPropagation(); createOfferRevision('${docNum}')">✏️ Revisione</button>
             </div>
-            ` : (p.ddt_number || p.carrier || p.shipping_date || p.workflow_status ? `
+            ` : (x.ddt_number || x.carrier || x.shipping_date || x.workflow_status ? `
             <div style="font-size:.78rem; background:#f0fdf4; color:#166534; padding:4px 8px; border-radius:6px; margin: 6px 0;">
-              🚚 <strong>${p.workflow_status === 'spedito' ? 'Spedito' : p.workflow_status === 'fatturato' ? 'Fatturato' : p.workflow_status === 'magazzino' ? 'In magazzino' : 'In lavorazione'}</strong> ${p.carrier ? `con ${p.carrier}` : ''} ${p.ddt_number ? `· DDT: ${p.ddt_number}` : ''} ${p.tracking_number ? `· Track: ${p.tracking_number}` : ''}
+              🚚 <strong>${x.workflow_status === 'spedito' ? 'Spedito' : x.workflow_status === 'fatturato' ? 'Fatturato' : x.workflow_status === 'magazzino' ? 'In magazzino' : 'In lavorazione'}</strong> ${x.carrier ? `con ${x.carrier}` : ''} ${x.ddt_number ? `· DDT: ${x.ddt_number}` : ''} ${x.tracking_number ? `· Track: ${x.tracking_number}` : ''}
             </div>
             ` : '')}
 
