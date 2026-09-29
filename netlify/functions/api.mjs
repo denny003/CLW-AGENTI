@@ -1238,7 +1238,17 @@ async function listDocs(tab, user, customId) {
         shipping_date: shipDate,
         estimated_delivery: estDelivery,
         delivered_date: delivDate,
-        workflow_status: normalizeWorkflowStatus(outcome || rawStatus || status)
+        workflow_status: normalizeWorkflowStatus(outcome || rawStatus || status),
+        ddt_info: payloadObj?.ddt_info || null,
+        goods_appearance: payloadObj?.ddt_info?.goodsAppearance || '',
+        packages_count: payloadObj?.ddt_info?.packagesCount || 1,
+        weight: payloadObj?.ddt_info?.weight || '',
+        porto: payloadObj?.ddt_info?.porto || 'FRANCO',
+        shipping_type: payloadObj?.ddt_info?.shippingType || 'MEZZO CORRIERE',
+        transport_start_time: payloadObj?.ddt_info?.transportStartTime || '',
+        payment_method: payloadObj?.ddt_info?.paymentMethod || '',
+        causale: payloadObj?.ddt_info?.causale || 'VENDITA',
+        destination_address: payloadObj?.ddt_info?.destinationAddress || ''
       });
     }
 
@@ -1618,6 +1628,45 @@ async function updateOrderStatus(orderId, updateData, user) {
   if (updateData.trackingNumber !== undefined && trackNumIdx >= 0) existingRow[trackNumIdx] = updateData.trackingNumber;
   if (updateData.trackingLink !== undefined && trackLinkIdx >= 0) existingRow[trackLinkIdx] = updateData.trackingLink;
   if (updateData.shippingDate !== undefined && shipDateIdx >= 0) existingRow[shipDateIdx] = updateData.shippingDate;
+
+  // Persist DDT metadata inside payload_json column
+  let payloadColIdx = -1;
+  let payloadObj = {};
+  for (let k = existingRow.length - 1; k >= 0; k--) {
+    const val = cleanCell(existingRow[k]);
+    if (typeof val === 'string' && val.startsWith('{')) {
+      try {
+        payloadObj = JSON.parse(val);
+        payloadColIdx = k;
+        break;
+      } catch {}
+    }
+  }
+
+  if (payloadColIdx >= 0 || updateData.ddtNumber) {
+    payloadObj.ddt_info = {
+      ...(payloadObj.ddt_info || {}),
+      ddtNumber: updateData.ddtNumber !== undefined ? updateData.ddtNumber : payloadObj.ddt_info?.ddtNumber,
+      ddtDate: updateData.ddtDate !== undefined ? updateData.ddtDate : payloadObj.ddt_info?.ddtDate,
+      carrier: updateData.carrier !== undefined ? updateData.carrier : payloadObj.ddt_info?.carrier,
+      trackingNumber: updateData.trackingNumber !== undefined ? updateData.trackingNumber : payloadObj.ddt_info?.trackingNumber,
+      trackingLink: updateData.trackingLink !== undefined ? updateData.trackingLink : payloadObj.ddt_info?.trackingLink,
+      shippingDate: updateData.shippingDate !== undefined ? updateData.shippingDate : payloadObj.ddt_info?.shippingDate,
+      transportStartTime: updateData.transportStartTime !== undefined ? updateData.transportStartTime : payloadObj.ddt_info?.transportStartTime,
+      goodsAppearance: updateData.goodsAppearance !== undefined ? updateData.goodsAppearance : payloadObj.ddt_info?.goodsAppearance,
+      packagesCount: updateData.packagesCount !== undefined ? updateData.packagesCount : payloadObj.ddt_info?.packagesCount,
+      weight: updateData.weight !== undefined ? updateData.weight : payloadObj.ddt_info?.weight,
+      porto: updateData.porto !== undefined ? updateData.porto : payloadObj.ddt_info?.porto,
+      shippingType: updateData.shippingType !== undefined ? updateData.shippingType : payloadObj.ddt_info?.shippingType,
+      paymentMethod: updateData.paymentMethod !== undefined ? updateData.paymentMethod : payloadObj.ddt_info?.paymentMethod,
+      causale: updateData.causale !== undefined ? updateData.causale : (payloadObj.ddt_info?.causale || 'VENDITA'),
+      destinationAddress: updateData.destinationAddress !== undefined ? updateData.destinationAddress : payloadObj.ddt_info?.destinationAddress
+    };
+
+    if (payloadColIdx >= 0) {
+      existingRow[payloadColIdx] = JSON.stringify(payloadObj);
+    }
+  }
 
   const sheetRowNum = targetRowIdx + 1;
   await updateRow(regId, `'${tab}'!A${sheetRowNum}:X${sheetRowNum}`, [existingRow]);
