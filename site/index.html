@@ -1112,6 +1112,7 @@
         await api('logout', { method: 'POST', body: '{}' });
       } catch {}
       localStorage.removeItem('oa_session_user');
+      localStorage.removeItem('oa_cached_practices');
       location.reload();
     };
 
