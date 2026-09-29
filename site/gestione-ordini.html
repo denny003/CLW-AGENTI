@@ -82,6 +82,184 @@
       #printableArea, #printableArea * { visibility: visible; }
       #printableArea { position: absolute; left: 0; top: 0; width: 100%; }
     }
+
+    /* Mode Switcher */
+    .mode-switch-bar {
+      display: flex;
+      background: #e2e8f0;
+      border-radius: 12px;
+      padding: 4px;
+      gap: 6px;
+      margin-bottom: 24px;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+    }
+    .mode-switch-btn {
+      flex: 1;
+      padding: 12px 18px;
+      font-size: .95rem;
+      font-weight: 750;
+      border: 0;
+      border-radius: 9px;
+      background: transparent;
+      color: #475569;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all .2s ease;
+    }
+    .mode-switch-btn:hover {
+      color: var(--navy);
+    }
+    .mode-switch-btn.active {
+      background: #ffffff;
+      color: var(--navy);
+      box-shadow: 0 4px 12px rgba(11,41,66,0.12);
+    }
+
+    /* Production Dashboard Specific */
+    .source-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .02em;
+    }
+    .source-badge .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      display: inline-block;
+    }
+
+    /* Urgency Badges */
+    .urgency-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 9px;
+      border-radius: 14px;
+      font-size: .75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+      white-space: nowrap;
+    }
+    .status-critico { background: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
+    .status-riordino { background: #ffedd5; color: #c2410c; border: 1px solid #fb923c; }
+    .status-ottimale { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+    .status-overstock { background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
+
+    /* Production Table */
+    .table-container {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      overflow-x: auto;
+      margin-bottom: 24px;
+    }
+    .prod-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .84rem;
+      text-align: left;
+    }
+    .prod-table th {
+      background: #f8fafc;
+      color: #475569;
+      font-weight: 750;
+      padding: 12px 14px;
+      border-bottom: 2px solid #e2e8f0;
+      white-space: nowrap;
+    }
+    .prod-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #1e293b;
+      vertical-align: middle;
+    }
+    .prod-table tr:hover {
+      background: #f8fafc;
+    }
+    .qty-produce-badge {
+      display: inline-block;
+      padding: 5px 10px;
+      background: #0284c7;
+      color: #fff;
+      font-weight: 800;
+      border-radius: 8px;
+      font-size: .88rem;
+    }
+    .qty-produce-zero {
+      color: #94a3b8;
+      font-weight: 600;
+    }
+    .learned-chip {
+      display: inline-block;
+      font-size: .72rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #f1f5f9;
+      color: #475569;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    /* Explanation Info Card */
+    .info-card {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 20px;
+      box-shadow: var(--shadow);
+    }
+    .info-card h3 {
+      margin: 0 0 10px;
+      font-size: 1rem;
+      color: var(--navy);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 14px;
+      font-size: .84rem;
+      color: #475569;
+    }
+    .info-block {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .info-block strong {
+      color: #1e293b;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .formula-tag {
+      display: inline-block;
+      background: #e2e8f0;
+      color: #0f172a;
+      font-family: monospace;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: .78rem;
+      margin-top: 4px;
+    }
   </style>
 </head>
 <body>
@@ -100,15 +278,27 @@
   </header>
 
   <main class="workflow-shell">
-    <div class="workflow-header">
-      <div class="workflow-title">
-        <h1>Pipeline Ordini & Spedizioni</h1>
-        <p>Avanzamento lavorazione: Ricezione → Approvazione → Picking Magazzino → Bolla/DDT → Fatturazione</p>
-      </div>
-      <div>
-        <button type="button" id="btnRefresh" class="btn secondary">🔄 Aggiorna dati</button>
-      </div>
+    <!-- MODE SWITCHER -->
+    <div class="mode-switch-bar">
+      <button type="button" id="btnModeOrders" class="mode-switch-btn active" onclick="switchMainView('orders')">
+        📦 Pipeline Ordini & DDT
+      </button>
+      <button type="button" id="btnModeProduction" class="mode-switch-btn" onclick="switchMainView('production')">
+        🏭 Piano Produzione & Scorte Intelligenti (Google Drive)
+      </button>
     </div>
+
+    <!-- SECTION 1: PIPELINE ORDINI -->
+    <section id="sectionOrders">
+      <div class="workflow-header">
+        <div class="workflow-title">
+          <h1>Pipeline Ordini & Spedizioni</h1>
+          <p>Avanzamento lavorazione: Ricezione → Approvazione → Picking Magazzino → Bolla/DDT → Fatturazione</p>
+        </div>
+        <div>
+          <button type="button" id="btnRefresh" class="btn secondary">🔄 Aggiorna dati</button>
+        </div>
+      </div>
 
     <!-- STATS SUMMARY -->
     <div class="stats-row">
@@ -158,7 +348,188 @@
     <div id="ordersContainer" class="orders-grid">
       <div style="text-align:center; padding: 40px; color: var(--muted);">Caricamento ordini in corso…</div>
     </div>
+    </section>
+
+    <!-- SECTION 2: PIANO PRODUZIONE & OTTIMIZZAZIONE SCORTE -->
+    <section id="sectionProduction" style="display:none;">
+      <div class="workflow-header">
+        <div class="workflow-title">
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:4px;">
+            <h1>Pianificazione Produzione & Scorte Intelligenti</h1>
+            <span class="source-badge"><span class="dot"></span> Dati Live Google Drive (Articoli & Ordini)</span>
+          </div>
+          <p>Algoritmo auto-apprenditivo: calcola lead time reale storico dagli ordini evasi e ottimizza punto di riordino (ROP), scorta minima e lotti di fabbricazione</p>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" id="btnRefreshProd" class="btn secondary">🔄 Ricalcola dati Google Drive</button>
+          <button type="button" id="btnExportProdCsv" class="btn secondary">📥 Esporta CSV</button>
+          <button type="button" id="btnPrintProduction" class="btn primary">🖨️ Stampa Ordine Produzione</button>
+        </div>
+      </div>
+
+      <!-- KPI METRICS SUMMARY -->
+      <div class="stats-row">
+        <div class="stat-pill" style="border-left: 4px solid #ef4444;">
+          <small>🚨 Sottoscorta / Critici</small>
+          <div class="num" id="prodStatCritical" style="color: #991b1b;">0</div>
+          <span class="sub" style="color: #991b1b;" id="prodStatCriticalSub">Rischio rottura immediato</span>
+        </div>
+        <div class="stat-pill" style="border-left: 4px solid #f97316;">
+          <small>🏭 Da Produrre (Sotto ROP)</small>
+          <div class="num" id="prodStatReorder" style="color: #c2410c;">0</div>
+          <span class="sub" style="color: #c2410c;" id="prodStatReorderSub">Sotto punto riordino</span>
+        </div>
+        <div class="stat-pill" style="border-left: 4px solid #0284c7;">
+          <small>📦 Pezzi Totali da Produrre</small>
+          <div class="num" id="prodStatPieces" style="color: #0369a1;">0</div>
+          <span class="sub" style="color: #0369a1;" id="prodStatPiecesSub">Lotti consigliati</span>
+        </div>
+        <div class="stat-pill" style="border-left: 4px solid #10b981;">
+          <small>⏱️ Lead Time Reale Appreso</small>
+          <div class="num" id="prodStatLeadTime">-- gg</div>
+          <span class="sub" id="prodStatLeadTimeSub">Media da spedizioni reali</span>
+        </div>
+        <div class="stat-pill" style="border-left: 4px solid #8b5cf6;">
+          <small>📋 Impegnato Ordini Aperti</small>
+          <div class="num" id="prodStatCommitted" style="color: #6d28d9;">0</div>
+          <span class="sub" style="color: #6d28d9;" id="prodStatCommittedSub">Pezzi richiesti da clienti</span>
+        </div>
+      </div>
+
+      <!-- FILTER TABS FOR PRODUCTION -->
+      <div class="filter-tabs">
+        <button type="button" class="tab-btn prod-tab active" data-filter="all">Tutti gli Articoli <span class="badge" id="prodTabCountAll">0</span></button>
+        <button type="button" class="tab-btn prod-tab" data-filter="CRITICO">🚨 Critici / Rottura <span class="badge" id="prodTabCountCritical">0</span></button>
+        <button type="button" class="tab-btn prod-tab" data-filter="RIORDINO">🟠 Da Produrre (ROP) <span class="badge" id="prodTabCountReorder">0</span></button>
+        <button type="button" class="tab-btn prod-tab" data-filter="OTTIMALE">🟢 Scorta Ottimale <span class="badge" id="prodTabCountOptimal">0</span></button>
+        <button type="button" class="tab-btn prod-tab" data-filter="OVERSTOCK">🔵 Overstock <span class="badge" id="prodTabCountOverstock">0</span></button>
+      </div>
+
+      <!-- SEARCH & FAMILY FILTER -->
+      <div class="search-bar">
+        <input type="text" id="prodSearchInput" class="search-input" placeholder="🔍 Cerca per codice articolo, descrizione, marca o famiglia…">
+        <select id="prodFamilyFilter" class="search-input" style="max-width:240px;">
+          <option value="">Tutte le Famiglie / Linee</option>
+        </select>
+      </div>
+
+      <!-- PRODUCTION TABLE -->
+      <div class="table-container">
+        <table class="prod-table">
+          <thead>
+            <tr>
+              <th style="width:105px;">Codice</th>
+              <th>Descrizione & Famiglia</th>
+              <th style="text-align:center;">Giacenza Live (Drive)</th>
+              <th style="text-align:center;">Impegnato Clienti</th>
+              <th style="text-align:center;">Disp. Netta</th>
+              <th style="text-align:center;">Lead Time Appreso</th>
+              <th style="text-align:center;">Consumo / gg</th>
+              <th style="text-align:center;">Scorta Min (SS)</th>
+              <th style="text-align:center;">Punto Riordino (ROP)</th>
+              <th style="text-align:center;">Scorta Max</th>
+              <th style="text-align:center;">Lotto Min</th>
+              <th style="text-align:center; background:#e0f2fe; color:#0369a1;">PRODUCI SUBITO</th>
+              <th style="text-align:center;">Stato Urgenza</th>
+              <th style="text-align:center; width:90px;">Parametri</th>
+            </tr>
+          </thead>
+          <tbody id="productionTableBody">
+            <tr>
+              <td colspan="14" style="text-align:center; padding:40px; color:var(--muted);">
+                Caricamento dati di produzione e calcolo algoritmo da Google Drive in corso…
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ALGORITHM EXPLANATION CARD -->
+      <div class="info-card">
+        <h3>💡 Come funziona l'algoritmo auto-apprenditivo di produzione</h3>
+        <p style="margin:0; font-size:.85rem; color:#64748b;">
+          Tutti i parametri vengono calcolati esclusivamente estraendo lo storico ordini e le giacenze attuali presenti sui file Google Drive aziendali.
+        </p>
+        <div class="info-grid">
+          <div class="info-block">
+            <strong>1. Apprendimento Tempo di Evasione / Produzione</strong>
+            L'algoritmo misura per ogni ordine evaso su Google Drive i giorni effettivi trascorsi tra <em>data inserimento ordine</em> e <em>data spedizione/DDT</em>.
+            <div class="formula-tag">L_reale = Data_Spedizione - Data_Ordine</div>
+          </div>
+          <div class="info-block">
+            <strong>2. Scorta Minima di Sicurezza Dinamica (SS)</strong>
+            Basata sulla formula di King (Service Level 95%, Z=1.65): assorbe sia la variabilità della domanda dei clienti sia le incertezze del tempo di produzione.
+            <div class="formula-tag">SS = 1.65 × √(L × σ_D² + D² × σ_L²)</div>
+          </div>
+          <div class="info-block">
+            <strong>3. Punto di Riordino (ROP)</strong>
+            Rappresenta la soglia di allerta: quando la giacenza libera (Giacenza reale − Ordini clienti aperti) scende sotto il ROP, scatta il fabbisogno di produzione.
+            <div class="formula-tag">ROP = (Domanda_Media × L) + SS</div>
+          </div>
+          <div class="info-block">
+            <strong>4. Fabbisogno e Lotti di Produzione</strong>
+            La quantità consigliata copre il fabbisogno fino alla Scorta Massima calcolata ed è sempre arrotondata al multiplo del lotto minimo per ottimizzare i costi di setup.
+            <div class="formula-tag">Q_prod = ⌈(MaxStock − Disp) / LottoMin⌉ × LottoMin</div>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
+
+  <!-- MODAL: MODIFICA PARAMETRI PRODUZIONE ARTICOLO -->
+  <dialog id="prodParamModal" style="width: min(550px, calc(100vw - 28px));">
+    <form id="prodParamForm" method="dialog">
+      <div class="dialog-head">
+        <div>
+          <h2 id="modalProdTitle">Parametri Produzione Articolo</h2>
+          <p id="modalProdDesc">Personalizza tempi e lotti su Google Sheets (Parametri_Produzione)</p>
+        </div>
+        <button type="button" class="icon-btn" onclick="$('prodParamModal').close()">✕</button>
+      </div>
+
+      <input type="hidden" id="modalProdCode">
+
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; margin-bottom:14px; font-size:.85rem;">
+        <div>Codice: <strong id="modalProdCodeLabel">--</strong></div>
+        <div>Descrizione: <strong id="modalProdNameLabel">--</strong></div>
+        <div>Giacenza attuale Google Drive: <strong id="modalProdStockLabel">--</strong></div>
+      </div>
+
+      <div class="two-cols" style="margin-bottom:12px;">
+        <div class="field">
+          <span>Tempo Stimato di Produzione (giorni)</span>
+          <input type="number" id="modalLeadTime" min="1" max="90" placeholder="Es. 7 (default auto-appreso)">
+          <small style="color:var(--muted); font-size:.72rem;">Se vuoto, usa la media appresa dagli ordini reali</small>
+        </div>
+        <div class="field">
+          <span>Lotto Minimo di Produzione (pz)</span>
+          <input type="number" id="modalMinLot" min="1" max="1000" placeholder="Es. 12">
+          <small style="color:var(--muted); font-size:.72rem;">Multiplo di lavorazione</small>
+        </div>
+      </div>
+
+      <div class="two-cols" style="margin-bottom:12px;">
+        <div class="field">
+          <span>Scorta Minima Manuale (opzionale)</span>
+          <input type="number" id="modalManualMinStock" min="0" placeholder="Auto-calcolata se vuota">
+        </div>
+        <div class="field">
+          <span>Scorta Massima Manuale (opzionale)</span>
+          <input type="number" id="modalManualMaxStock" min="0" placeholder="Auto-calcolata se vuota">
+        </div>
+      </div>
+
+      <div class="field" style="margin-bottom:14px;">
+        <span>Note di Produzione / Istruzioni Reparto</span>
+        <textarea id="modalProdNotes" rows="2" placeholder="Es. Materie prime speciali, packaging dedicato..."></textarea>
+      </div>
+
+      <div class="dialog-actions">
+        <button type="button" class="btn secondary" onclick="$('prodParamModal').close()">Annulla</button>
+        <button type="submit" id="btnSaveProdParam" class="btn primary">💾 Salva su Google Sheets</button>
+      </div>
+    </form>
+  </dialog>
 
   <!-- MODAL: AGGIORNA STATO E SPEDIZIONE -->
   <dialog id="statusModal">
@@ -509,6 +880,25 @@
       if (!ord) return;
 
       const dateStr = ord.submitted_at ? new Date(ord.submitted_at).toLocaleDateString('it-IT') : new Date().toLocaleDateString('it-IT');
+      const lines = ord.payload?.lines || [];
+      const linesHtml = lines.length > 0 ? lines.map((l, idx) => `
+        <tr>
+          <td class="center"><span style="display:inline-block; width:18px; height:18px; border:2px solid #334155; border-radius:3px;"></span></td>
+          <td><strong>${l.code || 'ART'}</strong></td>
+          <td>${l.description || 'Articolo'}</td>
+          <td class="center" style="font-weight:800; font-size:1.05rem; color:#0369a1;">${l.quantity || 1}</td>
+          <td>${l.location || 'Magazzino / Picking'}</td>
+        </tr>
+      `).join('') : `
+        <tr>
+          <td class="center"><span style="display:inline-block; width:18px; height:18px; border:2px solid #334155; border-radius:3px;"></span></td>
+          <td><strong>Articoli Ordine</strong></td>
+          <td>Totale Documento: ${euro(ord.total)}</td>
+          <td class="center">1 compl.</td>
+          <td>Pallet / Scatola</td>
+        </tr>
+      `;
+
       $('printableArea').innerHTML = `
         <div class="print-header">
           <div>
@@ -537,13 +927,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td class="center"><span style="display:inline-block; width:18px; height:18px; border:2px solid #334155; border-radius:3px;"></span></td>
-              <td><strong>Articoli Ordine</strong></td>
-              <td>Totale Documento: ${euro(ord.total)}</td>
-              <td class="center">1 compl.</td>
-              <td>Pallet / Scatola</td>
-            </tr>
+            ${linesHtml}
           </tbody>
         </table>
 
@@ -562,6 +946,22 @@
 
       const ddtNum = ord.ddt_number || `DDT-${new Date().getFullYear()}-${(ord.number || '').slice(-4)}`;
       const ddtDate = ord.ddt_date || new Date().toISOString().slice(0, 10);
+      const lines = ord.payload?.lines || [];
+      const linesHtml = lines.length > 0 ? lines.map((l, idx) => `
+        <tr>
+          <td class="center">${idx + 1}</td>
+          <td><strong>${l.code || ''}</strong> - ${l.description || ''}</td>
+          <td class="center">PZ</td>
+          <td class="center" style="font-weight:800;">${l.quantity || 1}</td>
+        </tr>
+      `).join('') : `
+        <tr>
+          <td class="center">1</td>
+          <td>Merce come da ordine commerciale ${ord.number}</td>
+          <td class="center">PZ</td>
+          <td class="center">Conf.</td>
+        </tr>
+      `;
 
       $('printableArea').innerHTML = `
         <div class="print-header">
@@ -592,19 +992,14 @@
         <table class="print-table">
           <thead>
             <tr>
-              <th style="width:50px;">Pos.</th>
+              <th style="width:50px;" class="center">Pos.</th>
               <th>Descrizione Beni</th>
               <th style="width:70px;" class="center">U.M.</th>
               <th style="width:80px;" class="center">Quantità</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>1</td>
-              <td>Merce come da ordine commerciale ${ord.number}</td>
-              <td class="center">PZ</td>
-              <td class="center">Conf.</td>
-            </tr>
+            ${linesHtml}
           </tbody>
         </table>
 
@@ -615,6 +1010,350 @@
         </div>
       `;
       $('printModal').showModal();
+    }
+
+    // -------------------------------------------------------------
+    // PRODUCTION & INVENTORY OPTIMIZATION ENGINE (CLIENT SIDE)
+    // -------------------------------------------------------------
+    let allProduction = [];
+    let productionKpi = {};
+    let currentProdFilter = 'all';
+    let currentMainView = 'orders';
+
+    function switchMainView(mode) {
+      currentMainView = mode;
+      if (mode === 'production') {
+        $('btnModeOrders').classList.remove('active');
+        $('btnModeProduction').classList.add('active');
+        $('sectionOrders').style.display = 'none';
+        $('sectionProduction').style.display = 'block';
+        window.location.hash = '#produzione';
+        if (!allProduction.length) {
+          loadProductionAnalysis();
+        }
+      } else {
+        $('btnModeProduction').classList.remove('active');
+        $('btnModeOrders').classList.add('active');
+        $('sectionProduction').style.display = 'none';
+        $('sectionOrders').style.display = 'block';
+        window.location.hash = '#ordini';
+      }
+    }
+
+    async function loadProductionAnalysis() {
+      $('productionTableBody').innerHTML = `
+        <tr>
+          <td colspan="14" style="text-align:center; padding:40px; color:var(--muted);">
+            🔄 Connessione a Google Drive in corso… calcolo tempi reali e fabbisogni…
+          </td>
+        </tr>
+      `;
+
+      try {
+        const res = await fetch('/api/production/analysis');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        allProduction = data.analysis || [];
+        productionKpi = data.kpi || {};
+
+        // Update KPI metrics
+        $('prodStatCritical').textContent = productionKpi.criticalCount || 0;
+        $('prodStatReorder').textContent = productionKpi.reorderCount || 0;
+        $('prodStatPieces').textContent = (productionKpi.totalPiecesToProduce || 0).toLocaleString('it-IT');
+        $('prodStatLeadTime').textContent = `${productionKpi.companyAvgLeadTimeDays || 7} gg`;
+        $('prodStatLeadTimeSub').textContent = `Su ${productionKpi.shippedOrdersAnalyzed || 0} spedizioni reali analizzate`;
+        $('prodStatCommitted').textContent = (productionKpi.totalCommittedPieces || 0).toLocaleString('it-IT');
+
+        // Tab counts
+        $('prodTabCountAll').textContent = allProduction.length;
+        $('prodTabCountCritical').textContent = productionKpi.criticalCount || 0;
+        $('prodTabCountReorder').textContent = productionKpi.reorderCount || 0;
+        $('prodTabCountOptimal').textContent = productionKpi.optimalCount || 0;
+        $('prodTabCountOverstock').textContent = productionKpi.overstockCount || 0;
+
+        // Populate family filter
+        const families = Array.from(new Set(allProduction.map(x => x.family || x.macroFamily).filter(Boolean))).sort();
+        const famSelect = $('prodFamilyFilter');
+        famSelect.innerHTML = '<option value="">Tutte le Famiglie / Linee</option>' +
+          families.map(f => `<option value="${escapeHtml(f)}">${escapeHtml(f)}</option>`).join('');
+
+        renderProduction();
+      } catch (err) {
+        console.error('Error loading production analysis:', err);
+        $('productionTableBody').innerHTML = `
+          <tr>
+            <td colspan="14" style="text-align:center; padding:40px; color:#c5221f;">
+              Errore caricamento analisi produzione: ${err.message}. Riprova tra poco.
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    function renderProduction() {
+      const term = $('prodSearchInput').value.trim().toLowerCase();
+      const selectedFamily = $('prodFamilyFilter').value;
+
+      const filtered = allProduction.filter(item => {
+        if (currentProdFilter !== 'all' && item.urgency !== currentProdFilter) return false;
+        if (selectedFamily && (item.family !== selectedFamily && item.macroFamily !== selectedFamily)) return false;
+        if (term) {
+          const haystack = `${item.code} ${item.description} ${item.brand} ${item.family}`.toLowerCase();
+          if (!haystack.includes(term)) return false;
+        }
+        return true;
+      });
+
+      if (!filtered.length) {
+        $('productionTableBody').innerHTML = `
+          <tr>
+            <td colspan="14" style="text-align:center; padding:40px; color:var(--muted);">
+              Nessun articolo corrisponde ai filtri selezionati.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      $('productionTableBody').innerHTML = filtered.map(item => {
+        const prodBadge = item.suggestedProduction > 0
+          ? `<span class="qty-produce-badge">+${item.suggestedProduction} pz</span>`
+          : `<span class="qty-produce-zero">—</span>`;
+
+        const urgencyBadge = `<span class="urgency-badge ${item.urgencyClass}">${item.urgencyIcon} ${item.urgency}</span>`;
+
+        return `
+          <tr>
+            <td>
+              <strong style="font-family:monospace; font-size:.9rem; color:var(--navy);">${escapeHtml(item.code)}</strong>
+            </td>
+            <td>
+              <div style="font-weight:700; color:#1e293b;">${escapeHtml(item.description)}</div>
+              <div style="font-size:.74rem; color:var(--muted);">${escapeHtml(item.brand || '')} ${item.family ? `· ${escapeHtml(item.family)}` : ''}</div>
+            </td>
+            <td style="text-align:center; font-weight:750;">
+              ${item.currentStock}
+            </td>
+            <td style="text-align:center; color:#6d28d9; font-weight:750;">
+              ${item.committedQty > 0 ? `-${item.committedQty}` : '0'}
+            </td>
+            <td style="text-align:center; font-weight:800; color:${item.freeStock <= 0 ? '#dc2626' : (item.freeStock <= item.reorderPoint ? '#ea580c' : '#16a34a')};">
+              ${item.freeStock}
+            </td>
+            <td style="text-align:center;">
+              <strong>${item.effectiveLeadTime} gg</strong>
+              <div class="learned-chip">${escapeHtml(item.leadTimeSource || '')}</div>
+            </td>
+            <td style="text-align:center;">
+              ${item.dailyDemand > 0 ? `${item.dailyDemand} /gg` : '0'}
+            </td>
+            <td style="text-align:center; color:#475569;">
+              ${item.safetyStock}
+            </td>
+            <td style="text-align:center; font-weight:700; color:#c2410c;">
+              ${item.reorderPoint}
+            </td>
+            <td style="text-align:center; color:#475569;">
+              ${item.maxStock}
+            </td>
+            <td style="text-align:center;">
+              ${item.minProductionLot} pz
+            </td>
+            <td style="text-align:center; background:rgba(2, 132, 199, 0.05);">
+              ${prodBadge}
+            </td>
+            <td style="text-align:center;">
+              ${urgencyBadge}
+            </td>
+            <td style="text-align:center;">
+              <button type="button" class="btn secondary btn-sm" onclick="openProdParamModal('${escapeHtml(item.code)}')">⚙️ Modifica</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Filter clicks for production tabs
+    document.querySelectorAll('.prod-tab').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('.prod-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentProdFilter = btn.dataset.filter;
+        renderProduction();
+      };
+    });
+
+    $('prodSearchInput').oninput = renderProduction;
+    $('prodFamilyFilter').onchange = renderProduction;
+    $('btnRefreshProd').onclick = loadProductionAnalysis;
+
+    // Modal Edit Article Production Parameters
+    function openProdParamModal(code) {
+      const item = allProduction.find(x => x.code === code);
+      if (!item) return;
+
+      $('modalProdCode').value = item.code;
+      $('modalProdCodeLabel').textContent = item.code;
+      $('modalProdNameLabel').textContent = item.description;
+      $('modalProdStockLabel').textContent = `${item.currentStock} pezzi (Disponibile netto: ${item.freeStock})`;
+      $('modalLeadTime').value = item.effectiveLeadTime || '';
+      $('modalMinLot').value = item.minProductionLot || '';
+      $('modalManualMinStock').value = item.safetyStock || '';
+      $('modalManualMaxStock').value = item.maxStock || '';
+      $('modalProdNotes').value = item.notes || '';
+
+      $('prodParamModal').showModal();
+    }
+
+    $('prodParamForm').onsubmit = async e => {
+      e.preventDefault();
+      const code = $('modalProdCode').value;
+      const data = {
+        code,
+        leadTimeDays: $('modalLeadTime').value ? Number($('modalLeadTime').value) : null,
+        minProductionLot: $('modalMinLot').value ? Number($('modalMinLot').value) : null,
+        manualSafetyStock: $('modalManualMinStock').value ? Number($('modalManualMinStock').value) : null,
+        manualMaxStock: $('modalManualMaxStock').value ? Number($('modalManualMaxStock').value) : null,
+        notes: $('modalProdNotes').value.trim()
+      };
+
+      $('btnSaveProdParam').disabled = true;
+      $('btnSaveProdParam').textContent = 'Salvataggio su Google Sheets…';
+      try {
+        const res = await fetch('/api/production/parameters', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const resp = await res.json();
+        if (!res.ok) throw new Error(resp.error || 'Errore salvataggio parametri');
+        toast('Parametri di produzione salvati su Google Sheets!');
+        $('prodParamModal').close();
+        await loadProductionAnalysis();
+      } catch (err) {
+        toast(`Errore: ${err.message}`);
+      } finally {
+        $('btnSaveProdParam').disabled = false;
+        $('btnSaveProdParam').textContent = '💾 Salva su Google Sheets';
+      }
+    };
+
+    // Print Production Plan
+    $('btnPrintProduction').onclick = () => {
+      if (!allProduction.length) return;
+      const toProduce = allProduction.filter(x => x.suggestedProduction > 0);
+      const dateStr = new Date().toLocaleDateString('it-IT');
+
+      const rowsHtml = toProduce.length > 0 ? toProduce.map((item, idx) => `
+        <tr>
+          <td class="center">${idx + 1}</td>
+          <td><strong>${escapeHtml(item.code)}</strong></td>
+          <td>${escapeHtml(item.description)}</td>
+          <td class="center">${item.currentStock}</td>
+          <td class="center" style="color:#6d28d9;">${item.committedQty}</td>
+          <td class="center" style="font-weight:700;">${item.freeStock}</td>
+          <td class="center">${item.minProductionLot} pz</td>
+          <td class="center" style="font-size:1.1rem; font-weight:800; color:#0369a1; background:#f0f9ff;">+${item.suggestedProduction} PZ</td>
+          <td class="center"><span class="urgency-badge ${item.urgencyClass}">${item.urgency}</span></td>
+        </tr>
+      `).join('') : `
+        <tr>
+          <td colspan="9" style="text-align:center; padding:30px;">Tutti i prodotti risultano con giacenza ottimale. Nessun lotto urgente da produrre.</td>
+        </tr>
+      `;
+
+      $('printableArea').innerHTML = `
+        <div class="print-header">
+          <div>
+            <h1 class="print-title">🏭 SCHEDA PIANIFICAZIONE PRODUZIONE</h1>
+            <div style="font-size:1.05rem; font-weight:700; color:#334155; margin-top:4px;">Ordine di ripristino scorte & fabbisogni clienti</div>
+          </div>
+          <div style="text-align:right;">
+            <div><strong>Data Emissione:</strong> ${dateStr}</div>
+            <div><strong>Fonte Dati:</strong> Google Drive (Real-time)</div>
+          </div>
+        </div>
+
+        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:12px 16px; margin-bottom:20px; font-size:.88rem; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+          <div>Articoli da produrre: <strong>${toProduce.length}</strong></div>
+          <div>Pezzi complessivi da fabbricare: <strong>${(productionKpi.totalPiecesToProduce || 0).toLocaleString('it-IT')} PZ</strong></div>
+          <div>Tempo medio evasione appreso: <strong>${productionKpi.companyAvgLeadTimeDays || 7} giorni</strong></div>
+        </div>
+
+        <table class="print-table">
+          <thead>
+            <tr>
+              <th style="width:40px;" class="center">Pos.</th>
+              <th style="width:110px;">Codice</th>
+              <th>Descrizione Articolo</th>
+              <th style="width:70px;" class="center">Giacenza</th>
+              <th style="width:70px;" class="center">Impegnato</th>
+              <th style="width:70px;" class="center">Disponibile</th>
+              <th style="width:75px;" class="center">Lotto Min</th>
+              <th style="width:110px;" class="center">LOTTO DA PRODURRE</th>
+              <th style="width:90px;" class="center">Urgenza</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-top:50px; padding-top:20px; border-top:1px solid #cbd5e1; font-size:.82rem;">
+          <div>Responsabile Produzione:<br><br>______________________</div>
+          <div>Capo Magazzino / Materie:<br><br>______________________</div>
+          <div>Controllo Qualità & Consegna:<br><br>______________________</div>
+        </div>
+      `;
+      $('printModal').showModal();
+    };
+
+    // Export Production CSV
+    $('btnExportProdCsv').onclick = () => {
+      if (!allProduction.length) return;
+      const headers = ['Codice', 'Descrizione', 'Marca', 'Famiglia', 'Giacenza_Drive', 'Impegnato_Ordini', 'Disponibile_Netto', 'Lead_Time_Appreso_gg', 'Consumo_Giornaliero', 'Scorta_Minima_SS', 'Punto_Riordino_ROP', 'Scorta_Massima', 'Lotto_Minimo', 'Quantita_Da_Produrre', 'Stato_Urgenza'];
+      const rows = allProduction.map(x => [
+        `"${x.code}"`,
+        `"${(x.description || '').replace(/"/g, '""')}"`,
+        `"${(x.brand || '').replace(/"/g, '""')}"`,
+        `"${(x.family || '').replace(/"/g, '""')}"`,
+        x.currentStock,
+        x.committedQty,
+        x.freeStock,
+        x.effectiveLeadTime,
+        x.dailyDemand,
+        x.safetyStock,
+        x.reorderPoint,
+        x.maxStock,
+        x.minProductionLot,
+        x.suggestedProduction,
+        x.urgency
+      ]);
+
+      const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `piano_produzione_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, m => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[m]));
+    }
+
+    // Initial page router based on hash
+    if (window.location.hash === '#produzione') {
+      switchMainView('production');
     }
 
     loadOrders();

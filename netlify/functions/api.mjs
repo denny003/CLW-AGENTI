@@ -730,6 +730,11 @@ async function fetchProductsData(customId, customTab) {
       const disegnoIdx = colExact('disegno') >= 0 ? colExact('disegno') : col('disegno');
       const discCodeIdx = col('jscontoven');
       const maxDiscIdx = colExact('screale') >= 0 ? colExact('screale') : col('sconto');
+      const leadTimeIdx = col('lead_time') >= 0 ? col('lead_time') : (col('tempo_prod') >= 0 ? col('tempo_prod') : (col('tempo produzione') >= 0 ? col('tempo produzione') : col('leadtime')));
+      const minLotIdx = col('lotto_min') >= 0 ? col('lotto_min') : (col('min_lot') >= 0 ? col('min_lot') : (col('lotto') >= 0 ? col('lotto') : col('lotto minimo')));
+      const minStockIdx = col('scorta_min') >= 0 ? col('scorta_min') : (col('min_stock') >= 0 ? col('min_stock') : col('scorta_sicurezza'));
+      const maxStockIdx = col('scorta_max') >= 0 ? col('scorta_max') : (col('max_stock') >= 0 ? col('max_stock') : col('scorta massima'));
+      const ropIdx = col('punto_riordino') >= 0 ? col('punto_riordino') : (col('rop') >= 0 ? col('rop') : col('riordino'));
 
       const products = [];
       for (let i = 1; i < rows.length; i++) {
@@ -743,6 +748,11 @@ async function fetchProductsData(customId, customTab) {
         const price = r[priceIdx] != null ? Number(r[priceIdx]) : 0;
         const stock = r[stockIdx] != null ? Number(r[stockIdx]) : 0;
         const maxDisc = r[maxDiscIdx] != null ? Number(r[maxDiscIdx]) : 60;
+        const leadDays = leadTimeIdx >= 0 && r[leadTimeIdx] != null && !isNaN(parseFloat(r[leadTimeIdx])) ? parseFloat(r[leadTimeIdx]) : null;
+        const minLot = minLotIdx >= 0 && r[minLotIdx] != null && !isNaN(parseFloat(r[minLotIdx])) ? parseFloat(r[minLotIdx]) : null;
+        const minStk = minStockIdx >= 0 && r[minStockIdx] != null && !isNaN(parseFloat(r[minStockIdx])) ? parseFloat(r[minStockIdx]) : null;
+        const maxStk = maxStockIdx >= 0 && r[maxStockIdx] != null && !isNaN(parseFloat(r[maxStockIdx])) ? parseFloat(r[maxStockIdx]) : null;
+        const ropVal = ropIdx >= 0 && r[ropIdx] != null && !isNaN(parseFloat(r[ropIdx])) ? parseFloat(r[ropIdx]) : null;
 
         products.push({
           id: caId,
@@ -759,7 +769,12 @@ async function fetchProductsData(customId, customTab) {
           imageUrl: String(r[imageIdx] || '').trim(),
           discountCode: String(r[discCodeIdx] || '').trim(),
           maxDiscount: Number.isFinite(maxDisc) ? Math.min(100, Math.max(0, maxDisc)) : 60,
-          vat: 22
+          vat: 22,
+          leadTimeDays: leadDays,
+          minProductionLot: minLot,
+          safetyStock: minStk,
+          maxStock: maxStk,
+          reorderPoint: ropVal
         });
       }
 
@@ -1841,6 +1856,399 @@ async function saveProspect(data, user) {
   return { ok: true, id, prospect: { ...data, id, agentCode } };
 }
 
+// -------------------------------------------------------------
+// PRODUCTION & INVENTORY INTELLIGENCE (SELF-LEARNING ALGORITHM)
+// -------------------------------------------------------------
+
+async function fetchProductionParameters(customId) {
+  const regId = cleanEnvId(customId) || runtimeConfig.repository.spreadsheetId || OFFICIAL_SYSTEM_SPREADSHEETS.repository.spreadsheetId;
+  await ensureSheetTab(regId, 'Parametri_Produzione');
+  const rows = await readRange(regId, "'Parametri_Produzione'!A1:H500").catch(() => []);
+  if (!rows || rows.length <= 1) return {};
+
+  const header = rows[0].map(c => String(c || '').toLowerCase().trim());
+  const col = name => header.findIndex(h => h.includes(name));
+  const codeIdx = col('codice') >= 0 ? col('codice') : 0;
+  const leadIdx = col('tempo') >= 0 ? col('tempo') : 1;
+  const lotIdx = col('lotto') >= 0 ? col('lotto') : 2;
+  const minStockIdx = col('min') >= 0 ? col('min') : 3;
+  const maxStockIdx = col('max') >= 0 ? col('max') : 4;
+  const notesIdx = col('note') >= 0 ? col('note') : 5;
+
+  const map = {};
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r || !r[codeIdx]) continue;
+    const code = String(r[codeIdx]).trim();
+    map[code] = {
+      code,
+      leadTimeDays: r[leadIdx] != null && !isNaN(parseFloat(r[leadIdx])) ? parseFloat(r[leadIdx]) : null,
+      minProductionLot: r[lotIdx] != null && !isNaN(parseFloat(r[lotIdx])) ? parseFloat(r[lotIdx]) : null,
+      manualSafetyStock: r[minStockIdx] != null && !isNaN(parseFloat(r[minStockIdx])) ? parseFloat(r[minStockIdx]) : null,
+      manualMaxStock: r[maxStockIdx] != null && !isNaN(parseFloat(r[maxStockIdx])) ? parseFloat(r[maxStockIdx]) : null,
+      notes: r[notesIdx] ? String(r[notesIdx]).trim() : ''
+    };
+  }
+  return map;
+}
+
+async function saveProductionParameters(paramItem, user, customId) {
+  const regId = cleanEnvId(customId) || runtimeConfig.repository.spreadsheetId || OFFICIAL_SYSTEM_SPREADSHEETS.repository.spreadsheetId;
+  await ensureSheetTab(regId, 'Parametri_Produzione');
+
+  const rows = await readRange(regId, "'Parametri_Produzione'!A1:H500").catch(() => []);
+  if (!rows || rows.length === 0) {
+    const header = ['Codice Articolo', 'Tempo Produzione Stimato (gg)', 'Lotto Minimo Produzione', 'Scorta Minima Manuale', 'Scorta Massima Manuale', 'Note Produzione', 'Ultimo Aggiornamento', 'Aggiornato Da'];
+    await append(regId, "'Parametri_Produzione'!A1", [header]);
+  }
+
+  const code = String(paramItem.code || paramItem.articleCode || '').trim();
+  if (!code) throw new Error('Codice articolo mancante');
+
+  const now = new Date().toISOString();
+  const userName = user?.name || user?.username || 'Amministrazione';
+
+  let existingRowIdx = -1;
+  if (rows && rows.length > 1) {
+    for (let i = 1; i < rows.length; i++) {
+      if (rows[i] && String(rows[i][0] || '').trim().toUpperCase() === code.toUpperCase()) {
+        existingRowIdx = i + 1;
+        break;
+      }
+    }
+  }
+
+  const row = [
+    code,
+    paramItem.leadTimeDays != null && !isNaN(parseFloat(paramItem.leadTimeDays)) ? parseFloat(paramItem.leadTimeDays) : '',
+    paramItem.minProductionLot != null && !isNaN(parseFloat(paramItem.minProductionLot)) ? parseFloat(paramItem.minProductionLot) : '',
+    paramItem.manualSafetyStock != null && !isNaN(parseFloat(paramItem.manualSafetyStock)) ? parseFloat(paramItem.manualSafetyStock) : '',
+    paramItem.manualMaxStock != null && !isNaN(parseFloat(paramItem.manualMaxStock)) ? parseFloat(paramItem.manualMaxStock) : '',
+    paramItem.notes || '',
+    now,
+    userName
+  ];
+
+  if (existingRowIdx > 0) {
+    await updateRow(regId, `'Parametri_Produzione'!A${existingRowIdx}:H${existingRowIdx}`, [row]);
+  } else {
+    await append(regId, "'Parametri_Produzione'!A:H", [row]);
+  }
+
+  return { ok: true, code, paramItem };
+}
+
+async function calculateProductionIntelligence(user, customProductsId, customRepositoryId) {
+  // 1. Fetch live products from Google Sheets Articoli
+  const prRes = await fetchProductsData(customProductsId);
+  const products = prRes.products || [];
+
+  // 2. Fetch parameters overrides from Google Sheets Parametri_Produzione
+  const paramMap = await fetchProductionParameters(customRepositoryId);
+
+  // 3. Fetch all orders from Google Sheets Ordini
+  const adminUser = { role: 'admin' };
+  const orders = await listDocs(runtimeConfig.repository.tabOrders || 'Ordini', adminUser, customRepositoryId);
+
+  // 4. Learning Lead Times and Demand per Article
+  const articleStats = {};
+  const familyLeadTimes = {};
+  const globalLeadTimes = [];
+
+  const nowMs = Date.now();
+  const thirtyDaysAgoMs = nowMs - (30 * 86400000);
+  let minOrderDateMs = nowMs;
+
+  for (const ord of orders) {
+    let orderDateMs = ord.submitted_at ? new Date(ord.submitted_at).getTime() : 0;
+    if (!orderDateMs || isNaN(orderDateMs)) {
+      orderDateMs = ord.updated_at ? new Date(ord.updated_at).getTime() : nowMs;
+    }
+    if (orderDateMs < minOrderDateMs && orderDateMs > 0) {
+      minOrderDateMs = orderDateMs;
+    }
+
+    // Lead time measurement: if shipping_date or ddt_date is present
+    let shipDateMs = 0;
+    if (ord.shipping_date) {
+      const parsed = new Date(ord.shipping_date).getTime();
+      if (!isNaN(parsed)) shipDateMs = parsed;
+    }
+    if (!shipDateMs && ord.ddt_date) {
+      const parsed = new Date(ord.ddt_date).getTime();
+      if (!isNaN(parsed)) shipDateMs = parsed;
+    }
+
+    let measuredLeadDays = null;
+    if (shipDateMs > 0 && orderDateMs > 0 && shipDateMs >= orderDateMs) {
+      const diffDays = Math.max(1, Math.round((shipDateMs - orderDateMs) / 86400000));
+      if (diffDays <= 120) {
+        measuredLeadDays = diffDays;
+        globalLeadTimes.push(diffDays);
+      }
+    }
+
+    const isClosed = ord.workflow_status === 'spedito' || ord.workflow_status === 'fatturato' || ord.workflow_status === 'respinto';
+    const lines = ord.payload?.lines || [];
+
+    for (const l of lines) {
+      const code = String(l.code || '').trim();
+      if (!code) continue;
+      const qty = Number(l.quantity) || 1;
+
+      if (!articleStats[code]) {
+        articleStats[code] = {
+          leadTimes: [],
+          totalOrderedQty: 0,
+          ordersCount: 0,
+          recent30Qty: 0,
+          committedQty: 0
+        };
+      }
+
+      const st = articleStats[code];
+      st.totalOrderedQty += qty;
+      st.ordersCount += 1;
+
+      if (orderDateMs >= thirtyDaysAgoMs) {
+        st.recent30Qty += qty;
+      }
+
+      if (!isClosed) {
+        st.committedQty += qty;
+      }
+
+      if (measuredLeadDays != null) {
+        st.leadTimes.push(measuredLeadDays);
+      }
+    }
+  }
+
+  // Global learned average lead time
+  const globalAvgLead = globalLeadTimes.length > 0
+    ? globalLeadTimes.reduce((a, b) => a + b, 0) / globalLeadTimes.length
+    : 7.0;
+
+  // Compute family lead times
+  for (const pr of products) {
+    const st = articleStats[pr.code];
+    const fam = pr.family || pr.macroFamily || 'STANDARD';
+    if (!familyLeadTimes[fam]) familyLeadTimes[fam] = [];
+    if (st && st.leadTimes.length > 0) {
+      familyLeadTimes[fam].push(...st.leadTimes);
+    }
+  }
+
+  const familyAvgMap = {};
+  for (const [fam, times] of Object.entries(familyLeadTimes)) {
+    familyAvgMap[fam] = times.length > 0
+      ? times.reduce((a, b) => a + b, 0) / times.length
+      : globalAvgLead;
+  }
+
+  // Observation horizon in days (min 30 days)
+  const observationDays = Math.max(30, Math.round((nowMs - minOrderDateMs) / 86400000));
+
+  // Build complete analysis per product
+  const analysis = [];
+  let criticalCount = 0;
+  let reorderCount = 0;
+  let optimalCount = 0;
+  let overstockCount = 0;
+  let totalPiecesToProduce = 0;
+  let totalCommittedPieces = 0;
+
+  for (const pr of products) {
+    const code = pr.code;
+    const desc = pr.description;
+    const currentStock = Number.isFinite(pr.stock) ? pr.stock : 0;
+    const override = paramMap[code] || {};
+
+    const st = articleStats[code] || {
+      leadTimes: [],
+      totalOrderedQty: 0,
+      ordersCount: 0,
+      recent30Qty: 0,
+      committedQty: 0
+    };
+
+    totalCommittedPieces += st.committedQty;
+
+    // 1. Lead time calculation (learned vs configured)
+    const productLeadTimes = st.leadTimes;
+    const learnedLeadAvg = productLeadTimes.length > 0
+      ? (productLeadTimes.reduce((a, b) => a + b, 0) / productLeadTimes.length)
+      : null;
+
+    let learnedLeadStd = 1.0;
+    if (productLeadTimes.length > 1) {
+      const avg = learnedLeadAvg;
+      const variance = productLeadTimes.reduce((acc, v) => acc + Math.pow(v - avg, 2), 0) / productLeadTimes.length;
+      learnedLeadStd = Math.sqrt(variance);
+    } else {
+      learnedLeadStd = (learnedLeadAvg || 7) * 0.25;
+    }
+
+    const fam = pr.family || pr.macroFamily || 'STANDARD';
+    const famLeadAvg = familyAvgMap[fam] || globalAvgLead;
+
+    // Effective Lead Time priority:
+    // Manual override in Google Sheets > Product configured > Learned average from historical orders > Family average > Default
+    let effectiveLeadTime = 7;
+    let leadTimeSource = 'Default (7 gg)';
+    if (override.leadTimeDays && override.leadTimeDays > 0) {
+      effectiveLeadTime = override.leadTimeDays;
+      leadTimeSource = 'Manuale / Override';
+    } else if (pr.leadTimeDays && pr.leadTimeDays > 0) {
+      effectiveLeadTime = pr.leadTimeDays;
+      leadTimeSource = 'Da Listino Google Sheets';
+    } else if (learnedLeadAvg != null) {
+      effectiveLeadTime = Math.round(learnedLeadAvg * 10) / 10;
+      leadTimeSource = `Appreso da ordini (${productLeadTimes.length} spedizioni)`;
+    } else if (famLeadAvg > 0) {
+      effectiveLeadTime = Math.round(famLeadAvg * 10) / 10;
+      leadTimeSource = `Appreso da famiglia (${fam})`;
+    }
+
+    // 2. Demand & Run-Rate
+    const dailyDemand = st.totalOrderedQty > 0 ? (st.totalOrderedQty / observationDays) : 0;
+    const recentDailyDemand = st.recent30Qty > 0 ? (st.recent30Qty / 30) : 0;
+    const demandTrend = dailyDemand > 0 ? (recentDailyDemand / dailyDemand) : 1.0;
+    const dailyDemandStd = dailyDemand > 0 ? Math.sqrt(dailyDemand * 1.5) : 0.2;
+
+    // 3. Safety Stock (SS) calculation
+    // Service level 95% -> Z = 1.65
+    // Formula: SS = Z * sqrt( L * sigma_D^2 + D^2 * sigma_L^2 )
+    const varTerm = (effectiveLeadTime * Math.pow(dailyDemandStd, 2)) + (Math.pow(dailyDemand, 2) * Math.pow(learnedLeadStd, 2));
+    const calculatedSS = Math.max(1, Math.ceil(1.65 * Math.sqrt(Math.max(0.1, varTerm))));
+
+    const safetyStock = override.manualSafetyStock != null && override.manualSafetyStock > 0
+      ? override.manualSafetyStock
+      : (pr.safetyStock != null && pr.safetyStock > 0 ? pr.safetyStock : calculatedSS);
+
+    // 4. Reorder Point (ROP) = D * L + SS
+    const leadTimeDemand = dailyDemand * effectiveLeadTime;
+    const calculatedROP = Math.ceil(leadTimeDemand + safetyStock);
+    const reorderPoint = pr.reorderPoint != null && pr.reorderPoint > 0
+      ? pr.reorderPoint
+      : calculatedROP;
+
+    // 5. Min Production Lot
+    let minLot = 12;
+    if (override.minProductionLot && override.minProductionLot > 0) {
+      minLot = override.minProductionLot;
+    } else if (pr.minProductionLot && pr.minProductionLot > 0) {
+      minLot = pr.minProductionLot;
+    } else if (dailyDemand > 0) {
+      minLot = Math.max(6, Math.ceil(dailyDemand * 7));
+    }
+
+    // 6. Max Stock
+    const calculatedMaxStock = Math.ceil(reorderPoint + Math.max(minLot, dailyDemand * 14));
+    const maxStock = override.manualMaxStock != null && override.manualMaxStock > 0
+      ? override.manualMaxStock
+      : (pr.maxStock != null && pr.maxStock > 0 ? pr.maxStock : calculatedMaxStock);
+
+    // 7. Free Stock = Real Warehouse Stock - Committed in Open Orders
+    const freeStock = currentStock - st.committedQty;
+
+    // 8. Urgency Status & Suggested Production Quantity
+    let urgency = 'OTTIMALE';
+    let urgencyClass = 'status-ottimale';
+    let urgencyIcon = '🟢';
+    let suggestedProduction = 0;
+
+    if (freeStock <= 0 || freeStock < safetyStock) {
+      urgency = 'CRITICO';
+      urgencyClass = 'status-critico';
+      urgencyIcon = '🔴';
+      criticalCount++;
+    } else if (freeStock <= reorderPoint) {
+      urgency = 'RIORDINO';
+      urgencyClass = 'status-riordino';
+      urgencyIcon = '🟠';
+      reorderCount++;
+    } else if (freeStock > (maxStock * 1.25) && maxStock > 0) {
+      urgency = 'OVERSTOCK';
+      urgencyClass = 'status-overstock';
+      urgencyIcon = '🔵';
+      overstockCount++;
+    } else {
+      urgency = 'OTTIMALE';
+      urgencyClass = 'status-ottimale';
+      urgencyIcon = '🟢';
+      optimalCount++;
+    }
+
+    if (urgency === 'CRITICO' || urgency === 'RIORDINO') {
+      const targetDeficit = Math.max(0, maxStock - freeStock);
+      if (targetDeficit > 0) {
+        suggestedProduction = Math.ceil(targetDeficit / minLot) * minLot;
+        totalPiecesToProduce += suggestedProduction;
+      }
+    }
+
+    analysis.push({
+      code,
+      description: desc,
+      brand: pr.brand || '',
+      sector: pr.sector || '',
+      family: pr.family || '',
+      macroFamily: pr.macroFamily || '',
+      price: pr.price || 0,
+      currentStock,
+      committedQty: st.committedQty,
+      freeStock,
+      ordersCount: st.ordersCount,
+      totalOrderedQty: st.totalOrderedQty,
+      dailyDemand: Math.round(dailyDemand * 100) / 100,
+      recentDailyDemand: Math.round(recentDailyDemand * 100) / 100,
+      demandTrend: Math.round(demandTrend * 100) / 100,
+      effectiveLeadTime,
+      learnedLeadAvg: learnedLeadAvg != null ? Math.round(learnedLeadAvg * 10) / 10 : null,
+      leadTimeSamplesCount: productLeadTimes.length,
+      leadTimeSource,
+      safetyStock,
+      reorderPoint,
+      maxStock,
+      minProductionLot: minLot,
+      urgency,
+      urgencyClass,
+      urgencyIcon,
+      suggestedProduction,
+      notes: override.notes || ''
+    });
+  }
+
+  // Sort by urgency priority: CRITICO first, then RIORDINO, then OTTIMALE, then OVERSTOCK
+  const urgencyWeight = { CRITICO: 1, RIORDINO: 2, OVERSTOCK: 3, OTTIMALE: 4 };
+  analysis.sort((a, b) => {
+    const diff = (urgencyWeight[a.urgency] || 99) - (urgencyWeight[b.urgency] || 99);
+    if (diff !== 0) return diff;
+    return b.suggestedProduction - a.suggestedProduction;
+  });
+
+  return {
+    ok: true,
+    source: 'google-sheets',
+    timestamp: new Date().toISOString(),
+    kpi: {
+      totalArticles: products.length,
+      criticalCount,
+      reorderCount,
+      optimalCount,
+      overstockCount,
+      totalPiecesToProduce,
+      totalCommittedPieces,
+      companyAvgLeadTimeDays: Math.round(globalAvgLead * 10) / 10,
+      shippedOrdersAnalyzed: globalLeadTimes.length,
+      totalOrdersAnalyzed: orders.length,
+      observationDays
+    },
+    analysis
+  };
+}
+
 // Netlify Function Entry Point
 export default async (request, context) => {
   try {
@@ -2036,6 +2444,26 @@ export default async (request, context) => {
       if (!user) return json(401, { error: 'Accesso non autorizzato' });
       const body = await request.json().catch(() => ({}));
       return json(200, await saveProspect(body, user));
+    }
+
+    // Production & Warehouse Optimization Engine (Self-Learning)
+    if (path === 'production/analysis' && request.method === 'GET') {
+      const customProductsId = url.searchParams.get('productsId') || undefined;
+      const customRepositoryId = url.searchParams.get('repositoryId') || undefined;
+      const analysisRes = await calculateProductionIntelligence(user, customProductsId, customRepositoryId);
+      return json(200, analysisRes);
+    }
+
+    if (path === 'production/parameters' && request.method === 'POST') {
+      if (!user) return json(401, { error: 'Accesso non autorizzato' });
+      const body = await request.json().catch(() => ({}));
+      const customId = url.searchParams.get('id') || undefined;
+      try {
+        const result = await saveProductionParameters(body, user, customId);
+        return json(200, result);
+      } catch (err) {
+        return json(400, { error: err.message });
+      }
     }
 
     return json(404, { error: 'Servizio non disponibile: ' + path });
