@@ -195,38 +195,39 @@
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
-      margin: 4px 0;
+      margin: 2px 0;
       min-height: 110mm;
-      max-height: 130mm;
       overflow: hidden;
     }
     .ddt-items-table {
-      margin: 0 0 4px;
+      margin: 0 0 2px;
       flex: 1;
     }
     .ddt-items-table th {
       background: #f1f5f9;
-      font-size: 9.5px;
+      font-size: 8.5px;
       font-weight: 800;
       text-transform: uppercase;
-      padding: 4px 5px;
+      padding: 2.5px 5px;
       border-bottom: 1px solid #000;
+      line-height: 1.15;
     }
     .ddt-items-table td {
-      padding: 3px 5px;
-      font-size: 10px;
-      height: 20px;
+      padding: 2px 5px;
+      font-size: 9px;
+      line-height: 1.15;
+      height: 15px;
     }
     .ddt-empty-row td {
-      height: 22px;
-      border-bottom: 1px solid #e2e8f0;
+      height: 15px;
+      border-bottom: 1px solid #f1f5f9;
     }
     .ddt-delay-notice {
-      font-size: 9px;
+      font-size: 8px;
       font-weight: 700;
-      margin: 4px 0 6px;
-      color: #222;
-      line-height: 1.25;
+      margin: 2px 0 3px;
+      color: #333;
+      line-height: 1.15;
       flex-shrink: 0;
     }
     .ddt-bottom-section {
@@ -234,7 +235,10 @@
       margin-top: auto;
     }
     .ddt-signature-space {
-      min-height: 28px;
+      min-height: 16px;
+    }
+    .ddt-bottom-table td {
+      padding: 2px 4px;
     }
     .ddt-inner-subtable {
       width: 100%;
@@ -244,18 +248,18 @@
     .ddt-inner-subtable td {
       border: 0;
       border-right: 1px solid #000;
-      padding: 3px 5px;
+      padding: 2px 4px;
     }
     .ddt-inner-subtable td:last-child {
       border-right: 0;
     }
     .ddt-footer-legal {
-      font-size: 7.5px;
+      font-size: 7px;
       color: #333;
-      line-height: 1.2;
-      margin-top: 4px;
+      line-height: 1.15;
+      margin-top: 2px;
       border-top: 1px solid #000;
-      padding-top: 3px;
+      padding-top: 2px;
     }
 
     @media print {
@@ -905,6 +909,28 @@
             <input type="text" id="modalDestAddress" placeholder="Lascia vuoto se coincide con la sede legale cliente">
           </div>
         </div>
+
+        <div class="two-cols" style="margin-top:10px;">
+          <div class="field">
+            <span>Codice Destinatario SDI (Fatt. Elettronica)</span>
+            <input type="text" id="modalSdi" placeholder="Es. 0000000 o 7 caratteri" maxlength="7">
+          </div>
+          <div class="field">
+            <span>Banca d'Appoggio Cliente</span>
+            <input type="text" id="modalBankInfo" placeholder="Es. Intesa Sanpaolo / Unicredit">
+          </div>
+        </div>
+
+        <div class="two-cols" style="margin-top:10px;">
+          <div class="field">
+            <span>IBAN Cliente (per Ri.Ba. / Bonifico)</span>
+            <input type="text" id="modalIban" placeholder="IT00X0000000000000000000000">
+          </div>
+          <div class="field">
+            <span>E-mail Amministrazione / Cliente</span>
+            <input type="email" id="modalCustomerEmail" placeholder="amministrazione@cliente.it">
+          </div>
+        </div>
       </div>
 
       <div class="field">
@@ -1151,11 +1177,20 @@
       $('modalGoodsAppearance').value = ord.goods_appearance || 'SCATOLE';
       $('modalPackagesCount').value = ord.packages_count || 1;
       $('modalWeight').value = ord.weight || '';
+      const cust = allCustomers.find(c =>
+        (ord.customer_id && (String(c.id) === String(ord.customer_id) || String(c.code) === String(ord.customer_id))) ||
+        (c.name && ord.customer_name && c.name.trim().toLowerCase() === ord.customer_name.trim().toLowerCase())
+      ) || {};
+
       $('modalPorto').value = ord.porto || 'FRANCO';
       $('modalShippingType').value = ord.shipping_type || (ord.carrier ? 'MEZZO CORRIERE' : 'MEZZO CORRIERE');
-      $('modalPaymentMethod').value = ord.payment_method || ord.payload?.payment || '';
+      $('modalPaymentMethod').value = ord.payment_method || ord.payload?.payment || cust.payment || '';
       $('modalCausale').value = ord.causale || 'VENDITA';
       $('modalDestAddress').value = ord.destination_address || '';
+      $('modalSdi').value = ord.sdi || ord.payload?.sdi || cust.sdi || '';
+      $('modalBankInfo').value = ord.bank_info || ord.payload?.bank || cust.bank || '';
+      $('modalIban').value = ord.iban || ord.payload?.iban || cust.iban || '';
+      $('modalCustomerEmail').value = ord.customer_email || ord.payload?.customerEmail || cust.email || '';
       $('modalNotes').value = ord.notes || ord.payload?.notes || '';
 
       $('statusModal').showModal();
@@ -1178,6 +1213,10 @@
         paymentMethod: $('modalPaymentMethod').value.trim(),
         causale: $('modalCausale').value.trim() || 'VENDITA',
         destinationAddress: $('modalDestAddress').value.trim(),
+        sdi: $('modalSdi').value.trim(),
+        bankInfo: $('modalBankInfo').value.trim(),
+        iban: $('modalIban').value.trim().replace(/\s+/g, ''),
+        customerEmail: $('modalCustomerEmail').value.trim(),
         notes: $('modalNotes').value.trim()
       };
     }
@@ -1278,6 +1317,10 @@
           if (updateData.paymentMethod !== undefined) ord.payment_method = updateData.paymentMethod;
           if (updateData.causale !== undefined) ord.causale = updateData.causale;
           if (updateData.destinationAddress !== undefined) ord.destination_address = updateData.destinationAddress;
+          if (updateData.sdi !== undefined) ord.sdi = updateData.sdi;
+          if (updateData.bankInfo !== undefined) ord.bank_info = updateData.bankInfo;
+          if (updateData.iban !== undefined) ord.iban = updateData.iban;
+          if (updateData.customerEmail !== undefined) ord.customer_email = updateData.customerEmail;
           if (updateData.notes !== undefined) ord.notes = updateData.notes;
         }
         updateStats();
@@ -1416,9 +1459,12 @@
         const ddtNum = ord.ddt_number || `DDT-${new Date().getFullYear()}-${(ord.number || '').slice(-4)}`;
         const ddtDate = ord.ddt_date || (ord.shipping_date ? ord.shipping_date : new Date().toISOString().slice(0, 10));
         const ddtDateFormatted = formatDdtDate(ddtDate);
-        const paymentMethod = ord.payment_method || ord.payload?.payment || 'CONTRASSEGNO';
+        const paymentMethod = ord.payment_method || ord.payload?.payment || cust.payment || 'CONTRASSEGNO';
         const causale = ord.causale || 'VENDITA';
-        const bankAppoggio = ord.bank_info || cust.bank || ord.payload?.bank || '';
+        const bankAppoggio = ord.bank_info || ord.payload?.bank || cust.bank || '';
+        const clientIban = ord.iban || ord.payload?.iban || cust.iban || '';
+        const clientSdi = ord.sdi || ord.payload?.sdi || cust.sdi || '';
+        const clientEmail = ord.customer_email || ord.payload?.customerEmail || cust.email || '';
         const orderNotes = ord.notes || ord.payload?.notes || '';
 
         // Items list (Quantities ONLY, NO PRICES as explicitly requested)
@@ -1437,273 +1483,279 @@
           lines = ord.payload.products;
         }
 
-      // Generate rows and empty filler rows to leave space on A4 page
-      const targetRows = 9;
-      let rowsHtml = '';
-      if (lines && lines.length > 0) {
-        rowsHtml = lines.map(l => `
-          <tr>
-            <td><strong>${escapeHtml(l.code || '')}</strong></td>
-            <td>${escapeHtml(l.description || 'Articolo')}</td>
-            <td style="text-align:center;">NR</td>
-            <td style="text-align:center; font-weight:700;">${l.quantity || 1}</td>
-          </tr>
-        `).join('');
-      } else {
-        rowsHtml = `
-          <tr>
-            <td><strong>${escapeHtml(ord.number)}</strong></td>
-            <td>Merce come da ordine commerciale del ${formatDdtDate(ord.submitted_at)}</td>
-            <td style="text-align:center;">NR</td>
-            <td style="text-align:center; font-weight:700;">1</td>
-          </tr>
-        `;
-      }
+        // Generate rows and empty filler rows: compact and fits many articles
+        const targetRows = Math.max(14, (lines ? lines.length : 1) + 2);
+        let rowsHtml = '';
+        if (lines && lines.length > 0) {
+          rowsHtml = lines.map(l => `
+            <tr>
+              <td><strong>${escapeHtml(l.code || '')}</strong></td>
+              <td>${escapeHtml(l.description || 'Articolo')}</td>
+              <td style="text-align:center;">NR</td>
+              <td style="text-align:center; font-weight:700;">${l.quantity || 1}</td>
+            </tr>
+          `).join('');
+        } else {
+          rowsHtml = `
+            <tr>
+              <td><strong>${escapeHtml(ord.number)}</strong></td>
+              <td>Merce come da ordine commerciale del ${formatDdtDate(ord.submitted_at)}</td>
+              <td style="text-align:center;">NR</td>
+              <td style="text-align:center; font-weight:700;">1</td>
+            </tr>
+          `;
+        }
 
-      if (orderNotes) {
-        rowsHtml += `
-          <tr>
-            <td></td>
-            <td colspan="3" style="font-style:italic; font-size:9.5px; padding:3px 6px; color:#1e293b;">
-              ${escapeHtml(orderNotes)}
-            </td>
-          </tr>
-        `;
-      }
+        if (orderNotes) {
+          rowsHtml += `
+            <tr>
+              <td></td>
+              <td colspan="3" style="font-style:italic; font-size:9px; padding:2px 5px; color:#1e293b;">
+                ${escapeHtml(orderNotes)}
+              </td>
+            </tr>
+          `;
+        }
 
-      const renderedCount = (lines && lines.length > 0 ? lines.length : 1) + (orderNotes ? 1 : 0);
-      const emptyRowsNeeded = Math.max(0, targetRows - renderedCount);
-      for (let i = 0; i < emptyRowsNeeded; i++) {
-        rowsHtml += `
-          <tr class="ddt-empty-row">
-            <td>&nbsp;</td>
-            <td>&nbsp;</td>
-            <td style="text-align:center;">&nbsp;</td>
-            <td style="text-align:center;">&nbsp;</td>
-          </tr>
-        `;
-      }
+        const renderedCount = (lines && lines.length > 0 ? lines.length : 1) + (orderNotes ? 1 : 0);
+        const emptyRowsNeeded = Math.max(0, targetRows - renderedCount);
+        for (let i = 0; i < emptyRowsNeeded; i++) {
+          rowsHtml += `
+            <tr class="ddt-empty-row">
+              <td>&nbsp;</td>
+              <td>&nbsp;</td>
+              <td style="text-align:center;">&nbsp;</td>
+              <td style="text-align:center;">&nbsp;</td>
+            </tr>
+          `;
+        }
 
-      // Bottom table / carrier data
-      const carrier = ord.carrier || '';
-      const shipDate = ord.shipping_date || ddtDate;
-      const shipDateFormatted = formatDdtDate(shipDate);
-      const shipTime = ord.transport_start_time || '';
-      const shipDateTime = [shipDateFormatted, shipTime].filter(Boolean).join(' ');
-      const goodsAppearance = ord.goods_appearance || 'SCATOLE';
-      const packagesCount = ord.packages_count || 1;
-      const weight = ord.weight ? `${ord.weight} kg` : '';
-      const porto = ord.porto || 'FRANCO';
-      const shippingType = ord.shipping_type || (carrier ? 'MEZZO CORRIERE' : 'MEZZO CORRIERE');
-      const agentDisplay = ord.agent_name || ord.agent_code || '';
+        // Bottom table / carrier data
+        const carrier = ord.carrier || '';
+        const shipDate = ord.shipping_date || ddtDate;
+        const shipDateFormatted = formatDdtDate(shipDate);
+        const shipTime = ord.transport_start_time || '';
+        const shipDateTime = [shipDateFormatted, shipTime].filter(Boolean).join(' ');
+        const goodsAppearance = ord.goods_appearance || 'SCATOLE';
+        const packagesCount = ord.packages_count || 1;
+        const weight = ord.weight ? `${ord.weight} kg` : '';
+        const porto = ord.porto || 'FRANCO';
+        const shippingType = ord.shipping_type || (carrier ? 'MEZZO CORRIERE' : 'MEZZO CORRIERE');
+        const agentDisplay = ord.agent_name || ord.agent_code || '';
 
-      $('printableArea').innerHTML = `
-        <div class="ddt-sheet">
-          <!-- TOP HEADER SECTION -->
-          <div class="ddt-header-section">
-            <!-- SENDER PASCAL (LEFT) & CLIENT/DESTINATION (RIGHT) -->
-            <div class="ddt-top-row">
-              <div class="ddt-sender-box">
-                <div class="ddt-brand-logo">PASCAL</div>
-                <div class="ddt-brand-sub">COSMESI INTERNATIONAL</div>
-                <div class="ddt-sender-info">
-                  <strong>${compName}</strong><br>
-                  ${compAddr}<br>
-                  ${compCapCity}<br>
-                  ${compTel ? `Tel. Ufficio ${compTel}<br>` : ''}
-                  P.IVA ${compVat}<br>
-                  ${compWeb}<br>
-                  E-mail: ${compEmail}
+        const clientEmailHtml = clientEmail ? `<div style="font-size:9px; color:#1e293b; margin-top:2px;">✉️ ${escapeHtml(clientEmail)}</div>` : '';
+
+        $('printableArea').innerHTML = `
+          <div class="ddt-sheet">
+            <!-- TOP HEADER SECTION -->
+            <div class="ddt-header-section">
+              <!-- SENDER PASCAL (LEFT) & CLIENT/DESTINATION (RIGHT) -->
+              <div class="ddt-top-row">
+                <div class="ddt-sender-box">
+                  <div class="ddt-brand-logo">PASCAL</div>
+                  <div class="ddt-brand-sub">COSMESI INTERNATIONAL</div>
+                  <div class="ddt-sender-info">
+                    <strong>${compName}</strong><br>
+                    ${compAddr}<br>
+                    ${compCapCity}<br>
+                    ${compTel ? `Tel. Ufficio ${compTel}<br>` : ''}
+                    P.IVA ${compVat}<br>
+                    ${compWeb}<br>
+                    E-mail: ${compEmail}
+                  </div>
+                </div>
+
+                <div class="ddt-recipient-container">
+                  <div class="ddt-client-box">
+                    <div class="ddt-box-header">
+                      <span>Cliente</span>
+                      <span>Codice: ${clientCode}</span>
+                    </div>
+                    <div class="ddt-box-body">
+                      <div class="ddt-client-name">${clientName}</div>
+                      <div>${clientAddress}</div>
+                      <div>${clientCityZip}</div>
+                      ${clientEmailHtml}
+                    </div>
+                  </div>
+
+                  <div class="ddt-dest-box">
+                    <div class="ddt-box-header">
+                      <span>Destinazione</span>
+                    </div>
+                    <div class="ddt-box-body">
+                      ${destHtml}
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div class="ddt-recipient-container">
-                <div class="ddt-client-box">
-                  <div class="ddt-box-header">
-                    <span>Cliente</span>
-                    <span>Codice: ${clientCode}</span>
-                  </div>
-                  <div class="ddt-box-body">
-                    <div class="ddt-client-name">${clientName}</div>
-                    <div>${clientAddress}</div>
-                    <div>${clientCityZip}</div>
-                  </div>
-                </div>
+              <!-- DOCUMENT TITLE -->
+              <div class="ddt-doc-title">Documento di Trasporto - D.P.R. 472 del 14/08/1996</div>
 
-                <div class="ddt-dest-box">
-                  <div class="ddt-box-header">
-                    <span>Destinazione</span>
-                  </div>
-                  <div class="ddt-box-body">
-                    ${destHtml}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- DOCUMENT TITLE -->
-            <div class="ddt-doc-title">Documento di Trasporto - D.P.R. 472 del 14/08/1996</div>
-
-            <!-- META TABLE (PAGINA, PAGAMENTO, P.IVA, NR DDT, DATA, CAUSALE, BANCA) -->
-            <table class="ddt-meta-table">
-              <tr>
-                <td style="width: 8%;">
-                  <div class="ddt-cell-label">Pagina</div>
-                  <div class="ddt-cell-val" style="text-align:center;">1</div>
-                </td>
-                <td style="width: 38%;">
-                  <div class="ddt-cell-label">Pagamento</div>
-                  <div class="ddt-cell-val"><strong>${paymentMethod}</strong></div>
-                </td>
-                <td style="width: 26%;">
-                  <div class="ddt-cell-label">Partita Iva / Codice Fiscale</div>
-                  <div class="ddt-cell-val">${pivaOrCf || '---'}</div>
-                </td>
-                <td style="width: 14%;">
-                  <div class="ddt-cell-label">Nr. D.D.T.</div>
-                  <div class="ddt-cell-val"><strong>${ddtNum}</strong></div>
-                </td>
-                <td style="width: 14%;">
-                  <div class="ddt-cell-label">Data D.D.T.</div>
-                  <div class="ddt-cell-val"><strong>${ddtDateFormatted}</strong></div>
-                </td>
-              </tr>
-              <tr>
-                <td colspan="2">
-                  <div class="ddt-cell-label">Causale</div>
-                  <div class="ddt-cell-val"><strong>${causale}</strong></div>
-                </td>
-                <td colspan="3">
-                  <div class="ddt-cell-label">Banca di Appoggio Cliente</div>
-                  <div class="ddt-cell-val">${bankAppoggio || '---'}</div>
-                </td>
-              </tr>
-            </table>
-          </div>
-
-          <!-- MIDDLE SECTION (ITEMS TABLE WITH FILLER SPACE & DELAY NOTICE) -->
-          <div class="ddt-middle-section">
-            <table class="ddt-items-table">
-              <thead>
+              <!-- META TABLE (PAGINA, PAGAMENTO, P.IVA/CF, NR DDT, DATA, CAUSALE, SDI, BANCA/IBAN) -->
+              <table class="ddt-meta-table">
                 <tr>
-                  <th style="width: 18%;">Codice articolo</th>
-                  <th style="width: 66%;">Descrizione</th>
-                  <th style="width: 6%; text-align:center;">Um</th>
-                  <th style="width: 10%; text-align:center;">Quantità</th>
+                  <td style="width: 7%;">
+                    <div class="ddt-cell-label">Pagina</div>
+                    <div class="ddt-cell-val" style="text-align:center;">1</div>
+                  </td>
+                  <td style="width: 33%;">
+                    <div class="ddt-cell-label">Pagamento</div>
+                    <div class="ddt-cell-val"><strong>${paymentMethod}</strong></div>
+                  </td>
+                  <td style="width: 32%;">
+                    <div class="ddt-cell-label">Partita Iva / Codice Fiscale</div>
+                    <div class="ddt-cell-val">${pivaOrCf || '---'}</div>
+                  </td>
+                  <td style="width: 14%;">
+                    <div class="ddt-cell-label">Nr. D.D.T.</div>
+                    <div class="ddt-cell-val"><strong>${ddtNum}</strong></div>
+                  </td>
+                  <td style="width: 14%;">
+                    <div class="ddt-cell-label">Data D.D.T.</div>
+                    <div class="ddt-cell-val"><strong>${ddtDateFormatted}</strong></div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                ${rowsHtml}
-              </tbody>
-            </table>
+                <tr>
+                  <td colspan="2">
+                    <div class="ddt-cell-label">Causale Trasporto</div>
+                    <div class="ddt-cell-val"><strong>${causale}</strong></div>
+                  </td>
+                  <td style="width: 32%;">
+                    <div class="ddt-cell-label">Codice Destinatario SDI</div>
+                    <div class="ddt-cell-val"><strong>${clientSdi || '0000000'}</strong></div>
+                  </td>
+                  <td colspan="2">
+                    <div class="ddt-cell-label">Banca Appoggio &amp; IBAN (Ri.Ba.)</div>
+                    <div class="ddt-cell-val" style="font-size:9px; line-height:1.2;">
+                      ${bankAppoggio ? `<strong>${bankAppoggio}</strong><br>` : ''}
+                      ${clientIban ? `IBAN: <span style="font-family:monospace; font-weight:700;">${clientIban}</span>` : (!bankAppoggio ? '---' : '')}
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </div>
 
-            <!-- DELAY INTEREST NOTICE -->
-            <div class="ddt-delay-notice">
-              Per i ritardati pagamenti verranno conteggiati gli interessi bancari correnti, oltre alle spese di emissione e gestione bancarie.
+            <!-- MIDDLE SECTION (ITEMS TABLE WITH FILLER SPACE & DELAY NOTICE) -->
+            <div class="ddt-middle-section">
+              <table class="ddt-items-table">
+                <thead>
+                  <tr>
+                    <th style="width: 18%;">Codice articolo</th>
+                    <th style="width: 66%;">Descrizione</th>
+                    <th style="width: 6%; text-align:center;">Um</th>
+                    <th style="width: 10%; text-align:center;">Quantità</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rowsHtml}
+                </tbody>
+              </table>
+
+              <!-- DELAY INTEREST NOTICE -->
+              <div class="ddt-delay-notice">
+                Per i ritardati pagamenti verranno conteggiati gli interessi bancari correnti, oltre alle spese di emissione e gestione bancarie.
+              </div>
+            </div>
+
+            <!-- BOTTOM SECTION (WAREHOUSE / CARRIER TABLE & LEGAL FOOTER PINNED TO BOTTOM) -->
+            <div class="ddt-bottom-section">
+              <table class="ddt-bottom-table">
+                <!-- ROW 1 -->
+                <tr>
+                  <td style="width: 56%;">
+                    <div class="ddt-cell-label">Vettore - Ragione Sociale e Residenza</div>
+                    <div class="ddt-cell-val" style="font-weight:700; min-height:15px;">${carrier}</div>
+                  </td>
+                  <td style="width: 24%;">
+                    <div class="ddt-cell-label">Data e Ora Ritiro</div>
+                    <div class="ddt-cell-val" style="min-height:15px;">${shipDateTime}</div>
+                  </td>
+                  <td style="width: 20%;">
+                    <div class="ddt-cell-label">Firma Vettore</div>
+                    <div class="ddt-signature-space"></div>
+                  </td>
+                </tr>
+
+                <!-- ROW 2: WITHOUT TOTALE MERCE -->
+                <tr>
+                  <td style="width: 36%;">
+                    <div class="ddt-cell-label">Data/Ora Inizio Trasporto/Consegna</div>
+                    <div class="ddt-cell-val" style="min-height:15px;">${shipDateTime}</div>
+                  </td>
+                  <td style="width: 32%;">
+                    <div class="ddt-cell-label">Firma Conducente</div>
+                    <div class="ddt-signature-space"></div>
+                  </td>
+                  <td style="width: 32%;">
+                    <div class="ddt-cell-label">Firma Destinatario</div>
+                    <div class="ddt-signature-space"></div>
+                  </td>
+                </tr>
+
+                <!-- ROW 3 -->
+                <tr>
+                  <td colspan="3" style="padding:0;">
+                    <table class="ddt-inner-subtable">
+                      <tr>
+                        <td style="width: 24%;">
+                          <div class="ddt-cell-label">Compilatore</div>
+                          <div class="ddt-cell-val">Ufficio Spedizioni</div>
+                        </td>
+                        <td style="width: 26%;">
+                          <div class="ddt-cell-label">Aspetto esteriore dei beni</div>
+                          <div class="ddt-cell-val"><strong>${goodsAppearance}</strong></div>
+                        </td>
+                        <td style="width: 22%;">
+                          <div class="ddt-cell-label">VS Referente</div>
+                          <div class="ddt-cell-val">${cust.name ? cust.name.slice(0, 22) : ''}</div>
+                        </td>
+                        <td style="width: 14%;">
+                          <div class="ddt-cell-label">Peso</div>
+                          <div class="ddt-cell-val">${weight}</div>
+                        </td>
+                        <td style="width: 14%;">
+                          <div class="ddt-cell-label">Colli</div>
+                          <div class="ddt-cell-val"><strong>${packagesCount}</strong></div>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- ROW 4 -->
+                <tr>
+                  <td colspan="3" style="padding:0;">
+                    <table class="ddt-inner-subtable">
+                      <tr>
+                        <td style="width: 24%;">
+                          <div class="ddt-cell-label">Porto</div>
+                          <div class="ddt-cell-val"><strong>${porto}</strong></div>
+                        </td>
+                        <td style="width: 48%;">
+                          <div class="ddt-cell-label">Spedizione</div>
+                          <div class="ddt-cell-val"><strong>${shippingType}</strong></div>
+                        </td>
+                        <td style="width: 28%;">
+                          <div class="ddt-cell-label">Agente</div>
+                          <div class="ddt-cell-val">${agentDisplay}</div>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- LEGAL AND PRIVACY FOOTER -->
+              <div class="ddt-footer-legal">
+                In caso di nostra consegna il materiale verra' scaricato al numero civico. Non si accettano reclami per merce rotta o mancante se non al momento dello scarico.<br>
+                Informativa Privacy D. Lgs n. 196/2003 Trattiamo i Vostri dati per fini sia amministrativi che contabili o altre finalita' di marketing
+                queste saranno tutelate rispettando la Privacy e a richiesta rimettiamo Informativa completa ai sensi dell' art. 13 D.Lgs. 196/03
+              </div>
             </div>
           </div>
-
-          <!-- BOTTOM SECTION (WAREHOUSE / CARRIER TABLE & LEGAL FOOTER PINNED TO BOTTOM) -->
-          <div class="ddt-bottom-section">
-            <table class="ddt-bottom-table">
-              <!-- ROW 1 -->
-              <tr>
-                <td style="width: 58%;">
-                  <div class="ddt-cell-label">Vettore - Ragione Sociale e Residenza</div>
-                  <div class="ddt-cell-val" style="font-weight:700; min-height:18px;">${carrier}</div>
-                </td>
-                <td style="width: 22%;">
-                  <div class="ddt-cell-label">Data e Ora Ritiro</div>
-                  <div class="ddt-cell-val" style="min-height:18px;">${shipDateTime}</div>
-                </td>
-                <td style="width: 20%;">
-                  <div class="ddt-cell-label">Firma Vettore</div>
-                  <div class="ddt-signature-space"></div>
-                </td>
-              </tr>
-
-              <!-- ROW 2 -->
-              <tr>
-                <td style="width: 28%;">
-                  <div class="ddt-cell-label">Data/Ora Inizio Trasporto/Consegna</div>
-                  <div class="ddt-cell-val" style="min-height:18px;">${shipDateTime}</div>
-                </td>
-                <td style="width: 24%;">
-                  <div class="ddt-cell-label">Firma Conducente</div>
-                  <div class="ddt-signature-space"></div>
-                </td>
-                <td style="width: 24%;">
-                  <div class="ddt-cell-label">Firma Destinatario</div>
-                  <div class="ddt-signature-space"></div>
-                </td>
-                <td style="width: 24%;">
-                  <div class="ddt-cell-label">- TOTALE MERCE - IVA ESCLUSA -</div>
-                  <div class="ddt-cell-val" style="text-align:center; color:#64748b; font-size:10px; padding-top:6px;">*** DDT CONSEGNA ***</div>
-                </td>
-              </tr>
-
-              <!-- ROW 3 -->
-              <tr>
-                <td colspan="4" style="padding:0;">
-                  <table class="ddt-inner-subtable">
-                    <tr>
-                      <td style="width: 24%;">
-                        <div class="ddt-cell-label">Compilatore</div>
-                        <div class="ddt-cell-val">Ufficio Spedizioni</div>
-                      </td>
-                      <td style="width: 26%;">
-                        <div class="ddt-cell-label">Aspetto esteriore dei beni</div>
-                        <div class="ddt-cell-val"><strong>${goodsAppearance}</strong></div>
-                      </td>
-                      <td style="width: 22%;">
-                        <div class="ddt-cell-label">VS Referente</div>
-                        <div class="ddt-cell-val">${cust.name ? cust.name.slice(0, 22) : ''}</div>
-                      </td>
-                      <td style="width: 14%;">
-                        <div class="ddt-cell-label">Peso</div>
-                        <div class="ddt-cell-val">${weight}</div>
-                      </td>
-                      <td style="width: 14%;">
-                        <div class="ddt-cell-label">Colli</div>
-                        <div class="ddt-cell-val"><strong>${packagesCount}</strong></div>
-                      </td>
-                    </tr>
-                  </table>
-                </td>
-              </tr>
-
-              <!-- ROW 4 -->
-              <tr>
-                <td colspan="4" style="padding:0;">
-                  <table class="ddt-inner-subtable">
-                    <tr>
-                      <td style="width: 24%;">
-                        <div class="ddt-cell-label">Porto</div>
-                        <div class="ddt-cell-val"><strong>${porto}</strong></div>
-                      </td>
-                      <td style="width: 48%;">
-                        <div class="ddt-cell-label">Spedizione</div>
-                        <div class="ddt-cell-val"><strong>${shippingType}</strong></div>
-                      </td>
-                      <td style="width: 28%;">
-                        <div class="ddt-cell-label">Agente</div>
-                        <div class="ddt-cell-val">${agentDisplay}</div>
-                      </td>
-                    </tr>
-                  </table>
-                </td>
-              </tr>
-            </table>
-
-            <!-- LEGAL AND PRIVACY FOOTER -->
-            <div class="ddt-footer-legal">
-              In caso di nostra consegna il materiale verra' scaricato al numero civico. Non si accettano reclami per merce rotta o mancante se non al momento dello scarico.<br>
-              Informativa Privacy D. Lgs n. 196/2003 Trattiamo i Vostri dati per fini sia amministrativi che contabili o altre finalita' di marketing
-              queste saranno tutelate rispettando la Privacy e a richiesta rimettiamo Informativa completa ai sensi dell' art. 13 D.Lgs. 196/03
-            </div>
-          </div>
-        </div>
-      `;
+        `;
 
         const modal = $('printModal');
         if (modal.open) modal.close();

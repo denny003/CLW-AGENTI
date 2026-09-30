@@ -635,7 +635,7 @@ async function fetchCustomersData(customId, customTab, user = null) {
   const id = cleanEnvId(customId) || runtimeConfig.customers.spreadsheetId || OFFICIAL_SYSTEM_SPREADSHEETS.customers.spreadsheetId;
   const tab = customTab || runtimeConfig.customers.tab || OFFICIAL_SYSTEM_SPREADSHEETS.customers.tab || 'clienti';
   try {
-    const rows = await readRange(id, `'${tab}'!A1:P500`);
+    const rows = await readRange(id, `'${tab}'!A1:Z500`);
     if (rows.length > 1) {
       const header = rows[0].map(c => String(c).toLowerCase().trim());
       const col = name => header.findIndex(h => h.includes(name));
@@ -651,6 +651,11 @@ async function fetchCustomersData(customId, customTab, user = null) {
       const phoneIdx = col('telefono');
       const mobileIdx = col('cellulare');
       const emailIdx = col('e-mail') >= 0 ? col('e-mail') : col('email');
+      const sdiIdx = col('sdi') >= 0 ? col('sdi') : (col('univoco') >= 0 ? col('univoco') : col('destinatario'));
+      const ibanIdx = col('iban');
+      const bankIdx = col('banca') >= 0 ? col('banca') : col('appoggio');
+      const vatIdx = col('partita iva') >= 0 ? col('partita iva') : (col('p.iva') >= 0 ? col('p.iva') : col('piva'));
+      const taxIdx = col('codice fiscale') >= 0 ? col('codice fiscale') : col('cf');
 
       let customers = [];
       for (let i = 1; i < rows.length; i++) {
@@ -674,7 +679,12 @@ async function fetchCustomersData(customId, customTab, user = null) {
           province: String(r[pvIdx] || '').trim(),
           phone: String(r[phoneIdx] || '').trim(),
           mobile: String(r[mobileIdx] || '').trim(),
-          email: String(r[emailIdx] || '').trim()
+          email: String(r[emailIdx] || '').trim(),
+          sdi: sdiIdx >= 0 ? String(r[sdiIdx] || '').trim() : '',
+          iban: ibanIdx >= 0 ? String(r[ibanIdx] || '').trim() : '',
+          bank: bankIdx >= 0 ? String(r[bankIdx] || '').trim() : '',
+          vatNumber: vatIdx >= 0 ? String(r[vatIdx] || '').trim() : '',
+          taxCode: taxIdx >= 0 ? String(r[taxIdx] || '').trim() : ''
         });
       }
 
@@ -1254,7 +1264,11 @@ async function listDocs(tab, user, customId) {
         transport_start_time: payloadObj?.ddt_info?.transportStartTime || '',
         payment_method: payloadObj?.ddt_info?.paymentMethod || '',
         causale: payloadObj?.ddt_info?.causale || 'VENDITA',
-        destination_address: payloadObj?.ddt_info?.destinationAddress || ''
+        destination_address: payloadObj?.ddt_info?.destinationAddress || '',
+        sdi: payloadObj?.ddt_info?.sdi || payloadObj?.sdi || '',
+        iban: payloadObj?.ddt_info?.iban || payloadObj?.iban || '',
+        bank_info: payloadObj?.ddt_info?.bankInfo || payloadObj?.bank || '',
+        customer_email: payloadObj?.ddt_info?.customerEmail || payloadObj?.customerEmail || ''
       });
     }
 
@@ -1467,9 +1481,12 @@ async function createCustomer(body, user, customId) {
   const phone = String(body.phone || '').trim();
   const mobile = String(body.mobile || '').trim();
   const email = String(body.email || '').trim();
+  const sdi = String(body.sdi || body.codiceSdi || body.codiceUnivoco || '').trim();
+  const iban = String(body.iban || '').trim();
+  const bank = String(body.bank || body.banca || '').trim();
 
   try {
-    const rows = await readRange(custSpreadsheetId, `'${tab}'!A1:P500`);
+    const rows = await readRange(custSpreadsheetId, `'${tab}'!A1:Z500`);
     if (!rows || rows.length === 0) {
       return json(500, { error: `Impossibile accedere al foglio "${tab}"` });
     }
@@ -1496,6 +1513,11 @@ async function createCustomer(body, user, customId) {
     const mobileIdx = col(['cellulare', 'cell']);
     const netIdx = col(['internet', 'sito', 'web']);
     const emailIdx = col(['e-mail', 'email']);
+    const sdiIdx = col(['sdi', 'univoco', 'destinatario']);
+    const ibanIdx = col(['iban']);
+    const bankIdx = col(['banca', 'appoggio']);
+    const vatIdx = col(['partita iva', 'p.iva', 'piva']);
+    const taxIdx = col(['codice fiscale', 'cf']);
 
     // Calcola il codice progressivo massimo
     let maxCode = 6500;
@@ -1536,6 +1558,11 @@ async function createCustomer(body, user, customId) {
     if (mobileIdx >= 0) newRow[mobileIdx] = mobile;
     if (netIdx >= 0) newRow[netIdx] = '';
     if (emailIdx >= 0) newRow[emailIdx] = email;
+    if (sdiIdx >= 0) newRow[sdiIdx] = sdi;
+    if (ibanIdx >= 0) newRow[ibanIdx] = iban;
+    if (bankIdx >= 0) newRow[bankIdx] = bank;
+    if (vatIdx >= 0 && (tax || body.vat)) newRow[vatIdx] = body.vat || tax;
+    if (taxIdx >= 0 && tax) newRow[taxIdx] = tax;
 
     // Trova la prima riga vuota
     let nextRow = -1;
@@ -1554,9 +1581,9 @@ async function createCustomer(body, user, customId) {
     }
 
     try {
-      await updateRow(custSpreadsheetId, `'${tab}'!A${nextRow}:P${nextRow}`, [newRow]);
+      await updateRow(custSpreadsheetId, `'${tab}'!A${nextRow}:Z${nextRow}`, [newRow]);
     } catch {
-      await append(custSpreadsheetId, `'${tab}'!A:P`, [newRow]);
+      await append(custSpreadsheetId, `'${tab}'!A:Z`, [newRow]);
     }
 
     const customerObj = {
@@ -1573,7 +1600,12 @@ async function createCustomer(body, user, customId) {
       province,
       phone,
       mobile,
-      email
+      email,
+      sdi,
+      iban,
+      bank,
+      vatNumber: body.vat || tax,
+      taxCode: tax
     };
 
     return json(201, { ok: true, customer: customerObj, rowNumber: nextRow });
@@ -1698,7 +1730,11 @@ async function updateOrderStatus(orderId, updateData, user) {
       shippingType: updateData.shippingType !== undefined ? updateData.shippingType : payloadObj.ddt_info?.shippingType,
       paymentMethod: updateData.paymentMethod !== undefined ? updateData.paymentMethod : payloadObj.ddt_info?.paymentMethod,
       causale: updateData.causale !== undefined ? updateData.causale : (payloadObj.ddt_info?.causale || 'VENDITA'),
-      destinationAddress: updateData.destinationAddress !== undefined ? updateData.destinationAddress : payloadObj.ddt_info?.destinationAddress
+      destinationAddress: updateData.destinationAddress !== undefined ? updateData.destinationAddress : payloadObj.ddt_info?.destinationAddress,
+      sdi: updateData.sdi !== undefined ? updateData.sdi : payloadObj.ddt_info?.sdi,
+      iban: updateData.iban !== undefined ? updateData.iban : payloadObj.ddt_info?.iban,
+      bankInfo: updateData.bankInfo !== undefined ? updateData.bankInfo : payloadObj.ddt_info?.bankInfo,
+      customerEmail: updateData.customerEmail !== undefined ? updateData.customerEmail : payloadObj.ddt_info?.customerEmail
     };
 
     if (payloadColIdx >= 0) {

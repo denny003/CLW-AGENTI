@@ -459,7 +459,12 @@ function showCustomer() {
     $('customerDetails').classList.add('hidden');
     return;
   }
-  $('customerDetails').innerHTML = `<strong>${esc(c.name)}</strong><span>${esc([c.address, [c.postalCode, c.city, c.province].filter(Boolean).join(' ')].filter(Boolean).join(' · '))}</span><span>${esc([c.phone, c.mobile, c.email].filter(Boolean).join(' · ') || 'Contatti non disponibili')}</span>`;
+  const extraBadges = [];
+  if (c.sdi) extraBadges.push(`SDI: ${c.sdi}`);
+  if (c.iban) extraBadges.push(`IBAN: ${c.iban}`);
+  if (c.bank) extraBadges.push(`Banca: ${c.bank}`);
+  const extraSpan = extraBadges.length > 0 ? `<span>${esc(extraBadges.join(' · '))}</span>` : '';
+  $('customerDetails').innerHTML = `<strong>${esc(c.name)}</strong><span>${esc([c.address, [c.postalCode, c.city, c.province].filter(Boolean).join(' ')].filter(Boolean).join(' · '))}</span><span>${esc([c.phone, c.mobile, c.email].filter(Boolean).join(' · ') || 'Contatti non disponibili')}</span>${extraSpan}`;
   $('customerDetails').classList.remove('hidden');
   persistOffer();
 }
@@ -704,6 +709,15 @@ function submissionPayload() {
       shipping: $('shipping').value,
       validity: $('validity').value,
       notes: $('notes').value,
+      customerAddress: c.address || '',
+      customerCity: c.city || '',
+      customerPostalCode: c.postalCode || '',
+      customerProvince: c.province || '',
+      customerVat: c.vatNumber || c.taxCode || '',
+      customerEmail: c.email || '',
+      sdi: c.sdi || '',
+      iban: c.iban || '',
+      bank: c.bank || '',
       originOfferId: editingOriginOffer || undefined,
       revisionOf: editingOriginOffer || undefined,
       lines: items.map(i => ({
@@ -974,6 +988,10 @@ function bindEvents() {
     const city = $('newCustomerCity').value.trim();
     const address = $('newCustomerAddress').value.trim();
     const tax = ($('newCustomerTax')?.value || '').trim();
+    const sdi = ($('newCustomerSdi')?.value || '').trim();
+    const email = ($('newCustomerEmail')?.value || '').trim();
+    const iban = ($('newCustomerIban')?.value || '').trim().replace(/\s+/g, '');
+    const bank = ($('newCustomerBank')?.value || '').trim();
     const agentId = $('assignedAgent')?.value || currentAgentId() || 'AG01';
     if (!name || !city) {
       alert('Inserire almeno la ragione sociale e la città del cliente');
@@ -995,6 +1013,10 @@ function bindEvents() {
           city,
           address,
           tax,
+          sdi,
+          email,
+          iban,
+          bank,
           agentId
         })
       });
@@ -1013,7 +1035,12 @@ function bindEvents() {
         sourceAgent: agentById[agentId]?.name || agentId,
         phone: '',
         mobile: '',
-        email: '',
+        email,
+        sdi,
+        iban,
+        bank,
+        vatNumber: tax,
+        taxCode: tax,
         postalCode: '',
         province: '',
         activity: 'Cliente',
