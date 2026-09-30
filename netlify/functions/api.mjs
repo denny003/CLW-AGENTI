@@ -1202,8 +1202,14 @@ async function listDocs(tab, user, customId) {
       let payloadObj = null;
       for (let k = r.length - 1; k >= 0; k--) {
         const val = cleanCell(r[k]);
-        if (typeof val === 'string' && val.startsWith('{') && val.includes('"lines"')) {
-          try { payloadObj = JSON.parse(val); break; } catch {}
+        if (typeof val === 'string' && val.startsWith('{')) {
+          try {
+            const parsed = JSON.parse(val);
+            if (parsed && typeof parsed === 'object') {
+              payloadObj = parsed;
+              break;
+            }
+          } catch {}
         }
       }
 
@@ -1250,6 +1256,38 @@ async function listDocs(tab, user, customId) {
         causale: payloadObj?.ddt_info?.causale || 'VENDITA',
         destination_address: payloadObj?.ddt_info?.destinationAddress || ''
       });
+    }
+
+    // Auto-enrich orders with lines from originating offer if missing
+    const ordersTab = runtimeConfig.repository.tabOrders || OFFICIAL_SYSTEM_SPREADSHEETS.repository.tabOrders || 'Ordini';
+    const offersTab = runtimeConfig.repository.tabOffers || OFFICIAL_SYSTEM_SPREADSHEETS.repository.tabOffers || 'Offerte';
+    if ((tab === ordersTab || tab === 'Ordini') && !user?._enrichingOrders) {
+      const ordersMissingLines = docs.filter(d => (!d.payload?.lines || d.payload.lines.length === 0) && (d.origin_offer_id || d.payload?.convertedFromOffer));
+      if (ordersMissingLines.length > 0) {
+        try {
+          const enrichUser = user ? { ...user, _enrichingOrders: true } : { role: 'admin', _enrichingOrders: true };
+          const offersList = await listDocs(offersTab, enrichUser, customId);
+          const offersMap = new Map();
+          for (const off of offersList) {
+            if (off.number) offersMap.set(off.number, off);
+            if (off.id) offersMap.set(off.id, off);
+          }
+          for (const ord of ordersMissingLines) {
+            const offRef = ord.origin_offer_id || ord.payload?.convertedFromOffer;
+            const matchedOffer = offersMap.get(offRef);
+            if (matchedOffer && matchedOffer.payload?.lines) {
+              ord.payload = {
+                ...(ord.payload || {}),
+                payment: ord.payload?.payment || matchedOffer.payload?.payment,
+                shipping: ord.payload?.shipping || matchedOffer.payload?.shipping,
+                lines: matchedOffer.payload.lines
+              };
+            }
+          }
+        } catch (enrichErr) {
+          console.warn('Could not auto-enrich orders from offers:', enrichErr.message);
+        }
+      }
     }
 
     return docs;
@@ -1702,6 +1740,8 @@ async function convertOfferToOrder(offerIdentifier, user, customId) {
     total: offer.total,
     spreadsheetId: regId,
     payload: {
+      ...(offer.payload || {}),
+      lines: offer.payload?.lines || [],
       convertedFromOffer: offer.number,
       conversionDate: now.toISOString(),
       convertedBy: user?.name || user?.username || 'Agente'
@@ -1747,6 +1787,8 @@ async function createOfferRevision(offerIdentifier, user, customId) {
     version: `${(parseFloat(offer.version) || 1.0) + 1.0}`,
     spreadsheetId: regId,
     payload: {
+      ...(offer.payload || {}),
+      lines: offer.payload?.lines || [],
       revisionOf: offer.number,
       revisionNumber: maxRev + 1,
       createdAt: new Date().toISOString()
