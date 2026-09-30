@@ -29,6 +29,13 @@ const OFFICIAL_SYSTEM_SPREADSHEETS = Object.freeze({
     tabOffers: "Offerte",
     tabOrders: "Ordini"
   },
+  warehouse: {
+    folder: "Repository",
+    fileName: "Registro Magazzino e Produzione",
+    spreadsheetId: "",
+    tabMovements: "Movimenti_Magazzino",
+    tabParameters: "Parametri_Produzione"
+  },
   googleDrive: {
     sourceFolderUrl: "https://drive.google.com/drive/folders/1lr8lThQr1SxP4LAx2n69_pDxwu36ifh9",
     folderId: "1lr8lThQr1SxP4LAx2n69_pDxwu36ifh9"
@@ -55,6 +62,7 @@ function sanitizeConfig(cfg) {
   c.customers = c.customers || {};
   c.products = c.products || {};
   c.repository = c.repository || {};
+  c.warehouse = c.warehouse || {};
   c.googleDrive = c.googleDrive || {};
 
   if (isInvalidSpreadsheetId(c.company?.spreadsheetId)) c.company.spreadsheetId = OFFICIAL_SYSTEM_SPREADSHEETS.company.spreadsheetId;
@@ -78,6 +86,14 @@ function sanitizeConfig(cfg) {
   if (!c.repository.fileName) c.repository.fileName = OFFICIAL_SYSTEM_SPREADSHEETS.repository.fileName;
   if (!c.repository.tabOffers) c.repository.tabOffers = OFFICIAL_SYSTEM_SPREADSHEETS.repository.tabOffers;
   if (!c.repository.tabOrders) c.repository.tabOrders = OFFICIAL_SYSTEM_SPREADSHEETS.repository.tabOrders;
+
+  if (isInvalidSpreadsheetId(c.warehouse?.spreadsheetId)) {
+    c.warehouse.spreadsheetId = (c.warehouse?.spreadsheetId && c.warehouse.spreadsheetId.trim().length >= 20) ? c.warehouse.spreadsheetId.trim() : "";
+  }
+  if (!c.warehouse.folder) c.warehouse.folder = OFFICIAL_SYSTEM_SPREADSHEETS.warehouse.folder;
+  if (!c.warehouse.fileName) c.warehouse.fileName = OFFICIAL_SYSTEM_SPREADSHEETS.warehouse.fileName;
+  if (!c.warehouse.tabMovements) c.warehouse.tabMovements = OFFICIAL_SYSTEM_SPREADSHEETS.warehouse.tabMovements;
+  if (!c.warehouse.tabParameters) c.warehouse.tabParameters = OFFICIAL_SYSTEM_SPREADSHEETS.warehouse.tabParameters;
 
   if (!c.googleDrive.folderId) c.googleDrive.folderId = OFFICIAL_SYSTEM_SPREADSHEETS.googleDrive.folderId;
   if (!c.googleDrive.sourceFolderUrl) c.googleDrive.sourceFolderUrl = OFFICIAL_SYSTEM_SPREADSHEETS.googleDrive.sourceFolderUrl;

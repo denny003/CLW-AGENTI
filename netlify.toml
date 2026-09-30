@@ -27,6 +27,11 @@
   to = "/giro-visite.html"
   status = 200
 
+[[redirects]]
+  from = "/pianificazione-produzione"
+  to = "/pianificazione-produzione.html"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]

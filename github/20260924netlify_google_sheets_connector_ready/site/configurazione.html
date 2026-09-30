@@ -158,7 +158,8 @@
 ├── clienti (Google Sheet)
 ├── Articoli (Google Sheet)
 └── Repository
-      └── Registro offerte e ordini (Google Sheet)</pre>
+      ├── Registro offerte e ordini (Google Sheet - Vendite & Agenti)
+      └── Registro Magazzino e Produzione (Google Sheet - Logistica & Fabbrica)</pre>
       </div>
       <div>
         <a class="btn secondary" href="https://drive.google.com/drive/folders/1lr8lThQr1SxP4LAx2n69_pDxwu36ifh9" target="_blank" rel="noopener">Apri cartella Google Drive ↗</a>
@@ -282,6 +283,30 @@
       </div>
     </section>
 
+    <!-- SEZIONE MAGAZZINO E PRODUZIONE -->
+    <section class="section-card">
+      <h3>🏭 Magazzino e Produzione</h3>
+      <p>Foglio dedicato alla pianificazione produzione, scorte intelligenti, fabbisogni e movimenti di prelievo/carico (separato dagli ordini degli 11 agenti per zero blocchi di concorrenza).</p>
+      <div class="fields-row">
+        <div class="field">
+          <label for="warehouseFileName">Nome file</label>
+          <input id="warehouseFileName" class="text-val" placeholder="Registro Magazzino e Produzione">
+        </div>
+        <div class="field" style="grid-column: span 2;">
+          <label for="warehouseSpreadsheetId">Spreadsheet ID "Registro Magazzino e Produzione"</label>
+          <input id="warehouseSpreadsheetId" placeholder="ID del foglio dedicato (se vuoto, usa automaticamente il Repository)">
+        </div>
+        <div class="field">
+          <label for="warehouseTabMovements">Tab Movimenti Magazzino</label>
+          <input id="warehouseTabMovements" class="text-val" placeholder="Movimenti_Magazzino">
+        </div>
+        <div class="field">
+          <label for="warehouseTabParameters">Tab Parametri & Produzione</label>
+          <input id="warehouseTabParameters" class="text-val" placeholder="Parametri_Produzione">
+        </div>
+      </div>
+    </section>
+
     <div class="actions-bar">
       <button type="button" id="btnReset" class="btn secondary">Ripristina valori iniziali</button>
       <button type="button" id="btnSave" class="btn primary btn-green">💾 Salva configurazione</button>
@@ -307,6 +332,7 @@
         customers: { fileName: "clienti", spreadsheetId: "1rkFDBTCJD3JlrcvyOPGHjYTJDkjuMc24dJ7l6EqQ6I8", tab: "clienti" },
         products: { fileName: "Articoli", spreadsheetId: "17ErnowHZDqA3WDTN5auHkyTBPVn4MqkI8BFkiqkDhmE", tab: "q_listino_prezzi_catalogo" },
         repository: { folder: "Repository", fileName: "Registro offerte e ordini", spreadsheetId: "1Hi1Nppj4szI4UwfSeC632KkpF0dEQjqxnIVIenn-Fjc", tabOffers: "Offerte", tabOrders: "Ordini" },
+        warehouse: { folder: "Repository", fileName: "Registro Magazzino e Produzione", spreadsheetId: "", tabMovements: "Movimenti_Magazzino", tabParameters: "Parametri_Produzione" },
         googleDrive: { sourceFolderUrl: "https://drive.google.com/drive/folders/1lr8lThQr1SxP4LAx2n69_pDxwu36ifh9", folderId: "1lr8lThQr1SxP4LAx2n69_pDxwu36ifh9" }
       };
     }
@@ -348,6 +374,21 @@
       setVal('registerSpreadsheetId', cfg?.repository?.spreadsheetId, def.repository.spreadsheetId);
       if ($('registerTabOffers') && $('registerTabOffers') !== activeEl) $('registerTabOffers').value = cfg?.repository?.tabOffers || def.repository.tabOffers;
       if ($('registerTabOrders') && $('registerTabOrders') !== activeEl) $('registerTabOrders').value = cfg?.repository?.tabOrders || def.repository.tabOrders;
+
+      // Magazzino e Produzione
+      if ($('warehouseFileName') && $('warehouseFileName') !== activeEl) $('warehouseFileName').value = cfg?.warehouse?.fileName || def.warehouse?.fileName || 'Registro Magazzino e Produzione';
+      const whVal = cfg?.warehouse?.spreadsheetId || def.warehouse?.spreadsheetId || '';
+      if ($('warehouseSpreadsheetId') && $('warehouseSpreadsheetId') !== activeEl) $('warehouseSpreadsheetId').value = whVal;
+      if ($('warehouseTabMovements') && $('warehouseTabMovements') !== activeEl) $('warehouseTabMovements').value = cfg?.warehouse?.tabMovements || def.warehouse?.tabMovements || 'Movimenti_Magazzino';
+      if ($('warehouseTabParameters') && $('warehouseTabParameters') !== activeEl) $('warehouseTabParameters').value = cfg?.warehouse?.tabParameters || def.warehouse?.tabParameters || 'Parametri_Produzione';
+    }
+
+    function cleanInputId(val) {
+      if (!val) return '';
+      const s = String(val).trim();
+      const m = s.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+      if (m) return m[1];
+      return s;
     }
 
     function readForm() {
@@ -355,7 +396,7 @@
       const valOrDef = (id, defVal) => {
         const el = $(id);
         if (!el) return defVal;
-        const v = el.value.trim();
+        const v = cleanInputId(el.value);
         if (!v || v.length < 20 || v.includes('1mnW') || v.includes('1N6ZcGa')) return defVal;
         return v;
       };
@@ -388,6 +429,13 @@
           tabOffers: ($('registerTabOffers')?.value || '').trim() || def.repository.tabOffers,
           tabOrders: ($('registerTabOrders')?.value || '').trim() || def.repository.tabOrders
         },
+        warehouse: {
+          folder: "Repository",
+          fileName: ($('warehouseFileName')?.value || '').trim() || 'Registro Magazzino e Produzione',
+          spreadsheetId: cleanInputId($('warehouseSpreadsheetId')?.value),
+          tabMovements: ($('warehouseTabMovements')?.value || '').trim() || 'Movimenti_Magazzino',
+          tabParameters: ($('warehouseTabParameters')?.value || '').trim() || 'Parametri_Produzione'
+        },
         googleDrive: {
           sourceFolderUrl: def.googleDrive.sourceFolderUrl,
           folderId: def.googleDrive.folderId
@@ -397,7 +445,16 @@
 
     // Auto-persist in localStorage immediately on keystroke/change so IDs are NEVER lost
     document.querySelectorAll('.field input').forEach(input => {
+      const handleInputClean = () => {
+        if (input.id.toLowerCase().includes('spreadsheetid')) {
+          const cleaned = cleanInputId(input.value);
+          if (cleaned !== input.value) input.value = cleaned;
+        }
+      };
+      input.addEventListener('change', handleInputClean);
+      input.addEventListener('paste', () => setTimeout(handleInputClean, 10));
       input.addEventListener('input', () => {
+        handleInputClean();
         const formCfg = readForm();
         try {
           const current = JSON.parse(localStorage.getItem('companyConfig') || '{}');

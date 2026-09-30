@@ -137,6 +137,13 @@ const OFFICIAL_SYSTEM_SPREADSHEETS = Object.freeze({
     tabOffers: 'Offerte',
     tabOrders: 'Ordini'
   },
+  warehouse: {
+    folder: 'Repository',
+    fileName: 'Registro Magazzino e Produzione',
+    spreadsheetId: '',
+    tabMovements: 'Movimenti_Magazzino',
+    tabParameters: 'Parametri_Produzione'
+  },
   googleDrive: {
     sourceFolderUrl: 'https://drive.google.com/drive/folders/1lr8lThQr1SxP4LAx2n69_pDxwu36ifh9',
     folderId: '1lr8lThQr1SxP4LAx2n69_pDxwu36ifh9'
@@ -181,6 +188,13 @@ let runtimeConfig = {
     spreadsheetId: cleanEnvId(process.env.REGISTER_SPREADSHEET_ID) || cleanEnvId(process.env.REPOSITORY_SPREADSHEET_ID) || OFFICIAL_SYSTEM_SPREADSHEETS.repository.spreadsheetId,
     tabOffers: 'Offerte',
     tabOrders: 'Ordini'
+  },
+  warehouse: {
+    folder: 'Repository',
+    fileName: 'Registro Magazzino e Produzione',
+    spreadsheetId: cleanEnvId(process.env.WAREHOUSE_SPREADSHEET_ID) || cleanEnvId(process.env.GOOGLE_SHEETS_WAREHOUSE_ID) || '',
+    tabMovements: 'Movimenti_Magazzino',
+    tabParameters: 'Parametri_Produzione'
   },
   googleDrive: {
     sourceFolderUrl: OFFICIAL_SYSTEM_SPREADSHEETS.googleDrive.sourceFolderUrl,
@@ -315,6 +329,16 @@ function mergeRuntimeConfig(custom) {
       tabOrders: custom.repository.tabOrders || runtimeConfig.repository.tabOrders || OFFICIAL_SYSTEM_SPREADSHEETS.repository.tabOrders
     };
   }
+  if (custom.warehouse) {
+    runtimeConfig.warehouse = {
+      ...runtimeConfig.warehouse,
+      folder: custom.warehouse.folder || runtimeConfig.warehouse?.folder || 'Repository',
+      fileName: custom.warehouse.fileName || runtimeConfig.warehouse?.fileName || 'Registro Magazzino e Produzione',
+      spreadsheetId: cleanEnvId(custom.warehouse.spreadsheetId, runtimeConfig.warehouse?.spreadsheetId || ''),
+      tabMovements: custom.warehouse.tabMovements || runtimeConfig.warehouse?.tabMovements || 'Movimenti_Magazzino',
+      tabParameters: custom.warehouse.tabParameters || runtimeConfig.warehouse?.tabParameters || 'Parametri_Produzione'
+    };
+  }
   if (custom.googleDrive) {
     runtimeConfig.googleDrive = {
       sourceFolderUrl: custom.googleDrive.sourceFolderUrl || OFFICIAL_SYSTEM_SPREADSHEETS.googleDrive.sourceFolderUrl,
@@ -395,6 +419,10 @@ async function loadCentralConfig(force = false) {
           if (k === 'repository_tabOffers') runtimeConfig.repository.tabOffers = v;
           if (k === 'repository_tabOrders') runtimeConfig.repository.tabOrders = v;
           if (k === 'repository_folder') runtimeConfig.repository.folder = v;
+          if (k === 'warehouse_spreadsheetId') runtimeConfig.warehouse.spreadsheetId = v;
+          if (k === 'warehouse_tabMovements') runtimeConfig.warehouse.tabMovements = v;
+          if (k === 'warehouse_tabParameters') runtimeConfig.warehouse.tabParameters = v;
+          if (k === 'warehouse_fileName') runtimeConfig.warehouse.fileName = v;
           if (k === 'drive_sourceFolderUrl') runtimeConfig.googleDrive.sourceFolderUrl = v;
           if (k === 'drive_folderId') runtimeConfig.googleDrive.folderId = v;
         }
@@ -439,6 +467,10 @@ async function saveCentralConfig(cfg, user) {
     ['repository_tabOffers', runtimeConfig.repository.tabOffers || '', 'Tab Offerte nel Registro', now, userName],
     ['repository_tabOrders', runtimeConfig.repository.tabOrders || '', 'Tab Ordini nel Registro', now, userName],
     ['repository_folder', runtimeConfig.repository.folder || '', 'Nome Cartella Repository', now, userName],
+    ['warehouse_spreadsheetId', runtimeConfig.warehouse?.spreadsheetId || '', 'Spreadsheet ID Registro Magazzino e Produzione', now, userName],
+    ['warehouse_tabMovements', runtimeConfig.warehouse?.tabMovements || '', 'Tab Movimenti Magazzino', now, userName],
+    ['warehouse_tabParameters', runtimeConfig.warehouse?.tabParameters || '', 'Tab Parametri Produzione', now, userName],
+    ['warehouse_fileName', runtimeConfig.warehouse?.fileName || '', 'Nome File Magazzino e Produzione', now, userName],
     ['drive_sourceFolderUrl', runtimeConfig.googleDrive.sourceFolderUrl || '', 'URL Cartella Google Drive Condivisa', now, userName],
     ['drive_folderId', runtimeConfig.googleDrive.folderId || '', 'ID Cartella Google Drive Condivisa', now, userName]
   ];
@@ -447,7 +479,7 @@ async function saveCentralConfig(cfg, user) {
   let sheetError = null;
   try {
     await ensureSheetTab(regId, '_Configurazione');
-    await updateRow(regId, "'_Configurazione'!A1:E20", rows);
+    await updateRow(regId, "'_Configurazione'!A1:E25", rows);
     savedToSheet = true;
   } catch (err) {
     sheetError = err.message;
@@ -1991,9 +2023,10 @@ async function saveProspect(data, user) {
 // -------------------------------------------------------------
 
 async function fetchProductionParameters(customId) {
-  const regId = cleanEnvId(customId) || runtimeConfig.repository.spreadsheetId || OFFICIAL_SYSTEM_SPREADSHEETS.repository.spreadsheetId;
-  await ensureSheetTab(regId, 'Parametri_Produzione');
-  const rows = await readRange(regId, "'Parametri_Produzione'!A1:J500").catch(() => []);
+  const regId = cleanEnvId(customId) || cleanEnvId(runtimeConfig.warehouse?.spreadsheetId) || cleanEnvId(runtimeConfig.repository.spreadsheetId) || OFFICIAL_SYSTEM_SPREADSHEETS.repository.spreadsheetId;
+  const tabName = runtimeConfig.warehouse?.tabParameters || 'Parametri_Produzione';
+  await ensureSheetTab(regId, tabName);
+  const rows = await readRange(regId, `'${tabName}'!A1:J500`).catch(() => []);
   if (!rows || rows.length <= 1) return {};
 
   const header = rows[0].map(c => String(c || '').toLowerCase().trim());
@@ -2027,13 +2060,14 @@ async function fetchProductionParameters(customId) {
 }
 
 async function saveProductionParameters(paramItem, user, customId) {
-  const regId = cleanEnvId(customId) || runtimeConfig.repository.spreadsheetId || OFFICIAL_SYSTEM_SPREADSHEETS.repository.spreadsheetId;
-  await ensureSheetTab(regId, 'Parametri_Produzione');
+  const regId = cleanEnvId(customId) || cleanEnvId(runtimeConfig.warehouse?.spreadsheetId) || cleanEnvId(runtimeConfig.repository.spreadsheetId) || OFFICIAL_SYSTEM_SPREADSHEETS.repository.spreadsheetId;
+  const tabName = runtimeConfig.warehouse?.tabParameters || 'Parametri_Produzione';
+  await ensureSheetTab(regId, tabName);
 
-  const rows = await readRange(regId, "'Parametri_Produzione'!A1:J500").catch(() => []);
+  const rows = await readRange(regId, `'${tabName}'!A1:J500`).catch(() => []);
   if (!rows || rows.length === 0) {
     const header = ['Codice Articolo', 'Tempo Produzione Stimato (gg)', 'Lotto Minimo Produzione', 'Scorta Minima Manuale', 'Scorta Massima Manuale', 'Note Produzione', 'Ultimo Aggiornamento', 'Aggiornato Da', 'Ubicazione Magazzino', 'Giacenza Rettificata'];
-    await append(regId, "'Parametri_Produzione'!A1", [header]);
+    await append(regId, `'${tabName}'!A1`, [header]);
   }
 
   const code = String(paramItem.code || paramItem.articleCode || '').trim();
@@ -2066,9 +2100,9 @@ async function saveProductionParameters(paramItem, user, customId) {
   ];
 
   if (existingRowIdx > 0) {
-    await updateRow(regId, `'Parametri_Produzione'!A${existingRowIdx}:J${existingRowIdx}`, [row]);
+    await updateRow(regId, `'${tabName}'!A${existingRowIdx}:J${existingRowIdx}`, [row]);
   } else {
-    await append(regId, "'Parametri_Produzione'!A:J", [row]);
+    await append(regId, `'${tabName}'!A:J`, [row]);
   }
 
   return { ok: true, code, paramItem };
@@ -2079,9 +2113,10 @@ async function saveProductionParameters(paramItem, user, customId) {
 // -------------------------------------------------------------
 
 async function fetchWarehouseMovements(customId) {
-  const regId = cleanEnvId(customId) || runtimeConfig.repository.spreadsheetId || OFFICIAL_SYSTEM_SPREADSHEETS.repository.spreadsheetId;
-  await ensureSheetTab(regId, 'Movimenti_Magazzino');
-  const rows = await readRange(regId, "'Movimenti_Magazzino'!A1:J500").catch(() => []);
+  const regId = cleanEnvId(customId) || cleanEnvId(runtimeConfig.warehouse?.spreadsheetId) || cleanEnvId(runtimeConfig.repository.spreadsheetId) || OFFICIAL_SYSTEM_SPREADSHEETS.repository.spreadsheetId;
+  const tabName = runtimeConfig.warehouse?.tabMovements || 'Movimenti_Magazzino';
+  await ensureSheetTab(regId, tabName);
+  const rows = await readRange(regId, `'${tabName}'!A1:J500`).catch(() => []);
   if (!rows || rows.length <= 1) return [];
 
   const header = rows[0].map(c => String(c || '').toLowerCase().trim());
@@ -2119,13 +2154,14 @@ async function fetchWarehouseMovements(customId) {
 }
 
 async function recordWarehouseMovement(entry, user, customId) {
-  const regId = cleanEnvId(customId) || runtimeConfig.repository.spreadsheetId || OFFICIAL_SYSTEM_SPREADSHEETS.repository.spreadsheetId;
-  await ensureSheetTab(regId, 'Movimenti_Magazzino');
+  const regId = cleanEnvId(customId) || cleanEnvId(runtimeConfig.warehouse?.spreadsheetId) || cleanEnvId(runtimeConfig.repository.spreadsheetId) || OFFICIAL_SYSTEM_SPREADSHEETS.repository.spreadsheetId;
+  const tabName = runtimeConfig.warehouse?.tabMovements || 'Movimenti_Magazzino';
+  await ensureSheetTab(regId, tabName);
 
-  const rows = await readRange(regId, "'Movimenti_Magazzino'!A1:J1").catch(() => []);
+  const rows = await readRange(regId, `'${tabName}'!A1:J1`).catch(() => []);
   if (!rows || rows.length === 0) {
     const header = ['ID Movimento', 'Data Registrazione', 'Tipo Movimento', 'Codice Articolo', 'Descrizione Articolo', 'Quantità (Pezzi)', 'Numero Lotto', 'Ubicazione Stoccaggio', 'Operatore / Reparto', 'Note'];
-    await append(regId, "'Movimenti_Magazzino'!A1", [header]);
+    await append(regId, `'${tabName}'!A1`, [header]);
   }
 
   const code = String(entry.code || entry.articleCode || '').trim();
@@ -2155,7 +2191,7 @@ async function recordWarehouseMovement(entry, user, customId) {
     notes
   ];
 
-  await append(regId, "'Movimenti_Magazzino'!A:J", [row]);
+  await append(regId, `'${tabName}'!A:J`, [row]);
 
   // If location was declared or changed, save it into Parametri_Produzione so the article keeps its warehouse location
   if (location) {
@@ -2194,8 +2230,10 @@ async function calculateProductionIntelligence(user, customProductsId, customRep
   const prRes = await fetchProductsData(customProductsId);
   const products = prRes.products || [];
 
+  const warehouseSpreadsheetId = cleanEnvId(customRepositoryId) || cleanEnvId(runtimeConfig.warehouse?.spreadsheetId) || cleanEnvId(runtimeConfig.repository?.spreadsheetId) || OFFICIAL_SYSTEM_SPREADSHEETS.repository.spreadsheetId;
+
   // 2. Fetch parameters overrides from Google Sheets Parametri_Produzione
-  const paramMap = await fetchProductionParameters(customRepositoryId);
+  const paramMap = await fetchProductionParameters(warehouseSpreadsheetId);
 
   // 3. Fetch all orders from Google Sheets Ordini
   const adminUser = { role: 'admin' };
@@ -2205,7 +2243,7 @@ async function calculateProductionIntelligence(user, customProductsId, customRep
   const offers = await listDocs(runtimeConfig.repository.tabOffers || 'Offerte', adminUser, customRepositoryId).catch(() => []);
 
   // 5. Fetch declared warehouse movements (production batches and goods receipts)
-  const movements = await fetchWarehouseMovements(customRepositoryId).catch(() => []);
+  const movements = await fetchWarehouseMovements(warehouseSpreadsheetId).catch(() => []);
 
   // Process open offers for prospective demand
   const articleOffers = {};
