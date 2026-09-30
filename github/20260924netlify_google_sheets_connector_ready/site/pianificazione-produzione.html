@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pianificazione Produzione & Scorte Intelligenti | Pascal Cosmesi</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-hover: #0369a1;
+      --navy: #0f172a;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --line: #e2e8f0;
+      --text: #0f172a;
+      --muted: #64748b;
+      --critical: #ef4444;
+      --reorder: #f97316;
+      --optimal: #10b981;
+      --overstock: #3b82f6;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .topbar {
+      background: #ffffff;
+      border-bottom: 1px solid var(--line);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.1rem;
+      width: 38px;
+      height: 38px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      letter-spacing: -0.5px;
+    }
+
+    .heading-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+      font-family: inherit;
+    }
+
+    .btn.primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+    .btn.primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn.secondary {
+      background: #fff;
+      border-color: var(--line);
+      color: #334155;
+    }
+    .btn.secondary:hover {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+    }
+
+    .btn.btn-sm {
+      padding: 5px 10px;
+      font-size: 0.8rem;
+    }
+
+    .btn.btn-action-prod {
+      background: #0284c7;
+      color: white;
+      box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
+    }
+    .btn.btn-action-prod:hover {
+      background: #0369a1;
+      transform: translateY(-1px);
+    }
+
+    .page-container {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 24px 20px 80px 20px;
+    }
+
+    .header-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-title h1 {
+      margin: 0;
+      font-size: 1.65rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--navy);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-title p {
+      margin: 4px 0 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    /* KPI STATS ROW */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .kpi-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .kpi-card small {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .kpi-card .val {
+      font-size: 1.7rem;
+      font-weight: 800;
+      color: var(--navy);
+      line-height: 1.1;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .kpi-card .sub {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 4px;
+      display: block;
+    }
+
+    /* FILTER & SEARCH BAR */
+    .controls-panel {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .tabs-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      background: #f1f5f9;
+      border: 1px solid transparent;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #475569;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.15s;
+    }
+    .tab-btn:hover {
+      background: #e2e8f0;
+      color: var(--navy);
+    }
+    .tab-btn.active {
+      background: var(--navy);
+      color: #fff;
+    }
+    .tab-btn .badge {
+      background: rgba(255,255,255,0.25);
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-size: 0.72rem;
+      font-family: monospace;
+    }
+    .tab-btn:not(.active) .badge {
+      background: #cbd5e1;
+      color: #1e293b;
+    }
+
+    .search-inputs-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 260px;
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 10px 14px;
+      padding-left: 36px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-family: inherit;
+      box-sizing: border-box;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .search-box input:focus {
+      border-color: var(--primary);
+    }
+    .search-box .icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    .select-box select {
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-family: inherit;
+      background: #fff;
+      color: #334155;
+      outline: none;
+    }
+
+    /* TABLE */
+    .table-wrapper {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+      text-align: left;
+    }
+
+    .data-table th {
+      background: #f8fafc;
+      padding: 12px 14px;
+      font-weight: 700;
+      color: #475569;
+      border-bottom: 2px solid var(--line);
+      white-space: nowrap;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .data-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: middle;
+    }
+
+    .data-table tr:hover td {
+      background-color: #f8fafc;
+    }
+
+    .loc-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #f0fdf4;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 3px;
+    }
+
+    .urgency-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+    .urgency-critico { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+    .urgency-riordino { background: #ffedd5; color: #9a3412; border: 1px solid #fed7aa; }
+    .urgency-ottimale { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+    .urgency-overstock { background: #e0f2fe; color: #075985; border: 1px solid #bae6fd; }
+
+    .qty-produce-box {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1d4ed8;
+      font-weight: 800;
+      font-size: 0.95rem;
+      padding: 4px 8px;
+      border-radius: 6px;
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .learned-chip {
+      font-size: 0.7rem;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    /* DIALOG MODALS */
+    dialog {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 0;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.18);
+      max-width: 600px;
+      width: calc(100vw - 32px);
+      box-sizing: border-box;
+      background: #fff;
+    }
+    dialog::backdrop {
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(2px);
+    }
+
+    .modal-head {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8fafc;
+      border-radius: 14px 14px 0 0;
+    }
+    .modal-head h2 {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--navy);
+    }
+    .modal-head p {
+      margin: 2px 0 0 0;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .modal-body {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .form-group label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #334155;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-family: inherit;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: var(--primary);
+    }
+    .form-group small {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .modal-foot {
+      padding: 14px 20px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      background: #f8fafc;
+      border-radius: 0 0 14px 14px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--navy);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      z-index: 9999;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.25s ease;
+      pointer-events: none;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* MOVEMENTS DRAWER */
+    .movements-section {
+      margin-top: 36px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .movements-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    @media print {
+      body * { visibility: hidden; }
+      #printableArea, #printableArea * { visibility: visible; }
+      #printableArea { position: absolute; left: 0; top: 0; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">PC</span>
+      <div>
+        <strong>Pascal Cosmesi International</strong>
+        <small style="display:block; color:var(--muted); font-size:.78rem;">Pianificazione Produzione, Scorte & Ubicazioni Magazzino</small>
+      </div>
+    </div>
+    <div class="heading-actions">
+      <span id="cloudStatus" style="font-size:0.8rem; font-weight:700; color:#15803d; background:#f0fdf4; border:1px solid #bbf7d0; padding:4px 10px; border-radius:6px; display:inline-flex; align-items:center; gap:6px;">
+        <span style="width:8px; height:8px; border-radius:50%; background:#16a34a; display:inline-block;"></span> Google Sheets Live
+      </span>
+      <a class="btn secondary" href="/gestione-ordini.html">📦 Ordini & Picking DDT</a>
+      <a class="btn secondary" href="/">← Pratiche</a>
+      <a class="btn secondary" href="/configurazione.html">⚙️ Configurazione</a>
+    </div>
+  </header>
+
+  <main class="page-container">
+    <!-- HEADER BANNER -->
+    <div class="header-banner">
+      <div class="header-title">
+        <h1>🏭 Pianificazione Produzione & Scorte Intelligenti</h1>
+        <p>Monitoraggio scorte in tempo reale, ubicazioni di stoccaggio a scaffale, fabbisogni produttivi e registrazione carichi reparto.</p>
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button type="button" class="btn btn-action-prod" onclick="openRecordProductionModal()">
+          ➕ Dichiara Produzione / Carico Merci
+        </button>
+        <button type="button" class="btn secondary" onclick="loadData()">
+          🔄 Ricarica Dati
+        </button>
+        <button type="button" class="btn secondary" id="btnPrintProduction">
+          🖨️ Stampa Piano Produzione
+        </button>
+        <button type="button" class="btn secondary" id="btnExportCsv">
+          📥 Esporta CSV
+        </button>
+      </div>
+    </div>
+
+    <!-- KPI STATS OVERVIEW -->
+    <div class="kpi-grid">
+      <div class="kpi-card" style="border-left: 4px solid var(--critical);">
+        <small>🚨 Critici / Sottoscorta</small>
+        <div class="val" id="statCritical" style="color:var(--critical);">0</div>
+        <span class="sub">Giacenza &lt; Scorta Minima</span>
+      </div>
+      <div class="kpi-card" style="border-left: 4px solid var(--reorder);">
+        <small>🏭 Da Produrre (Sotto ROP)</small>
+        <div class="val" id="statReorder" style="color:var(--reorder);">0</div>
+        <span class="sub">Raggiunto punto riordino</span>
+      </div>
+      <div class="kpi-card" style="border-left: 4px solid var(--primary);">
+        <small>📦 Pezzi Totali da Produrre</small>
+        <div class="val" id="statPieces" style="color:var(--primary);">0</div>
+        <span class="sub">Lotti minimi consigliati</span>
+      </div>
+      <div class="kpi-card" style="border-left: 4px solid var(--optimal);">
+        <small>🟢 Giacenza Reale Totale</small>
+        <div class="val" id="statStock" style="color:var(--optimal);">0</div>
+        <span class="sub">Pezzi fisici a magazzino</span>
+      </div>
+      <div class="kpi-card" style="border-left: 4px solid #8b5cf6;">
+        <small>📋 Impegnato Ordini</small>
+        <div class="val" id="statCommitted" style="color:#6d28d9;">0</div>
+        <span class="sub">Pezzi in preparazione picking</span>
+      </div>
+      <div class="kpi-card" style="border-left: 4px solid #eab308;">
+        <small>📝 Preventivato (Offerte)</small>
+        <div class="val" id="statOffered" style="color:#a16207;">0</div>
+        <span class="sub">Domanda pipeline clienti</span>
+      </div>
+      <div class="kpi-card" style="border-left: 4px solid #06b6d4;">
+        <small>⏱️ Lead Time Medio</small>
+        <div class="val" id="statLeadTime" style="color:#0891b2;">-- gg</div>
+        <span class="sub" id="statLeadTimeSub">Appreso da spedizioni reali</span>
+      </div>
+    </div>
+
+    <!-- CONTROLS PANEL -->
+    <div class="controls-panel">
+      <!-- TABS -->
+      <div class="tabs-row">
+        <button type="button" class="tab-btn active" data-filter="all">Tutti gli Articoli <span class="badge" id="tabCountAll">0</span></button>
+        <button type="button" class="tab-btn" data-filter="CRITICO">🚨 Critici / Rottura <span class="badge" id="tabCountCritical">0</span></button>
+        <button type="button" class="tab-btn" data-filter="RIORDINO">🟠 Da Produrre (ROP) <span class="badge" id="tabCountReorder">0</span></button>
+        <button type="button" class="tab-btn" data-filter="OTTIMALE">🟢 Scorta Ottimale <span class="badge" id="tabCountOptimal">0</span></button>
+        <button type="button" class="tab-btn" data-filter="OVERSTOCK">🔵 Overstock <span class="badge" id="tabCountOverstock">0</span></button>
+      </div>
+
+      <!-- SEARCH & SELECTS -->
+      <div class="search-inputs-row">
+        <div class="search-box">
+          <span class="icon">🔍</span>
+          <input type="text" id="searchInput" placeholder="Cerca per codice, descrizione, linea, marca o ubicazione (es. A-01, Scaffale)...">
+        </div>
+        <div class="select-box">
+          <select id="familyFilter">
+            <option value="">Tutte le Famiglie / Linee</option>
+          </select>
+        </div>
+        <div class="select-box">
+          <select id="sortBy">
+            <option value="urgency">Ordina per: Priorità Urgenza</option>
+            <option value="location">Ordina per: Ubicazione Magazzino (A-Z)</option>
+            <option value="code">Ordina per: Codice Articolo</option>
+            <option value="suggested">Ordina per: Pezzi da Produrre (Max)</option>
+            <option value="freeStock">Ordina per: Disp. Netta (Min)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="width:140px;">Codice & Ubicazione</th>
+            <th>Descrizione Prodotto & Linea</th>
+            <th style="text-align:center;">Giacenza Reale</th>
+            <th style="text-align:center;">Impegnato</th>
+            <th style="text-align:center;">Offerto</th>
+            <th style="text-align:center;">Disp. Libera</th>
+            <th style="text-align:center;">Lead Time</th>
+            <th style="text-align:center;">Consumo/gg</th>
+            <th style="text-align:center;">Scorta Min</th>
+            <th style="text-align:center;">Punto Riordino</th>
+            <th style="text-align:center;">Lotto Min</th>
+            <th style="text-align:center; background:#f0f9ff; color:#0369a1;">PROPOSTA PRODUZIONE</th>
+            <th style="text-align:center;">Stato</th>
+            <th style="text-align:center; width:130px;">Azioni</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr>
+            <td colspan="14" style="text-align:center; padding:48px; color:var(--muted);">
+              🔄 Connessione a Google Drive e calcolo scorte in corso…
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- MOVEMENTS HISTORY SECTION -->
+    <div class="movements-section">
+      <div class="movements-header">
+        <div>
+          <h2 style="margin:0; font-size:1.15rem; font-weight:800; color:var(--navy);">📜 Ultimi Movimenti di Produzione & Carico Magazzino</h2>
+          <p style="margin:2px 0 0 0; font-size:.82rem; color:var(--muted);">Registro dichiarazioni operatori salvato su Google Sheets (Movimenti_Magazzino)</p>
+        </div>
+        <button type="button" class="btn secondary btn-sm" onclick="loadMovements()">🔄 Aggiorna Movimenti</button>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="data-table" style="font-size:0.8rem;">
+          <thead>
+            <tr>
+              <th style="width:120px;">Data / Ora</th>
+              <th style="width:90px;">Tipo</th>
+              <th style="width:110px;">Codice</th>
+              <th>Descrizione</th>
+              <th style="text-align:center; width:80px;">Quantità</th>
+              <th style="width:110px;">Lotto</th>
+              <th style="width:110px;">Ubicazione</th>
+              <th style="width:130px;">Operatore / Reparto</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody id="movementsTableBody">
+            <tr>
+              <td colspan="9" style="text-align:center; padding:24px; color:var(--muted);">Caricamento storico carichi…</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL: DICHIARA PRODUZIONE / CARICO MERCI -->
+  <dialog id="modalRecordProd" style="max-width:580px;">
+    <form id="recordProdForm" method="dialog">
+      <div class="modal-head">
+        <div>
+          <h2>➕ Dichiara Produzione / Carico Merci</h2>
+          <p>Registra pezzi finiti a magazzino e aggiorna la giacenza live su Google Sheets</p>
+        </div>
+        <button type="button" class="btn secondary btn-sm" onclick="$('modalRecordProd').close()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="recProdArticle">Seleziona Articolo</label>
+          <select id="recProdArticle" required onchange="onArticleSelectedForProduction()">
+            <option value="">-- Seleziona Articolo da Caricare --</option>
+          </select>
+        </div>
+
+        <div id="recArticleInfoBox" style="display:none; background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:10px 14px; font-size:.82rem;">
+          <div style="display:flex; justify-content:space-between;">
+            <span>Giacenza attuale: <strong id="recInfoStock">--</strong></span>
+            <span>Disp. Netta: <strong id="recInfoFree">--</strong></span>
+            <span>Ubicazione standard: <strong id="recInfoLoc" style="color:#0369a1;">--</strong></span>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="recProdQty">Quantità Prodotta / Caricata (Pezzi) *</label>
+            <input type="number" id="recProdQty" min="1" required placeholder="Es. 50">
+          </div>
+          <div class="form-group">
+            <label for="recProdLot">Numero Lotto</label>
+            <input type="text" id="recProdLot" placeholder="Es. LOT-2026-09">
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="recProdLocation">Ubicazione di Stoccaggio</label>
+            <input type="text" id="recProdLocation" placeholder="Es. Scaffale A-02, Pallet B-1">
+            <small>Indica dove l'operatore posiziona i colli</small>
+          </div>
+          <div class="form-group">
+            <label for="recProdOperator">Operatore / Reparto</label>
+            <input type="text" id="recProdOperator" placeholder="Es. Reparto Confezionamento">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="recProdNotes">Note di Lavorazione</label>
+          <textarea id="recProdNotes" rows="2" placeholder="Es. Conforme a standard QC, imballo primario completato"></textarea>
+        </div>
+      </div>
+
+      <div class="modal-foot">
+        <button type="button" class="btn secondary" onclick="$('modalRecordProd').close()">Annulla</button>
+        <button type="submit" id="btnSubmitProdRecord" class="btn primary">💾 Registra Movimento & Aggiorna Giacenza</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- MODAL: MODIFICA PARAMETRI PRODUZIONE & UBICAZIONE -->
+  <dialog id="modalProdParam" style="max-width:560px;">
+    <form id="prodParamForm" method="dialog">
+      <div class="modal-head">
+        <div>
+          <h2>⚙️ Parametri & Ubicazione Articolo</h2>
+          <p>Personalizza tempi, scorte e posizione scaffale su Google Sheets</p>
+        </div>
+        <button type="button" class="btn secondary btn-sm" onclick="$('modalProdParam').close()">✕</button>
+      </div>
+
+      <input type="hidden" id="paramCode">
+
+      <div class="modal-body">
+        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:10px 14px; font-size:.82rem;">
+          <div>Codice: <strong id="paramCodeLabel">--</strong></div>
+          <div>Descrizione: <strong id="paramDescLabel">--</strong></div>
+          <div>Giacenza attuale: <strong id="paramStockLabel">--</strong></div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="paramLocation">Ubicazione Magazzino (Scaffale / Corsia)</label>
+            <input type="text" id="paramLocation" placeholder="Es. Scaffale A-02, Pallet 3">
+            <small>Aiuta gli addetti picking e produzione</small>
+          </div>
+          <div class="form-group">
+            <label for="paramManualStock">Giacenza Rettificata (Opzionale)</label>
+            <input type="number" id="paramManualStock" min="0" placeholder="Lascia vuoto per calcolo automatico">
+            <small>Sovrascrive da inventario fisico</small>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="paramLeadTime">Tempo Produzione Stimato (gg)</label>
+            <input type="number" id="paramLeadTime" min="1" max="90" placeholder="Es. 7 (auto-appreso se vuoto)">
+          </div>
+          <div class="form-group">
+            <label for="paramMinLot">Lotto Minimo di Produzione (pz)</label>
+            <input type="number" id="paramMinLot" min="1" max="5000" placeholder="Es. 12">
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="paramMinStock">Scorta Minima Manuale (SS)</label>
+            <input type="number" id="paramMinStock" min="0" placeholder="Auto-calcolata se vuoto">
+          </div>
+          <div class="form-group">
+            <label for="paramMaxStock">Scorta Massima Manuale</label>
+            <input type="number" id="paramMaxStock" min="0" placeholder="Auto-calcolata se vuoto">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="paramNotes">Note Reparto Produzione</label>
+          <textarea id="paramNotes" rows="2" placeholder="Es. Richiede preavviso su ordini flaconi 100ml..."></textarea>
+        </div>
+      </div>
+
+      <div class="modal-foot">
+        <button type="button" class="btn secondary" onclick="$('modalProdParam').close()">Annulla</button>
+        <button type="submit" id="btnSaveParams" class="btn primary">💾 Salva su Google Sheets</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- PRINTABLE AREA (FOR PRODUCTION ORDER PRINTING) -->
+  <div id="printableArea" style="display:none;"></div>
+
+  <div id="toast" class="toast">Notifica</div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    let allProduction = [];
+    let productionKpi = {};
+    let allMovements = [];
+    let currentFilter = 'all';
+
+    function toast(msg) {
+      const t = $('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[m]));
+    }
+
+    async function loadData() {
+      $('tableBody').innerHTML = `
+        <tr>
+          <td colspan="14" style="text-align:center; padding:48px; color:var(--muted);">
+            🔄 Connessione a Google Drive in corso… calcolo tempi reali e fabbisogni…
+          </td>
+        </tr>
+      `;
+
+      try {
+        const res = await fetch('/api/production/analysis');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        allProduction = data.analysis || [];
+        productionKpi = data.kpi || {};
+        allMovements = data.movements || [];
+
+        // Update KPIs
+        $('statCritical').textContent = productionKpi.criticalCount || 0;
+        $('statReorder').textContent = productionKpi.reorderCount || 0;
+        $('statPieces').textContent = (productionKpi.totalPiecesToProduce || 0).toLocaleString('it-IT');
+        $('statStock').textContent = (productionKpi.totalRealStock || 0).toLocaleString('it-IT');
+        $('statCommitted').textContent = (productionKpi.totalCommittedPieces || 0).toLocaleString('it-IT');
+        $('statOffered').textContent = (productionKpi.totalOfferedPieces || 0).toLocaleString('it-IT');
+        $('statLeadTime').textContent = `${productionKpi.companyAvgLeadTimeDays || 7} gg`;
+        $('statLeadTimeSub').textContent = `Su ${productionKpi.shippedOrdersAnalyzed || 0} spedizioni reali analizzate`;
+
+        // Update Tab Counts
+        $('tabCountAll').textContent = allProduction.length;
+        $('tabCountCritical').textContent = productionKpi.criticalCount || 0;
+        $('tabCountReorder').textContent = productionKpi.reorderCount || 0;
+        $('tabCountOptimal').textContent = productionKpi.optimalCount || 0;
+        $('tabCountOverstock').textContent = productionKpi.overstockCount || 0;
+
+        // Populate family filter
+        const families = Array.from(new Set(allProduction.map(x => x.family || x.macroFamily).filter(Boolean))).sort();
+        $('familyFilter').innerHTML = '<option value="">Tutte le Famiglie / Linee</option>' +
+          families.map(f => `<option value="${escapeHtml(f)}">${escapeHtml(f)}</option>`).join('');
+
+        // Populate Article select in production recording modal
+        const artSelect = $('recProdArticle');
+        artSelect.innerHTML = '<option value="">-- Seleziona Articolo da Caricare --</option>' +
+          allProduction.map(p => `<option value="${escapeHtml(p.code)}">${escapeHtml(p.code)} - ${escapeHtml(p.description)} (${p.location ? '📍 ' + escapeHtml(p.location) : 'Magazzino'})</option>`).join('');
+
+        renderTable();
+        renderMovements();
+      } catch (err) {
+        console.error('Error loading production analysis:', err);
+        $('tableBody').innerHTML = `
+          <tr>
+            <td colspan="14" style="text-align:center; padding:48px; color:var(--critical);">
+              Errore caricamento dati da Google Drive: ${err.message}. Riprova tra poco.
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    function renderTable() {
+      const term = $('searchInput').value.trim().toLowerCase();
+      const selectedFamily = $('familyFilter').value;
+      const sortBy = $('sortBy').value;
+
+      let filtered = allProduction.filter(item => {
+        if (currentFilter !== 'all' && item.urgency !== currentFilter) return false;
+        if (selectedFamily && (item.family !== selectedFamily && item.macroFamily !== selectedFamily)) return false;
+        if (term) {
+          const haystack = `${item.code} ${item.description} ${item.brand} ${item.family} ${item.location || ''}`.toLowerCase();
+          if (!haystack.includes(term)) return false;
+        }
+        return true;
+      });
+
+      // Sorting
+      if (sortBy === 'location') {
+        filtered.sort((a, b) => String(a.location || '').localeCompare(String(b.location || '')));
+      } else if (sortBy === 'code') {
+        filtered.sort((a, b) => String(a.code || '').localeCompare(String(b.code || '')));
+      } else if (sortBy === 'suggested') {
+        filtered.sort((a, b) => (b.suggestedProduction || 0) - (a.suggestedProduction || 0));
+      } else if (sortBy === 'freeStock') {
+        filtered.sort((a, b) => (a.freeStock || 0) - (b.freeStock || 0));
+      } else {
+        const weight = { CRITICO: 1, RIORDINO: 2, OVERSTOCK: 3, OTTIMALE: 4 };
+        filtered.sort((a, b) => {
+          const d = (weight[a.urgency] || 99) - (weight[b.urgency] || 99);
+          if (d !== 0) return d;
+          return (b.suggestedProduction || 0) - (a.suggestedProduction || 0);
+        });
+      }
+
+      if (!filtered.length) {
+        $('tableBody').innerHTML = `
+          <tr>
+            <td colspan="14" style="text-align:center; padding:48px; color:var(--muted);">
+              Nessun articolo corrisponde ai filtri selezionati.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      $('tableBody').innerHTML = filtered.map(item => {
+        const prodBadge = item.suggestedProduction > 0
+          ? `<span class="qty-produce-box">+${item.suggestedProduction} pz</span>`
+          : `<span style="color:var(--muted); font-size:1rem;">—</span>`;
+
+        const urgencyBadge = `<span class="urgency-badge urgency-${(item.urgency || 'ottimale').toLowerCase()}">${item.urgencyIcon} ${item.urgency}</span>`;
+
+        const locHtml = item.location
+          ? `<div class="loc-badge">📍 ${escapeHtml(item.location)}</div>`
+          : `<div style="font-size:0.7rem; color:var(--muted); margin-top:2px;">📍 Non assegnata</div>`;
+
+        return `
+          <tr>
+            <td>
+              <strong style="font-family:'JetBrains Mono', monospace; font-size:.88rem; color:var(--navy);">${escapeHtml(item.code)}</strong>
+              ${locHtml}
+            </td>
+            <td>
+              <div style="font-weight:700; color:#1e293b;">${escapeHtml(item.description)}</div>
+              <div style="font-size:.74rem; color:var(--muted);">${escapeHtml(item.brand || '')} ${item.family ? `· ${escapeHtml(item.family)}` : ''}</div>
+              ${item.lastLot ? `<div style="font-size:.7rem; color:#0369a1;">Ultimo lotto: ${escapeHtml(item.lastLot)}</div>` : ''}
+            </td>
+            <td style="text-align:center; font-weight:800; font-family:'JetBrains Mono', monospace;">
+              ${item.currentStock}
+            </td>
+            <td style="text-align:center; color:#6d28d9; font-weight:750;">
+              ${item.committedQty > 0 ? `-${item.committedQty}` : '0'}
+            </td>
+            <td style="text-align:center; color:#a16207; font-weight:600;">
+              ${item.offeredQty > 0 ? `${item.offeredQty}` : '0'}
+            </td>
+            <td style="text-align:center; font-weight:800; font-family:'JetBrains Mono', monospace; color:${item.freeStock <= 0 ? 'var(--critical)' : (item.freeStock <= item.reorderPoint ? 'var(--reorder)' : 'var(--optimal)')};">
+              ${item.freeStock}
+            </td>
+            <td style="text-align:center;">
+              <strong>${item.effectiveLeadTime} gg</strong>
+              <div class="learned-chip">${escapeHtml(item.leadTimeSource || '')}</div>
+            </td>
+            <td style="text-align:center; font-size:.82rem;">
+              ${item.dailyDemand > 0 ? `${item.dailyDemand} /gg` : '0'}
+            </td>
+            <td style="text-align:center; color:#475569;">
+              ${item.safetyStock}
+            </td>
+            <td style="text-align:center; font-weight:700; color:var(--reorder);">
+              ${item.reorderPoint}
+            </td>
+            <td style="text-align:center;">
+              ${item.minProductionLot} pz
+            </td>
+            <td style="text-align:center; background:#f0f9ff;">
+              ${prodBadge}
+            </td>
+            <td style="text-align:center;">
+              ${urgencyBadge}
+            </td>
+            <td style="text-align:center;">
+              <div style="display:flex; gap:4px; justify-content:center;">
+                <button type="button" class="btn secondary btn-sm" title="Dichiara carico merci per questo articolo" onclick="quickProduce('${escapeHtml(item.code)}')">➕ Carica</button>
+                <button type="button" class="btn secondary btn-sm" title="Modifica ubicazione e parametri" onclick="openParamModal('${escapeHtml(item.code)}')">⚙️</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderMovements() {
+      if (!allMovements.length) {
+        $('movementsTableBody').innerHTML = `
+          <tr>
+            <td colspan="9" style="text-align:center; padding:24px; color:var(--muted);">
+              Nessun movimento registrato finora nel registro Movimenti_Magazzino.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      $('movementsTableBody').innerHTML = allMovements.slice(0, 30).map(m => {
+        const dateStr = m.date ? new Date(m.date).toLocaleString('it-IT') : '--';
+        return `
+          <tr>
+            <td style="font-family:'JetBrains Mono', monospace; font-size:.76rem; color:#475569;">${dateStr}</td>
+            <td><strong style="color:#0369a1; font-size:.76rem;">${escapeHtml(m.type || 'PRODUZIONE')}</strong></td>
+            <td><strong style="font-family:'JetBrains Mono', monospace;">${escapeHtml(m.code)}</strong></td>
+            <td>${escapeHtml(m.description || '')}</td>
+            <td style="text-align:center; font-weight:800; color:#15803d; font-family:'JetBrains Mono', monospace;">+${m.quantity} pz</td>
+            <td><span style="font-family:'JetBrains Mono', monospace; font-size:.78rem; background:#f1f5f9; padding:1px 5px; border-radius:4px;">${escapeHtml(m.lotNumber || '—')}</span></td>
+            <td><strong>📍 ${escapeHtml(m.location || '—')}</strong></td>
+            <td>${escapeHtml(m.operator || 'Operatore')}</td>
+            <td style="font-size:.78rem; color:#475569;">${escapeHtml(m.notes || '—')}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function loadMovements() {
+      try {
+        const res = await fetch('/api/production/movements');
+        const data = await res.json();
+        allMovements = data.movements || [];
+        renderMovements();
+        toast('Registro movimenti aggiornato da Google Sheets');
+      } catch (e) {
+        toast('Errore caricamento movimenti: ' + e.message);
+      }
+    }
+
+    // Quick open production modal prefilling article
+    function quickProduce(code) {
+      openRecordProductionModal(code);
+    }
+
+    function openRecordProductionModal(prefillCode) {
+      const artSelect = $('recProdArticle');
+      if (prefillCode) {
+        artSelect.value = prefillCode;
+      }
+      onArticleSelectedForProduction();
+
+      // Pre-fill lot with suggested code
+      const now = new Date();
+      const yr = now.getFullYear();
+      const mo = String(now.getMonth() + 1).padStart(2, '0');
+      $('recProdLot').value = `LOT-${yr}${mo}-${prefillCode || 'PC'}`;
+      $('recProdQty').value = '';
+      $('recProdNotes').value = '';
+      $('modalRecordProd').showModal();
+    }
+
+    function onArticleSelectedForProduction() {
+      const code = $('recProdArticle').value;
+      const item = allProduction.find(x => x.code === code);
+      if (item) {
+        $('recArticleInfoBox').style.display = 'block';
+        $('recInfoStock').textContent = `${item.currentStock} pz`;
+        $('recInfoFree').textContent = `${item.freeStock} pz`;
+        $('recInfoLoc').textContent = item.location ? `📍 ${item.location}` : 'N/D';
+        $('recProdLocation').value = item.location || '';
+        if (item.suggestedProduction > 0 && !$('recProdQty').value) {
+          $('recProdQty').value = item.suggestedProduction;
+        }
+      } else {
+        $('recArticleInfoBox').style.display = 'none';
+        $('recProdLocation').value = '';
+      }
+    }
+
+    // Submit Production Movement
+    $('recordProdForm').onsubmit = async e => {
+      e.preventDefault();
+      const code = $('recProdArticle').value;
+      if (!code) {
+        toast('Seleziona un articolo valido');
+        return;
+      }
+      const item = allProduction.find(x => x.code === code) || {};
+      const payload = {
+        type: 'PRODUZIONE',
+        code,
+        description: item.description || '',
+        quantity: Number($('recProdQty').value),
+        lotNumber: $('recProdLot').value.trim(),
+        location: $('recProdLocation').value.trim(),
+        operator: $('recProdOperator').value.trim() || 'Operatore Produzione',
+        notes: $('recProdNotes').value.trim(),
+        date: new Date().toISOString()
+      };
+
+      const btn = $('btnSubmitProdRecord');
+      btn.disabled = true;
+      btn.textContent = 'Registrazione su Google Sheets…';
+
+      try {
+        const res = await fetch('/api/production/record', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const resp = await res.json();
+        if (!res.ok) throw new Error(resp.error || 'Errore registrazione');
+        toast(`✅ Registrati ${payload.quantity} pz di ${code} su Google Sheets!`);
+        $('modalRecordProd').close();
+        await loadData();
+      } catch (err) {
+        toast(`Errore: ${err.message}`);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '💾 Registra Movimento & Aggiorna Giacenza';
+      }
+    };
+
+    // Open Param Modal
+    function openParamModal(code) {
+      const item = allProduction.find(x => x.code === code);
+      if (!item) return;
+
+      $('paramCode').value = item.code;
+      $('paramCodeLabel').textContent = item.code;
+      $('paramDescLabel').textContent = item.description;
+      $('paramStockLabel').textContent = `${item.currentStock} pz (Disponibilità libera: ${item.freeStock} pz)`;
+      $('paramLocation').value = item.location || '';
+      $('paramManualStock').value = item.manualStock != null ? item.manualStock : '';
+      $('paramLeadTime').value = item.effectiveLeadTime || '';
+      $('paramMinLot').value = item.minProductionLot || '';
+      $('paramMinStock').value = item.safetyStock || '';
+      $('paramMaxStock').value = item.maxStock || '';
+      $('paramNotes').value = item.notes || '';
+
+      $('modalProdParam').showModal();
+    }
+
+    // Submit Param Modal
+    $('prodParamForm').onsubmit = async e => {
+      e.preventDefault();
+      const code = $('paramCode').value;
+      const data = {
+        code,
+        location: $('paramLocation').value.trim(),
+        manualStock: $('paramManualStock').value ? Number($('paramManualStock').value) : null,
+        leadTimeDays: $('paramLeadTime').value ? Number($('paramLeadTime').value) : null,
+        minProductionLot: $('paramMinLot').value ? Number($('paramMinLot').value) : null,
+        manualSafetyStock: $('paramMinStock').value ? Number($('paramMinStock').value) : null,
+        manualMaxStock: $('paramMaxStock').value ? Number($('paramMaxStock').value) : null,
+        notes: $('paramNotes').value.trim()
+      };
+
+      const btn = $('btnSaveParams');
+      btn.disabled = true;
+      btn.textContent = 'Salvataggio su Google Sheets…';
+
+      try {
+        const res = await fetch('/api/production/parameters', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const resp = await res.json();
+        if (!res.ok) throw new Error(resp.error || 'Errore salvataggio');
+        toast('✅ Parametri e ubicazione salvati su Google Sheets!');
+        $('modalProdParam').close();
+        await loadData();
+      } catch (err) {
+        toast(`Errore: ${err.message}`);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '💾 Salva su Google Sheets';
+      }
+    };
+
+    // Filter Buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        renderTable();
+      };
+    });
+
+    $('searchInput').oninput = renderTable;
+    $('familyFilter').onchange = renderTable;
+    $('sortBy').onchange = renderTable;
+
+    // Export CSV
+    $('btnExportCsv').onclick = () => {
+      if (!allProduction.length) return;
+      const headers = ['Codice', 'Descrizione', 'Ubicazione', 'Marca', 'Famiglia', 'Giacenza_Reale', 'Impegnato_Ordini', 'Offerto_Preventivi', 'Disponibile_Libera', 'Lead_Time_gg', 'Scorta_Minima_SS', 'Punto_Riordino_ROP', 'Lotto_Minimo', 'Quantita_Da_Produrre', 'Stato_Urgenza'];
+      const rows = allProduction.map(x => [
+        `"${x.code}"`,
+        `"${(x.description || '').replace(/"/g, '""')}"`,
+        `"${(x.location || '').replace(/"/g, '""')}"`,
+        `"${(x.brand || '').replace(/"/g, '""')}"`,
+        `"${(x.family || '').replace(/"/g, '""')}"`,
+        x.currentStock,
+        x.committedQty,
+        x.offeredQty,
+        x.freeStock,
+        x.effectiveLeadTime,
+        x.safetyStock,
+        x.reorderPoint,
+        x.minProductionLot,
+        x.suggestedProduction,
+        x.urgency
+      ]);
+
+      const csv = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
+      const link = document.createElement('a');
+      link.href = encodeURI(csv);
+      link.download = `piano_produzione_pascal_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+
+    // Print Production Plan
+    $('btnPrintProduction').onclick = () => {
+      if (!allProduction.length) return;
+      const toProduce = allProduction.filter(x => x.suggestedProduction > 0);
+      toProduce.sort((a, b) => String(a.location || '').localeCompare(String(b.location || '')));
+      const dateStr = new Date().toLocaleDateString('it-IT');
+
+      const rowsHtml = toProduce.length > 0 ? toProduce.map((item, idx) => `
+        <tr>
+          <td style="text-align:center;">${idx + 1}</td>
+          <td><strong>${escapeHtml(item.code)}</strong></td>
+          <td>${escapeHtml(item.description)}</td>
+          <td><strong>📍 ${escapeHtml(item.location || 'Magazzino')}</strong></td>
+          <td style="text-align:center;">${item.currentStock}</td>
+          <td style="text-align:center; color:#6d28d9;">${item.committedQty}</td>
+          <td style="text-align:center; font-weight:700;">${item.freeStock}</td>
+          <td style="text-align:center;">${item.minProductionLot} pz</td>
+          <td style="text-align:center; font-size:1.05rem; font-weight:800; color:#0369a1; background:#f0f9ff;">+${item.suggestedProduction} PZ</td>
+          <td style="text-align:center;"><span class="urgency-badge urgency-${item.urgency.toLowerCase()}">${item.urgency}</span></td>
+        </tr>
+      `).join('') : `
+        <tr>
+          <td colspan="10" style="text-align:center; padding:30px;">Tutti gli articoli hanno scorta ottimale. Nessun fabbisogno urgente.</td>
+        </tr>
+      `;
+
+      $('printableArea').innerHTML = `
+        <div style="padding:20px; font-family:'Plus Jakarta Sans', sans-serif;">
+          <div style="display:flex; justify-content:space-between; border-bottom:2px solid #0f172a; padding-bottom:12px; margin-bottom:16px;">
+            <div>
+              <h1 style="margin:0; font-size:1.4rem; color:#0f172a;">🏭 SCHEDA PIANIFICAZIONE PRODUZIONE & RIPRISTINO SCORTE</h1>
+              <div style="font-size:0.95rem; font-weight:700; color:#475569; margin-top:4px;">Pascal Cosmesi International - Dati Live Google Drive</div>
+            </div>
+            <div style="text-align:right; font-size:0.85rem;">
+              <div><strong>Data:</strong> ${dateStr}</div>
+              <div><strong>Lead Time medio fabbrica:</strong> ${productionKpi.companyAvgLeadTimeDays || 7} giorni</div>
+            </div>
+          </div>
+
+          <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:10px 14px; margin-bottom:16px; font-size:0.85rem; display:flex; justify-content:space-between;">
+            <div>Articoli da produrre: <strong>${toProduce.length}</strong></div>
+            <div>Pezzi totali da fabbricare: <strong>${(productionKpi.totalPiecesToProduce || 0).toLocaleString('it-IT')} PZ</strong></div>
+            <div>Impegnato ordini clienti: <strong>${(productionKpi.totalCommittedPieces || 0).toLocaleString('it-IT')} PZ</strong></div>
+          </div>
+
+          <table style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+            <thead>
+              <tr style="background:#f1f5f9; border-bottom:2px solid #cbd5e1;">
+                <th style="padding:8px; width:35px; text-align:center;">#</th>
+                <th style="padding:8px; width:100px;">Codice</th>
+                <th style="padding:8px;">Descrizione</th>
+                <th style="padding:8px; width:110px;">Ubicazione</th>
+                <th style="padding:8px; width:65px; text-align:center;">Giacenza</th>
+                <th style="padding:8px; width:65px; text-align:center;">Impegnato</th>
+                <th style="padding:8px; width:65px; text-align:center;">Disp. Libera</th>
+                <th style="padding:8px; width:65px; text-align:center;">Lotto Min</th>
+                <th style="padding:8px; width:100px; text-align:center;">LOTTO PROPOSTO</th>
+                <th style="padding:8px; width:80px; text-align:center;">Urgenza</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-top:50px; padding-top:20px; border-top:1px solid #cbd5e1; font-size:0.82rem;">
+            <div>Firma Responsabile Produzione:<br><br>___________________________</div>
+            <div>Firma Magazzino / Materie:<br><br>___________________________</div>
+            <div>Firma Controllo Qualità:<br><br>___________________________</div>
+          </div>
+        </div>
+      `;
+
+      window.print();
+    };
+
+    loadData();
+  </script>
+</body>
+</html>

@@ -535,6 +535,7 @@
       </div>
     </div>
     <div class="heading-actions">
+      <a class="btn secondary" href="/pianificazione-produzione.html">🏭 Produzione & Scorte</a>
       <a class="btn secondary" href="/">← Torna alle pratiche</a>
       <a class="btn secondary" href="/configurazione.html">⚙️ Configurazione</a>
     </div>
@@ -782,6 +783,19 @@
         </div>
       </div>
 
+      <div class="two-cols" style="margin-bottom:12px;">
+        <div class="field">
+          <span>Ubicazione Magazzino (Scaffale / Corsia)</span>
+          <input type="text" id="modalProdLocation" placeholder="Es. Scaffale A-02, Corsia B">
+          <small style="color:var(--muted); font-size:.72rem;">Indica dove stoccare e prelevare l'articolo</small>
+        </div>
+        <div class="field">
+          <span>Giacenza Rettificata (opzionale)</span>
+          <input type="number" id="modalManualStock" min="0" placeholder="Lascia vuoto per calcolo live">
+          <small style="color:var(--muted); font-size:.72rem;">Sovrascrive la giacenza da inventario fisico</small>
+        </div>
+      </div>
+
       <div class="field" style="margin-bottom:14px;">
         <span>Note di Produzione / Istruzioni Reparto</span>
         <textarea id="modalProdNotes" rows="2" placeholder="Es. Materie prime speciali, packaging dedicato..."></textarea>
@@ -1009,10 +1023,11 @@
 
     async function loadAuxiliaryData() {
       try {
-        const [compRes, custRes, offRes] = await Promise.all([
+        const [compRes, custRes, offRes, prodRes] = await Promise.all([
           fetch('/api/company').then(r => r.json()).catch(() => ({})),
           fetch('/api/customers').then(r => r.json()).catch(() => ({})),
-          fetch('/api/offers').then(r => r.json()).catch(() => ({}))
+          fetch('/api/offers').then(r => r.json()).catch(() => ({})),
+          fetch('/api/products').then(r => r.json()).catch(() => ({}))
         ]);
         if (compRes?.company && Object.keys(compRes.company).length > 0) {
           companyProfile = { ...companyProfile, ...compRes.company };
@@ -1022,6 +1037,9 @@
         }
         if (offRes?.offers && Array.isArray(offRes.offers)) {
           allOffers = offRes.offers;
+        }
+        if (prodRes?.products && Array.isArray(prodRes.products)) {
+          window.catalogProductsMap = Object.fromEntries(prodRes.products.map(p => [p.code, p]));
         }
       } catch (e) {
         console.warn('Caricamento dati ausiliari non bloccante:', e);
@@ -1363,13 +1381,26 @@
         if ((!lines || lines.length === 0) && Array.isArray(ord.payload?.products)) {
           lines = ord.payload.products;
         }
-        const linesHtml = lines.length > 0 ? lines.map((l, idx) => `
+
+        const processedLines = lines.map(l => {
+          const code = String(l.code || '').trim();
+          const p = (window.catalogProductsMap && window.catalogProductsMap[code]) || {};
+          return {
+            ...l,
+            location: l.location || p.location || 'Magazzino / Picking'
+          };
+        });
+
+        // Sort items by warehouse location (aisle / shelf walkthrough order)
+        processedLines.sort((a, b) => String(a.location || '').localeCompare(String(b.location || '')));
+
+        const linesHtml = processedLines.length > 0 ? processedLines.map((l, idx) => `
           <tr>
             <td class="center"><span style="display:inline-block; width:18px; height:18px; border:2px solid #334155; border-radius:3px;"></span></td>
-            <td><strong>${l.code || 'ART'}</strong></td>
-            <td>${l.description || 'Articolo'}</td>
+            <td><strong>${escapeHtml(l.code || 'ART')}</strong></td>
+            <td>${escapeHtml(l.description || 'Articolo')}</td>
             <td class="center" style="font-weight:800; font-size:1.05rem; color:#0369a1;">${l.quantity || 1}</td>
-            <td>${l.location || 'Magazzino / Picking'}</td>
+            <td><strong style="color:#0369a1;">📍 ${escapeHtml(l.location || 'Magazzino / Picking')}</strong></td>
           </tr>
         `).join('') : `
           <tr>
@@ -1869,7 +1900,7 @@
         if (currentProdFilter !== 'all' && item.urgency !== currentProdFilter) return false;
         if (selectedFamily && (item.family !== selectedFamily && item.macroFamily !== selectedFamily)) return false;
         if (term) {
-          const haystack = `${item.code} ${item.description} ${item.brand} ${item.family}`.toLowerCase();
+          const haystack = `${item.code} ${item.description} ${item.brand} ${item.family} ${item.location || ''}`.toLowerCase();
           if (!haystack.includes(term)) return false;
         }
         return true;
@@ -1897,6 +1928,7 @@
           <tr>
             <td>
               <strong style="font-family:monospace; font-size:.9rem; color:var(--navy);">${escapeHtml(item.code)}</strong>
+              <div style="margin-top:3px;"><span style="display:inline-block; background:#f0f9ff; color:#0369a1; border:1px solid #bae6fd; border-radius:4px; padding:1px 5px; font-size:.72rem; font-weight:700;">📍 ${escapeHtml(item.location || 'Magazzino')}</span></div>
             </td>
             <td>
               <div style="font-weight:700; color:#1e293b;">${escapeHtml(item.description)}</div>
@@ -1971,6 +2003,8 @@
       $('modalMinLot').value = item.minProductionLot || '';
       $('modalManualMinStock').value = item.safetyStock || '';
       $('modalManualMaxStock').value = item.maxStock || '';
+      $('modalProdLocation').value = item.location || '';
+      $('modalManualStock').value = item.manualStock != null ? item.manualStock : '';
       $('modalProdNotes').value = item.notes || '';
 
       $('prodParamModal').showModal();
@@ -1985,6 +2019,8 @@
         minProductionLot: $('modalMinLot').value ? Number($('modalMinLot').value) : null,
         manualSafetyStock: $('modalManualMinStock').value ? Number($('modalManualMinStock').value) : null,
         manualMaxStock: $('modalManualMaxStock').value ? Number($('modalManualMaxStock').value) : null,
+        location: $('modalProdLocation').value.trim(),
+        manualStock: $('modalManualStock').value ? Number($('modalManualStock').value) : null,
         notes: $('modalProdNotes').value.trim()
       };
 

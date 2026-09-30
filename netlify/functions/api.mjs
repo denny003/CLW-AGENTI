@@ -734,6 +734,7 @@ async function fetchProductsData(customId, customTab) {
       const macroIdx = col('jmacrofamiglia');
       const famIdx = col('jfamiglia');
       const groupIdx = col('q_ubi_art_destab');
+      const locationIdx = col('ubicazione') >= 0 ? col('ubicazione') : (col('scaffale') >= 0 ? col('scaffale') : (col('corsia') >= 0 ? col('corsia') : (col('ubi') >= 0 ? col('ubi') : groupIdx)));
       const priceIdx = col('qt_prezzo_pz') >= 0 ? col('qt_prezzo_pz') : col('prezzo');
       const stockIdx = colExact('qtesi') >= 0 ? colExact('qtesi') : col('disp');
       const imageIdx = col('url-immagine') >= 0 ? col('url-immagine') : col('disegno');
@@ -763,6 +764,7 @@ async function fetchProductsData(customId, customTab) {
         const minStk = minStockIdx >= 0 && r[minStockIdx] != null && !isNaN(parseFloat(r[minStockIdx])) ? parseFloat(r[minStockIdx]) : null;
         const maxStk = maxStockIdx >= 0 && r[maxStockIdx] != null && !isNaN(parseFloat(r[maxStockIdx])) ? parseFloat(r[maxStockIdx]) : null;
         const ropVal = ropIdx >= 0 && r[ropIdx] != null && !isNaN(parseFloat(r[ropIdx])) ? parseFloat(r[ropIdx]) : null;
+        const locVal = (locationIdx >= 0 && r[locationIdx]) ? String(r[locationIdx]).trim() : (r[groupIdx] ? String(r[groupIdx]).trim() : '');
 
         products.push({
           id: caId,
@@ -773,6 +775,7 @@ async function fetchProductsData(customId, customTab) {
           macroFamily: String(r[macroIdx] || '').trim(),
           family: String(r[famIdx] || '').trim(),
           group: String(r[groupIdx] || '').trim(),
+          location: locVal,
           price: Number.isFinite(price) ? price : 0,
           stock: Number.isFinite(stock) ? stock : 0,
           imageRef: String(r[disegnoIdx] || r[imageIdx] || '').trim(),
@@ -1990,7 +1993,7 @@ async function saveProspect(data, user) {
 async function fetchProductionParameters(customId) {
   const regId = cleanEnvId(customId) || runtimeConfig.repository.spreadsheetId || OFFICIAL_SYSTEM_SPREADSHEETS.repository.spreadsheetId;
   await ensureSheetTab(regId, 'Parametri_Produzione');
-  const rows = await readRange(regId, "'Parametri_Produzione'!A1:H500").catch(() => []);
+  const rows = await readRange(regId, "'Parametri_Produzione'!A1:J500").catch(() => []);
   if (!rows || rows.length <= 1) return {};
 
   const header = rows[0].map(c => String(c || '').toLowerCase().trim());
@@ -2001,6 +2004,8 @@ async function fetchProductionParameters(customId) {
   const minStockIdx = col('min') >= 0 ? col('min') : 3;
   const maxStockIdx = col('max') >= 0 ? col('max') : 4;
   const notesIdx = col('note') >= 0 ? col('note') : 5;
+  const ubiIdx = col('ubicazione') >= 0 ? col('ubicazione') : (col('scaffale') >= 0 ? col('scaffale') : (col('ubi') >= 0 ? col('ubi') : 8));
+  const stockIdx = col('giacenza') >= 0 ? col('giacenza') : (col('stock') >= 0 ? col('stock') : 9);
 
   const map = {};
   for (let i = 1; i < rows.length; i++) {
@@ -2013,7 +2018,9 @@ async function fetchProductionParameters(customId) {
       minProductionLot: r[lotIdx] != null && !isNaN(parseFloat(r[lotIdx])) ? parseFloat(r[lotIdx]) : null,
       manualSafetyStock: r[minStockIdx] != null && !isNaN(parseFloat(r[minStockIdx])) ? parseFloat(r[minStockIdx]) : null,
       manualMaxStock: r[maxStockIdx] != null && !isNaN(parseFloat(r[maxStockIdx])) ? parseFloat(r[maxStockIdx]) : null,
-      notes: r[notesIdx] ? String(r[notesIdx]).trim() : ''
+      notes: r[notesIdx] ? String(r[notesIdx]).trim() : '',
+      location: (ubiIdx >= 0 && r[ubiIdx]) ? String(r[ubiIdx]).trim() : '',
+      manualStock: (stockIdx >= 0 && r[stockIdx] != null && !isNaN(parseFloat(r[stockIdx]))) ? parseFloat(r[stockIdx]) : null
     };
   }
   return map;
@@ -2023,9 +2030,9 @@ async function saveProductionParameters(paramItem, user, customId) {
   const regId = cleanEnvId(customId) || runtimeConfig.repository.spreadsheetId || OFFICIAL_SYSTEM_SPREADSHEETS.repository.spreadsheetId;
   await ensureSheetTab(regId, 'Parametri_Produzione');
 
-  const rows = await readRange(regId, "'Parametri_Produzione'!A1:H500").catch(() => []);
+  const rows = await readRange(regId, "'Parametri_Produzione'!A1:J500").catch(() => []);
   if (!rows || rows.length === 0) {
-    const header = ['Codice Articolo', 'Tempo Produzione Stimato (gg)', 'Lotto Minimo Produzione', 'Scorta Minima Manuale', 'Scorta Massima Manuale', 'Note Produzione', 'Ultimo Aggiornamento', 'Aggiornato Da'];
+    const header = ['Codice Articolo', 'Tempo Produzione Stimato (gg)', 'Lotto Minimo Produzione', 'Scorta Minima Manuale', 'Scorta Massima Manuale', 'Note Produzione', 'Ultimo Aggiornamento', 'Aggiornato Da', 'Ubicazione Magazzino', 'Giacenza Rettificata'];
     await append(regId, "'Parametri_Produzione'!A1", [header]);
   }
 
@@ -2053,16 +2060,133 @@ async function saveProductionParameters(paramItem, user, customId) {
     paramItem.manualMaxStock != null && !isNaN(parseFloat(paramItem.manualMaxStock)) ? parseFloat(paramItem.manualMaxStock) : '',
     paramItem.notes || '',
     now,
-    userName
+    userName,
+    paramItem.location || '',
+    paramItem.manualStock != null && !isNaN(parseFloat(paramItem.manualStock)) ? parseFloat(paramItem.manualStock) : ''
   ];
 
   if (existingRowIdx > 0) {
-    await updateRow(regId, `'Parametri_Produzione'!A${existingRowIdx}:H${existingRowIdx}`, [row]);
+    await updateRow(regId, `'Parametri_Produzione'!A${existingRowIdx}:J${existingRowIdx}`, [row]);
   } else {
-    await append(regId, "'Parametri_Produzione'!A:H", [row]);
+    await append(regId, "'Parametri_Produzione'!A:J", [row]);
   }
 
   return { ok: true, code, paramItem };
+}
+
+// -------------------------------------------------------------
+// WAREHOUSE MOVEMENTS & PRODUCTION RECEIPT TRACKING
+// -------------------------------------------------------------
+
+async function fetchWarehouseMovements(customId) {
+  const regId = cleanEnvId(customId) || runtimeConfig.repository.spreadsheetId || OFFICIAL_SYSTEM_SPREADSHEETS.repository.spreadsheetId;
+  await ensureSheetTab(regId, 'Movimenti_Magazzino');
+  const rows = await readRange(regId, "'Movimenti_Magazzino'!A1:J500").catch(() => []);
+  if (!rows || rows.length <= 1) return [];
+
+  const header = rows[0].map(c => String(c || '').toLowerCase().trim());
+  const col = name => header.findIndex(h => h.includes(name));
+  const idIdx = col('id') >= 0 ? col('id') : 0;
+  const dateIdx = col('data') >= 0 ? col('data') : 1;
+  const typeIdx = col('tipo') >= 0 ? col('tipo') : 2;
+  const codeIdx = col('codice') >= 0 ? col('codice') : 3;
+  const desIdx = col('descrizione') >= 0 ? col('descrizione') : 4;
+  const qtyIdx = col('quantit') >= 0 ? col('quantit') : 5;
+  const lotIdx = col('lotto') >= 0 ? col('lotto') : 6;
+  const ubiIdx = col('ubicazione') >= 0 ? col('ubicazione') : (col('scaffale') >= 0 ? col('scaffale') : 7);
+  const opIdx = col('operatore') >= 0 ? col('operatore') : 8;
+  const notesIdx = col('note') >= 0 ? col('note') : 9;
+
+  const movements = [];
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r || (!r[codeIdx] && !r[idIdx])) continue;
+    const qty = Number(r[qtyIdx]) || 0;
+    movements.push({
+      id: String(r[idIdx] || `MOV-${i}`).trim(),
+      date: r[dateIdx] ? String(r[dateIdx]).trim() : new Date().toISOString(),
+      type: r[typeIdx] ? String(r[typeIdx]).trim().toUpperCase() : 'PRODUZIONE',
+      code: String(r[codeIdx] || '').trim(),
+      description: String(r[desIdx] || '').trim(),
+      quantity: qty,
+      lotNumber: r[lotIdx] ? String(r[lotIdx]).trim() : '',
+      location: (ubiIdx >= 0 && r[ubiIdx]) ? String(r[ubiIdx]).trim() : '',
+      operator: (opIdx >= 0 && r[opIdx]) ? String(r[opIdx]).trim() : '',
+      notes: (notesIdx >= 0 && r[notesIdx]) ? String(r[notesIdx]).trim() : ''
+    });
+  }
+  return movements.reverse();
+}
+
+async function recordWarehouseMovement(entry, user, customId) {
+  const regId = cleanEnvId(customId) || runtimeConfig.repository.spreadsheetId || OFFICIAL_SYSTEM_SPREADSHEETS.repository.spreadsheetId;
+  await ensureSheetTab(regId, 'Movimenti_Magazzino');
+
+  const rows = await readRange(regId, "'Movimenti_Magazzino'!A1:J1").catch(() => []);
+  if (!rows || rows.length === 0) {
+    const header = ['ID Movimento', 'Data Registrazione', 'Tipo Movimento', 'Codice Articolo', 'Descrizione Articolo', 'Quantità (Pezzi)', 'Numero Lotto', 'Ubicazione Stoccaggio', 'Operatore / Reparto', 'Note'];
+    await append(regId, "'Movimenti_Magazzino'!A1", [header]);
+  }
+
+  const code = String(entry.code || entry.articleCode || '').trim();
+  if (!code) throw new Error('Codice articolo mancante');
+  const qty = Number(entry.quantity) || 0;
+  if (qty <= 0) throw new Error('La quantità prodotta deve essere maggiore di 0');
+
+  const now = entry.date ? new Date(entry.date).toISOString() : new Date().toISOString();
+  const id = `PRD-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 900 + 100)}`;
+  const userName = user?.name || user?.username || entry.operator || 'Operatore Produzione';
+  const type = String(entry.type || 'PRODUZIONE').trim().toUpperCase();
+  const desc = String(entry.description || '').trim();
+  const lot = String(entry.lotNumber || entry.lot || '').trim();
+  const location = String(entry.location || entry.ubicazione || '').trim();
+  const notes = String(entry.notes || '').trim();
+
+  const row = [
+    id,
+    now,
+    type,
+    code,
+    desc,
+    qty,
+    lot,
+    location,
+    userName,
+    notes
+  ];
+
+  await append(regId, "'Movimenti_Magazzino'!A:J", [row]);
+
+  // If location was declared or changed, save it into Parametri_Produzione so the article keeps its warehouse location
+  if (location) {
+    try {
+      const currentParam = (await fetchProductionParameters(customId))[code] || {};
+      await saveProductionParameters({
+        ...currentParam,
+        code,
+        location
+      }, user, customId);
+    } catch (e) {
+      console.warn('Aggiornamento ubicazione articolo non bloccante:', e.message);
+    }
+  }
+
+  return {
+    ok: true,
+    id,
+    movement: {
+      id,
+      date: now,
+      type,
+      code,
+      description: desc,
+      quantity: qty,
+      lotNumber: lot,
+      location,
+      operator: userName,
+      notes
+    }
+  };
 }
 
 async function calculateProductionIntelligence(user, customProductsId, customRepositoryId) {
@@ -2075,9 +2199,50 @@ async function calculateProductionIntelligence(user, customProductsId, customRep
 
   // 3. Fetch all orders from Google Sheets Ordini
   const adminUser = { role: 'admin' };
-  const orders = await listDocs(runtimeConfig.repository.tabOrders || 'Ordini', adminUser, customRepositoryId);
+  const orders = await listDocs(runtimeConfig.repository.tabOrders || 'Ordini', adminUser, customRepositoryId).catch(() => []);
 
-  // 4. Learning Lead Times and Demand per Article
+  // 4. Fetch all open offers from Google Sheets Offerte (prospective pipeline demand)
+  const offers = await listDocs(runtimeConfig.repository.tabOffers || 'Offerte', adminUser, customRepositoryId).catch(() => []);
+
+  // 5. Fetch declared warehouse movements (production batches and goods receipts)
+  const movements = await fetchWarehouseMovements(customRepositoryId).catch(() => []);
+
+  // Process open offers for prospective demand
+  const articleOffers = {};
+  for (const off of (offers || [])) {
+    const stStatus = String(off.status || off.workflow_status || 'bozza').toLowerCase();
+    if (['rifiutata', 'annullata', 'scaduta', 'convertita', 'convertita_in_ordine'].includes(stStatus)) continue;
+    const lines = off.payload?.lines || off.payload?.items || [];
+    for (const l of lines) {
+      const code = String(l.code || '').trim();
+      if (!code) continue;
+      const qty = Number(l.quantity) || 1;
+      if (!articleOffers[code]) articleOffers[code] = { offeredQty: 0, offersCount: 0 };
+      articleOffers[code].offeredQty += qty;
+      articleOffers[code].offersCount += 1;
+    }
+  }
+
+  // Process warehouse movements
+  const articleMovements = {};
+  for (const m of movements) {
+    const code = m.code;
+    if (!code) continue;
+    if (!articleMovements[code]) {
+      articleMovements[code] = { producedQty: 0, movementsCount: 0, lastLot: '', lastMovementDate: '' };
+    }
+    const stm = articleMovements[code];
+    stm.movementsCount++;
+    if (m.type === 'PRODUZIONE' || m.type === 'CARICO' || m.type === 'RESO') {
+      stm.producedQty += m.quantity;
+    } else if (m.type === 'SCARTO' || m.type === 'RETTIFICA_NEGATIVA') {
+      stm.producedQty -= m.quantity;
+    }
+    if (!stm.lastLot && m.lotNumber) stm.lastLot = m.lotNumber;
+    if (!stm.lastMovementDate && m.date) stm.lastMovementDate = m.date;
+  }
+
+  // Learning Lead Times and Demand per Article from Orders
   const articleStats = {};
   const familyLeadTimes = {};
   const globalLeadTimes = [];
@@ -2116,7 +2281,7 @@ async function calculateProductionIntelligence(user, customProductsId, customRep
     }
 
     const isClosed = ord.workflow_status === 'spedito' || ord.workflow_status === 'fatturato' || ord.workflow_status === 'respinto';
-    const lines = ord.payload?.lines || [];
+    const lines = ord.payload?.lines || ord.payload?.items || [];
 
     for (const l of lines) {
       const code = String(l.code || '').trim();
@@ -2129,7 +2294,8 @@ async function calculateProductionIntelligence(user, customProductsId, customRep
           totalOrderedQty: 0,
           ordersCount: 0,
           recent30Qty: 0,
-          committedQty: 0
+          committedQty: 0,
+          soldQty: 0
         };
       }
 
@@ -2139,6 +2305,10 @@ async function calculateProductionIntelligence(user, customProductsId, customRep
 
       if (orderDateMs >= thirtyDaysAgoMs) {
         st.recent30Qty += qty;
+      }
+
+      if (ord.workflow_status === 'spedito' || ord.workflow_status === 'fatturato') {
+        st.soldQty += qty;
       }
 
       if (!isClosed) {
@@ -2184,22 +2354,49 @@ async function calculateProductionIntelligence(user, customProductsId, customRep
   let overstockCount = 0;
   let totalPiecesToProduce = 0;
   let totalCommittedPieces = 0;
+  let totalOfferedPieces = 0;
+  let totalProducedPieces = 0;
+  let totalSoldPieces = 0;
+  let totalRealStock = 0;
 
   for (const pr of products) {
     const code = pr.code;
     const desc = pr.description;
-    const currentStock = Number.isFinite(pr.stock) ? pr.stock : 0;
+    const catalogStock = Number.isFinite(pr.stock) ? pr.stock : 0;
     const override = paramMap[code] || {};
+    const movData = articleMovements[code] || { producedQty: 0, movementsCount: 0, lastLot: '', lastMovementDate: '' };
+    const offData = articleOffers[code] || { offeredQty: 0, offersCount: 0 };
 
     const st = articleStats[code] || {
       leadTimes: [],
       totalOrderedQty: 0,
       ordersCount: 0,
       recent30Qty: 0,
-      committedQty: 0
+      committedQty: 0,
+      soldQty: 0
     };
 
-    totalCommittedPieces += st.committedQty;
+    const producedQty = movData.producedQty;
+    const soldQty = st.soldQty;
+    const committedQty = st.committedQty;
+    const offeredQty = offData.offeredQty;
+
+    totalCommittedPieces += committedQty;
+    totalOfferedPieces += offeredQty;
+    totalProducedPieces += producedQty;
+    totalSoldPieces += soldQty;
+
+    // Real Stock calculation: manual override > (catalogStock + declared produced - delivered sold)
+    let currentStock = catalogStock;
+    if (override.manualStock != null && !isNaN(override.manualStock)) {
+      currentStock = override.manualStock;
+    } else if (producedQty > 0 || soldQty > 0) {
+      currentStock = Math.max(0, catalogStock + producedQty - soldQty);
+    }
+    totalRealStock += currentStock;
+
+    // Ubicazione: manual override > catalog location > default
+    const location = override.location || pr.location || 'Magazzino / Stoccaggio';
 
     // 1. Lead time calculation (learned vs configured)
     const productLeadTimes = st.leadTimes;
@@ -2219,8 +2416,6 @@ async function calculateProductionIntelligence(user, customProductsId, customRep
     const fam = pr.family || pr.macroFamily || 'STANDARD';
     const famLeadAvg = familyAvgMap[fam] || globalAvgLead;
 
-    // Effective Lead Time priority:
-    // Manual override in Google Sheets > Product configured > Learned average from historical orders > Family average > Default
     let effectiveLeadTime = 7;
     let leadTimeSource = 'Default (7 gg)';
     if (override.leadTimeDays && override.leadTimeDays > 0) {
@@ -2244,8 +2439,6 @@ async function calculateProductionIntelligence(user, customProductsId, customRep
     const dailyDemandStd = dailyDemand > 0 ? Math.sqrt(dailyDemand * 1.5) : 0.2;
 
     // 3. Safety Stock (SS) calculation
-    // Service level 95% -> Z = 1.65
-    // Formula: SS = Z * sqrt( L * sigma_D^2 + D^2 * sigma_L^2 )
     const varTerm = (effectiveLeadTime * Math.pow(dailyDemandStd, 2)) + (Math.pow(dailyDemand, 2) * Math.pow(learnedLeadStd, 2));
     const calculatedSS = Math.max(1, Math.ceil(1.65 * Math.sqrt(Math.max(0.1, varTerm))));
 
@@ -2276,8 +2469,8 @@ async function calculateProductionIntelligence(user, customProductsId, customRep
       ? override.manualMaxStock
       : (pr.maxStock != null && pr.maxStock > 0 ? pr.maxStock : calculatedMaxStock);
 
-    // 7. Free Stock = Real Warehouse Stock - Committed in Open Orders
-    const freeStock = currentStock - st.committedQty;
+    // 7. Free Stock = Real Physical Stock - Committed in Open Orders
+    const freeStock = currentStock - committedQty;
 
     // 8. Urgency Status & Suggested Production Quantity
     let urgency = 'OTTIMALE';
@@ -2308,7 +2501,9 @@ async function calculateProductionIntelligence(user, customProductsId, customRep
     }
 
     if (urgency === 'CRITICO' || urgency === 'RIORDINO') {
-      const targetDeficit = Math.max(0, maxStock - freeStock);
+      // Factor in buffer for open offers (prospective demand)
+      const offerFactor = Math.round(offeredQty * 0.25);
+      const targetDeficit = Math.max(0, (maxStock + offerFactor) - freeStock);
       if (targetDeficit > 0) {
         suggestedProduction = Math.ceil(targetDeficit / minLot) * minLot;
         totalPiecesToProduce += suggestedProduction;
@@ -2323,9 +2518,16 @@ async function calculateProductionIntelligence(user, customProductsId, customRep
       family: pr.family || '',
       macroFamily: pr.macroFamily || '',
       price: pr.price || 0,
+      location,
+      catalogStock,
+      producedQty,
+      soldQty,
       currentStock,
-      committedQty: st.committedQty,
+      committedQty,
+      offeredQty,
       freeStock,
+      lastLot: movData.lastLot,
+      lastMovementDate: movData.lastMovementDate,
       ordersCount: st.ordersCount,
       totalOrderedQty: st.totalOrderedQty,
       dailyDemand: Math.round(dailyDemand * 100) / 100,
@@ -2367,11 +2569,16 @@ async function calculateProductionIntelligence(user, customProductsId, customRep
       overstockCount,
       totalPiecesToProduce,
       totalCommittedPieces,
+      totalOfferedPieces,
+      totalProducedPieces,
+      totalSoldPieces,
+      totalRealStock,
       companyAvgLeadTimeDays: Math.round(globalAvgLead * 10) / 10,
       shippedOrdersAnalyzed: globalLeadTimes.length,
       totalOrdersAnalyzed: orders.length,
       observationDays
     },
+    movements: movements.slice(0, 50),
     analysis
   };
 }
@@ -2591,6 +2798,25 @@ export default async (request, context) => {
       } catch (err) {
         return json(400, { error: err.message });
       }
+    }
+
+    // Production Batch Declaration & Warehouse Goods Receipt
+    if (path === 'production/record' && request.method === 'POST') {
+      const body = await request.json().catch(() => ({}));
+      const customId = url.searchParams.get('id') || undefined;
+      try {
+        const result = await recordWarehouseMovement(body, user, customId);
+        return json(200, result);
+      } catch (err) {
+        return json(400, { error: err.message });
+      }
+    }
+
+    // List Warehouse Movements
+    if (path === 'production/movements' && request.method === 'GET') {
+      const customId = url.searchParams.get('id') || undefined;
+      const movements = await fetchWarehouseMovements(customId);
+      return json(200, { ok: true, movements });
     }
 
     return json(404, { error: 'Servizio non disponibile: ' + path });
