@@ -1290,143 +1290,152 @@
 
     // Print Picking List for warehouse staff
     function openPrintPicking(orderId) {
-      const ord = allOrders.find(o => o.id === orderId || o.number === orderId);
-      if (!ord) return;
+      try {
+        const ord = allOrders.find(o => o.id === orderId || o.number === orderId);
+        if (!ord) return;
 
-      const dateStr = ord.submitted_at ? new Date(ord.submitted_at).toLocaleDateString('it-IT') : new Date().toLocaleDateString('it-IT');
-      let lines = ord.payload?.lines || [];
-      if ((!lines || lines.length === 0) && (ord.origin_offer_id || ord.payload?.convertedFromOffer)) {
-        const offNum = ord.origin_offer_id || ord.payload?.convertedFromOffer;
-        const matched = allOffers.find(o => o.number === offNum || o.id === offNum || o.offerNumber === offNum);
-        if (matched?.payload?.lines && matched.payload.lines.length > 0) {
-          lines = matched.payload.lines;
+        const dateStr = ord.submitted_at ? new Date(ord.submitted_at).toLocaleDateString('it-IT') : new Date().toLocaleDateString('it-IT');
+        let lines = ord.payload?.lines || [];
+        if ((!lines || lines.length === 0) && (ord.origin_offer_id || ord.payload?.convertedFromOffer)) {
+          const offNum = ord.origin_offer_id || ord.payload?.convertedFromOffer;
+          const matched = allOffers.find(o => o.number === offNum || o.id === offNum || o.offerNumber === offNum);
+          if (matched?.payload?.lines && matched.payload.lines.length > 0) {
+            lines = matched.payload.lines;
+          }
         }
-      }
-      if ((!lines || lines.length === 0) && Array.isArray(ord.payload?.items)) {
-        lines = ord.payload.items;
-      }
-      if ((!lines || lines.length === 0) && Array.isArray(ord.payload?.products)) {
-        lines = ord.payload.products;
-      }
-      const linesHtml = lines.length > 0 ? lines.map((l, idx) => `
-        <tr>
-          <td class="center"><span style="display:inline-block; width:18px; height:18px; border:2px solid #334155; border-radius:3px;"></span></td>
-          <td><strong>${l.code || 'ART'}</strong></td>
-          <td>${l.description || 'Articolo'}</td>
-          <td class="center" style="font-weight:800; font-size:1.05rem; color:#0369a1;">${l.quantity || 1}</td>
-          <td>${l.location || 'Magazzino / Picking'}</td>
-        </tr>
-      `).join('') : `
-        <tr>
-          <td class="center"><span style="display:inline-block; width:18px; height:18px; border:2px solid #334155; border-radius:3px;"></span></td>
-          <td><strong>Articoli Ordine</strong></td>
-          <td>Totale Documento: ${euro(ord.total)}</td>
-          <td class="center">1 compl.</td>
-          <td>Pallet / Scatola</td>
-        </tr>
-      `;
+        if ((!lines || lines.length === 0) && Array.isArray(ord.payload?.items)) {
+          lines = ord.payload.items;
+        }
+        if ((!lines || lines.length === 0) && Array.isArray(ord.payload?.products)) {
+          lines = ord.payload.products;
+        }
+        const linesHtml = lines.length > 0 ? lines.map((l, idx) => `
+          <tr>
+            <td class="center"><span style="display:inline-block; width:18px; height:18px; border:2px solid #334155; border-radius:3px;"></span></td>
+            <td><strong>${l.code || 'ART'}</strong></td>
+            <td>${l.description || 'Articolo'}</td>
+            <td class="center" style="font-weight:800; font-size:1.05rem; color:#0369a1;">${l.quantity || 1}</td>
+            <td>${l.location || 'Magazzino / Picking'}</td>
+          </tr>
+        `).join('') : `
+          <tr>
+            <td class="center"><span style="display:inline-block; width:18px; height:18px; border:2px solid #334155; border-radius:3px;"></span></td>
+            <td><strong>Articoli Ordine</strong></td>
+            <td>Totale Documento: ${euro(ord.total)}</td>
+            <td class="center">1 compl.</td>
+            <td>Pallet / Scatola</td>
+          </tr>
+        `;
 
-      $('printableArea').innerHTML = `
-        <div class="print-header">
-          <div>
-            <h1 class="print-title">📦 DISTINTA DI PRELIEVO (PICKING)</h1>
-            <div style="font-size:1.1rem; font-weight:700; color:#334155; margin-top:4px;">Ordine: ${ord.number}</div>
+        $('printableArea').innerHTML = `
+          <div class="print-header">
+            <div>
+              <h1 class="print-title">📦 DISTINTA DI PRELIEVO (PICKING)</h1>
+              <div style="font-size:1.1rem; font-weight:700; color:#334155; margin-top:4px;">Ordine: ${ord.number}</div>
+            </div>
+            <div style="text-align:right;">
+              <div><strong>Data:</strong> ${dateStr}</div>
+              <div><strong>Agente:</strong> ${ord.agent_name || ord.agent_code || 'N/D'}</div>
+            </div>
           </div>
-          <div style="text-align:right;">
-            <div><strong>Data:</strong> ${dateStr}</div>
-            <div><strong>Agente:</strong> ${ord.agent_name || ord.agent_code || 'N/D'}</div>
+
+          <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:12px 16px; margin-bottom:20px;">
+            <div><strong>Cliente di destinazione:</strong> ${ord.customer_name}</div>
+            ${ord.notes ? `<div style="margin-top:4px; font-size:.85rem; color:#475569;">Note preparazione: ${ord.notes}</div>` : ''}
           </div>
-        </div>
 
-        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:12px 16px; margin-bottom:20px;">
-          <div><strong>Cliente di destinazione:</strong> ${ord.customer_name}</div>
-          ${ord.notes ? `<div style="margin-top:4px; font-size:.85rem; color:#475569;">Note preparazione: ${ord.notes}</div>` : ''}
-        </div>
+          <table class="print-table">
+            <thead>
+              <tr>
+                <th style="width:40px;" class="center">Prelevato</th>
+                <th style="width:120px;">Codice Articolo</th>
+                <th>Descrizione Prodotto</th>
+                <th style="width:80px;" class="center">Quantità</th>
+                <th style="width:140px;">Ubicazione / Note</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${linesHtml}
+            </tbody>
+          </table>
 
-        <table class="print-table">
-          <thead>
-            <tr>
-              <th style="width:40px;" class="center">Prelevato</th>
-              <th style="width:120px;">Codice Articolo</th>
-              <th>Descrizione Prodotto</th>
-              <th style="width:80px;" class="center">Quantità</th>
-              <th style="width:140px;">Ubicazione / Note</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${linesHtml}
-          </tbody>
-        </table>
-
-        <div style="display:flex; justify-content:space-between; margin-top:40px; padding-top:20px; border-top:1px solid #cbd5e1;">
-          <div>Data e Ora Inizio: ___________________</div>
-          <div>Firma Addetto Magazzino: ___________________</div>
-        </div>
-      `;
-      $('printModal').showModal();
+          <div style="display:flex; justify-content:space-between; margin-top:40px; padding-top:20px; border-top:1px solid #cbd5e1;">
+            <div>Data e Ora Inizio: ___________________</div>
+            <div>Firma Addetto Magazzino: ___________________</div>
+          </div>
+        `;
+        const modal = $('printModal');
+        if (modal.open) modal.close();
+        modal.showModal();
+      } catch (err) {
+        console.error('Error opening picking print modal:', err);
+        toast('Errore apertura Picking: ' + err.message);
+      }
     }
 
     // Print DDT / Bolla di Consegna (Conforme D.P.R. 472/1996 - Modello Pascal Cosmesi International)
     function openPrintDdt(orderId) {
-      const ord = allOrders.find(o => o.id === orderId || o.number === orderId);
-      if (!ord) return;
+      try {
+        const ord = allOrders.find(o => o.id === orderId || o.number === orderId);
+        if (!ord) return;
 
-      // Customer resolution from loaded customers or fallback
-      const cust = allCustomers.find(c =>
-        (ord.customer_id && (String(c.id) === String(ord.customer_id) || String(c.code) === String(ord.customer_id))) ||
-        (c.name && ord.customer_name && c.name.trim().toLowerCase() === ord.customer_name.trim().toLowerCase())
-      ) || {};
+        // Customer resolution from loaded customers or fallback
+        const cust = allCustomers.find(c =>
+          (ord.customer_id && (String(c.id) === String(ord.customer_id) || String(c.code) === String(ord.customer_id))) ||
+          (c.name && ord.customer_name && c.name.trim().toLowerCase() === ord.customer_name.trim().toLowerCase())
+        ) || {};
 
-      const clientCode = cust.code || cust.id || ord.customer_id || '7841';
-      const clientName = ord.customer_name || cust.name || 'Cliente';
-      const clientAddress = cust.address || ord.payload?.customerAddress || '';
-      const clientZip = cust.postalCode || '';
-      const clientCity = cust.city || '';
-      const clientProv = cust.province || '';
-      const clientCityZip = [clientZip, clientCity, clientProv ? `${clientProv}` : ''].filter(Boolean).join(' ');
-      const pivaOrCf = cust.vatNumber || cust.taxCode || cust.piva || cust.cf || ord.payload?.customerVat || '';
+        const clientCode = cust.code || cust.id || ord.customer_id || '7841';
+        const clientName = ord.customer_name || cust.name || 'Cliente';
+        const clientAddress = cust.address || ord.payload?.customerAddress || '';
+        const clientZip = cust.postalCode || '';
+        const clientCity = cust.city || '';
+        const clientProv = cust.province || '';
+        const clientCityZip = [clientZip, clientCity, clientProv ? `${clientProv}` : ''].filter(Boolean).join(' ');
+        const pivaOrCf = cust.vatNumber || cust.taxCode || cust.piva || cust.cf || ord.payload?.customerVat || '';
 
-      const destText = ord.destination_address || ord.payload?.destinationAddress || '';
-      const destHtml = destText ? `
-        <div style="font-weight:700;">${destText}</div>
-      ` : `
-        <div class="ddt-client-name" style="font-size:11.5px;">${clientName}</div>
-        <div>${clientAddress || 'COME SOPRA'}</div>
-        <div>${clientCityZip}</div>
-      `;
+        const destText = ord.destination_address || ord.payload?.destinationAddress || '';
+        const destHtml = destText ? `
+          <div style="font-weight:700;">${destText}</div>
+        ` : `
+          <div class="ddt-client-name" style="font-size:11.5px;">${clientName}</div>
+          <div>${clientAddress || 'COME SOPRA'}</div>
+          <div>${clientCityZip}</div>
+        `;
 
-      // Company info (Pascal Cosmesi International)
-      const compName = companyProfile.displayName || companyProfile.companyName || 'Pascal Cosmesi International';
-      const compAddr = companyProfile.address || 'Via F.lli Bandiera 24';
-      const compCapCity = `${companyProfile.postalCode || '50100'} ${companyProfile.city || 'Sovigliana'} (${companyProfile.province || 'FI'})`;
-      const compTel = companyProfile.phone || '055/42.89.074';
-      const compVat = companyProfile.vatNumber || '1234567890';
-      const compWeb = companyProfile.website || 'www.pascalmilano.it';
-      const compEmail = companyProfile.email || 'info@pascalmilano.it';
+        // Company info (Pascal Cosmesi International)
+        const compName = companyProfile.displayName || companyProfile.companyName || 'Pascal Cosmesi International';
+        const compAddr = companyProfile.address || 'Via F.lli Bandiera 24';
+        const compCapCity = `${companyProfile.postalCode || '50100'} ${companyProfile.city || 'Sovigliana'} (${companyProfile.province || 'FI'})`;
+        const compTel = companyProfile.phone || '055/42.89.074';
+        const compVat = companyProfile.vatNumber || '1234567890';
+        const compWeb = companyProfile.website || 'www.pascalmilano.it';
+        const compEmail = companyProfile.email || 'info@pascalmilano.it';
 
-      // DDT metadata
-      const ddtNum = ord.ddt_number || `DDT-${new Date().getFullYear()}-${(ord.number || '').slice(-4)}`;
-      const ddtDate = ord.ddt_date || (ord.shipping_date ? ord.shipping_date : new Date().toISOString().slice(0, 10));
-      const ddtDateFormatted = formatDdtDate(ddtDate);
-      const paymentMethod = ord.payment_method || ord.payload?.payment || 'CONTRASSEGNO';
-      const causale = ord.causale || 'VENDITA';
-      const bankAppoggio = ord.bank_info || cust.bank || ord.payload?.bank || '';
+        // DDT metadata
+        const ddtNum = ord.ddt_number || `DDT-${new Date().getFullYear()}-${(ord.number || '').slice(-4)}`;
+        const ddtDate = ord.ddt_date || (ord.shipping_date ? ord.shipping_date : new Date().toISOString().slice(0, 10));
+        const ddtDateFormatted = formatDdtDate(ddtDate);
+        const paymentMethod = ord.payment_method || ord.payload?.payment || 'CONTRASSEGNO';
+        const causale = ord.causale || 'VENDITA';
+        const bankAppoggio = ord.bank_info || cust.bank || ord.payload?.bank || '';
+        const orderNotes = ord.notes || ord.payload?.notes || '';
 
-      // Items list (Quantities ONLY, NO PRICES as explicitly requested)
-      let lines = ord.payload?.lines || [];
-      if ((!lines || lines.length === 0) && (ord.origin_offer_id || ord.payload?.convertedFromOffer)) {
-        const offNum = ord.origin_offer_id || ord.payload?.convertedFromOffer;
-        const matched = allOffers.find(o => o.number === offNum || o.id === offNum || o.offerNumber === offNum);
-        if (matched?.payload?.lines && matched.payload.lines.length > 0) {
-          lines = matched.payload.lines;
+        // Items list (Quantities ONLY, NO PRICES as explicitly requested)
+        let lines = ord.payload?.lines || [];
+        if ((!lines || lines.length === 0) && (ord.origin_offer_id || ord.payload?.convertedFromOffer)) {
+          const offNum = ord.origin_offer_id || ord.payload?.convertedFromOffer;
+          const matched = allOffers.find(o => o.number === offNum || o.id === offNum || o.offerNumber === offNum);
+          if (matched?.payload?.lines && matched.payload.lines.length > 0) {
+            lines = matched.payload.lines;
+          }
         }
-      }
-      if ((!lines || lines.length === 0) && Array.isArray(ord.payload?.items)) {
-        lines = ord.payload.items;
-      }
-      if ((!lines || lines.length === 0) && Array.isArray(ord.payload?.products)) {
-        lines = ord.payload.products;
-      }
+        if ((!lines || lines.length === 0) && Array.isArray(ord.payload?.items)) {
+          lines = ord.payload.items;
+        }
+        if ((!lines || lines.length === 0) && Array.isArray(ord.payload?.products)) {
+          lines = ord.payload.products;
+        }
 
       // Generate rows and empty filler rows to leave space on A4 page
       const targetRows = 9;
@@ -1696,7 +1705,13 @@
         </div>
       `;
 
-      $('printModal').showModal();
+        const modal = $('printModal');
+        if (modal.open) modal.close();
+        modal.showModal();
+      } catch (err) {
+        console.error('Error opening DDT print modal:', err);
+        toast('Errore apertura DDT: ' + err.message);
+      }
     }
 
     // -------------------------------------------------------------
