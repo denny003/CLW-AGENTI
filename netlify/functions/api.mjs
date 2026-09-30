@@ -140,7 +140,7 @@ const OFFICIAL_SYSTEM_SPREADSHEETS = Object.freeze({
   warehouse: {
     folder: 'Repository',
     fileName: 'Registro Magazzino e Produzione',
-    spreadsheetId: '',
+    spreadsheetId: '1PY897bYrzckl9P3ADr6LjhCPik-9wQefEkkkn9SWCig',
     tabMovements: 'Movimenti_Magazzino',
     tabParameters: 'Parametri_Produzione'
   },
@@ -192,7 +192,7 @@ let runtimeConfig = {
   warehouse: {
     folder: 'Repository',
     fileName: 'Registro Magazzino e Produzione',
-    spreadsheetId: cleanEnvId(process.env.WAREHOUSE_SPREADSHEET_ID) || cleanEnvId(process.env.GOOGLE_SHEETS_WAREHOUSE_ID) || '',
+    spreadsheetId: cleanEnvId(process.env.WAREHOUSE_SPREADSHEET_ID) || cleanEnvId(process.env.GOOGLE_SHEETS_WAREHOUSE_ID) || OFFICIAL_SYSTEM_SPREADSHEETS.warehouse.spreadsheetId,
     tabMovements: 'Movimenti_Magazzino',
     tabParameters: 'Parametri_Produzione'
   },
@@ -2022,8 +2022,265 @@ async function saveProspect(data, user) {
 // PRODUCTION & INVENTORY INTELLIGENCE (SELF-LEARNING ALGORITHM)
 // -------------------------------------------------------------
 
+let warehouseSetupDone = {};
+
+async function setupWarehouseSpreadsheet(whId) {
+  if (!whId) return false;
+  if (warehouseSetupDone[whId]) return true;
+
+  try {
+    const meta = await sheets(`${whId}?fields=sheets.properties`);
+    const existing = meta?.sheets || [];
+    const titles = existing.map(s => s.properties?.title);
+
+    const requests = [];
+    if (!titles.includes('Istruzioni_e_Legenda')) {
+      requests.push({
+        addSheet: {
+          properties: {
+            title: 'Istruzioni_e_Legenda',
+            gridProperties: { rowCount: 40, columnCount: 6 }
+          }
+        }
+      });
+    }
+    if (!titles.includes('Movimenti_Magazzino')) {
+      requests.push({
+        addSheet: {
+          properties: {
+            title: 'Movimenti_Magazzino',
+            gridProperties: { rowCount: 1000, columnCount: 11 }
+          }
+        }
+      });
+    }
+    if (!titles.includes('Parametri_Produzione')) {
+      requests.push({
+        addSheet: {
+          properties: {
+            title: 'Parametri_Produzione',
+            gridProperties: { rowCount: 500, columnCount: 11 }
+          }
+        }
+      });
+    }
+
+    if (requests.length > 0) {
+      await sheets(`${whId}:batchUpdate`, {
+        method: 'POST',
+        body: JSON.stringify({ requests })
+      });
+    }
+
+    // Re-fetch to get IDs
+    const meta2 = await sheets(`${whId}?fields=sheets.properties`);
+    const sheetMap = {};
+    for (const s of meta2?.sheets || []) {
+      sheetMap[s.properties?.title] = s.properties?.sheetId;
+    }
+
+    const fmtRequests = [];
+
+    // Delete Foglio1 or Sheet1 if it exists and total sheets > 1
+    for (const s of meta2?.sheets || []) {
+      const t = s.properties?.title;
+      if ((t === 'Foglio1' || t === 'Sheet1') && meta2.sheets.length > 1) {
+        fmtRequests.push({ deleteSheet: { sheetId: s.properties.sheetId } });
+      }
+    }
+
+    // 1. Format Istruzioni_e_Legenda
+    const infoId = sheetMap['Istruzioni_e_Legenda'];
+    if (infoId !== undefined) {
+      fmtRequests.push({
+        updateSheetProperties: {
+          properties: {
+            sheetId: infoId,
+            tabColor: { red: 0.45, green: 0.25, blue: 0.75 }
+          },
+          fields: 'tabColor'
+        }
+      });
+      fmtRequests.push({
+        updateDimensionProperties: {
+          range: { sheetId: infoId, dimension: 'COLUMNS', startIndex: 0, endIndex: 1 },
+          properties: { pixelSize: 240 },
+          fields: 'pixelSize'
+        }
+      });
+      fmtRequests.push({
+        updateDimensionProperties: {
+          range: { sheetId: infoId, dimension: 'COLUMNS', startIndex: 1, endIndex: 2 },
+          properties: { pixelSize: 420 },
+          fields: 'pixelSize'
+        }
+      });
+      fmtRequests.push({
+        updateDimensionProperties: {
+          range: { sheetId: infoId, dimension: 'COLUMNS', startIndex: 2, endIndex: 3 },
+          properties: { pixelSize: 340 },
+          fields: 'pixelSize'
+        }
+      });
+    }
+
+    // 2. Format Movimenti_Magazzino
+    const movId = sheetMap['Movimenti_Magazzino'];
+    if (movId !== undefined) {
+      fmtRequests.push({
+        updateSheetProperties: {
+          properties: {
+            sheetId: movId,
+            gridProperties: { frozenRowCount: 1 },
+            tabColor: { red: 0.086, green: 0.639, blue: 0.396 }
+          },
+          fields: 'gridProperties.frozenRowCount,tabColor'
+        }
+      });
+      fmtRequests.push({
+        repeatCell: {
+          range: { sheetId: movId, startRowIndex: 0, endRowIndex: 1, startColumnIndex: 0, endColumnIndex: 11 },
+          cell: {
+            userEnteredFormat: {
+              backgroundColor: { red: 0.118, green: 0.227, blue: 0.373 },
+              horizontalAlignment: 'CENTER',
+              verticalAlignment: 'MIDDLE',
+              textFormat: { foregroundColor: { red: 1, green: 1, blue: 1 }, fontSize: 10, bold: true },
+              wrapStrategy: 'WRAP'
+            }
+          },
+          fields: 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment,wrapStrategy)'
+        }
+      });
+      const movWidths = [140, 150, 160, 130, 270, 110, 130, 160, 150, 160, 240];
+      movWidths.forEach((w, idx) => {
+        fmtRequests.push({
+          updateDimensionProperties: {
+            range: { sheetId: movId, dimension: 'COLUMNS', startIndex: idx, endIndex: idx + 1 },
+            properties: { pixelSize: w },
+            fields: 'pixelSize'
+          }
+        });
+      });
+    }
+
+    // 3. Format Parametri_Produzione
+    const paramId = sheetMap['Parametri_Produzione'];
+    if (paramId !== undefined) {
+      fmtRequests.push({
+        updateSheetProperties: {
+          properties: {
+            sheetId: paramId,
+            gridProperties: { frozenRowCount: 1 },
+            tabColor: { red: 0.14, green: 0.46, blue: 0.85 }
+          },
+          fields: 'gridProperties.frozenRowCount,tabColor'
+        }
+      });
+      fmtRequests.push({
+        repeatCell: {
+          range: { sheetId: paramId, startRowIndex: 0, endRowIndex: 1, startColumnIndex: 0, endColumnIndex: 11 },
+          cell: {
+            userEnteredFormat: {
+              backgroundColor: { red: 0.05, green: 0.36, blue: 0.46 },
+              horizontalAlignment: 'CENTER',
+              verticalAlignment: 'MIDDLE',
+              textFormat: { foregroundColor: { red: 1, green: 1, blue: 1 }, fontSize: 10, bold: true },
+              wrapStrategy: 'WRAP'
+            }
+          },
+          fields: 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment,wrapStrategy)'
+        }
+      });
+      const paramWidths = [130, 270, 140, 160, 140, 140, 140, 140, 240, 150, 150];
+      paramWidths.forEach((w, idx) => {
+        fmtRequests.push({
+          updateDimensionProperties: {
+            range: { sheetId: paramId, dimension: 'COLUMNS', startIndex: idx, endIndex: idx + 1 },
+            properties: { pixelSize: w },
+            fields: 'pixelSize'
+          }
+        });
+      });
+    }
+
+    if (fmtRequests.length > 0) {
+      await sheets(`${whId}:batchUpdate`, {
+        method: 'POST',
+        body: JSON.stringify({ requests: fmtRequests })
+      }).catch(e => console.warn('batchUpdate format warning:', e.message));
+    }
+
+    // Populate Headers and initial content
+    const infoCheck = await readRange(whId, "'Istruzioni_e_Legenda'!A1:B2").catch(() => []);
+    if (!infoCheck || infoCheck.length === 0) {
+      const nowStr = new Date().toLocaleDateString('it-IT') + ' ' + new Date().toLocaleTimeString('it-IT');
+      const infoRows = [
+        ['🏭 REGISTRO UFFICIALE MAGAZZINO, LOGISTICA E PRODUZIONE', '', ''],
+        ['Azienda:', 'Pascal Cosmesi International', ''],
+        ['Stato Sistema:', '🟢 Connesso e Sincronizzato in tempo reale con OrderSender', ''],
+        ['Spreadsheet ID:', whId, ''],
+        ['Data Inizializzazione:', nowStr, ''],
+        ['', '', ''],
+        ['SCHEDA', 'SCOPO OPERATIVO', 'AUTOMAZIONE & NOTE'],
+        ['Movimenti_Magazzino', 'Traccia ogni singolo prelievo per ordini clienti e carico lotti di produzione', 'Aggiornato in tempo reale dall\'app OrderSender'],
+        ['Parametri_Produzione', 'Lead time, scorte di sicurezza (SS), lotti minimi e ubicazioni scaffale', 'Usato dal motore di calcolo per proporre i lotti da produrre'],
+        ['', '', ''],
+        ['SICUREZZA & PERFORMANCE:', 'Questo foglio dedicato protegge gli 11 agenti sul campo da blocchi o rallentamenti di concorrenza durante i prelievi continui del magazzino.', '']
+      ];
+      await updateRow(whId, "'Istruzioni_e_Legenda'!A1:C11", infoRows).catch(() => {});
+    }
+
+    const movCheck = await readRange(whId, "'Movimenti_Magazzino'!A1:C1").catch(() => []);
+    if (!movCheck || movCheck.length === 0) {
+      const movHeader = [
+        ['ID Movimento', 'Data Registrazione', 'Tipo Operazione', 'Codice Articolo', 'Descrizione Prodotto', 'Quantità (PZ)', 'Numero Lotto', 'Ubicazione Stoccaggio', 'Operatore / Reparto', 'Riferimento Doc / Ordine', 'Note e Dettagli']
+      ];
+      await updateRow(whId, "'Movimenti_Magazzino'!A1:K1", movHeader).catch(() => {});
+    }
+
+    const paramCheck = await readRange(whId, "'Parametri_Produzione'!A1:C1").catch(() => []);
+    if (!paramCheck || paramCheck.length === 0) {
+      const paramHeader = [
+        ['Codice Articolo', 'Descrizione Prodotto', 'Famiglia / Linea', 'Ubicazione Primaria', 'Tempo Produzione Stimato (gg)', 'Lotto Minimo Produzione (PZ)', 'Scorta Minima di Sicurezza (PZ)', 'Scorta Massima (PZ)', 'Note Reparto Produzione', 'Ultimo Aggiornamento', 'Aggiornato Da']
+      ];
+      await updateRow(whId, "'Parametri_Produzione'!A1:K1", paramHeader).catch(() => {});
+
+      try {
+        const prodData = await fetchProductsData();
+        if (prodData && prodData.products && prodData.products.length > 0) {
+          const nowIso = new Date().toISOString().slice(0, 10);
+          const initialRows = prodData.products.map(p => [
+            p.code || '',
+            p.description || '',
+            p.family || p.category || '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            nowIso,
+            'Inizializzazione Sistema'
+          ]);
+          await append(whId, "'Parametri_Produzione'!A:K", initialRows).catch(() => {});
+        }
+      } catch (err) {
+        console.warn('Pre-populating products warning:', err.message);
+      }
+    }
+
+    warehouseSetupDone[whId] = true;
+    return true;
+  } catch (err) {
+    console.error('setupWarehouseSpreadsheet error:', err);
+    return false;
+  }
+}
+
 async function fetchProductionParameters(customId) {
   const regId = cleanEnvId(customId) || cleanEnvId(runtimeConfig.warehouse?.spreadsheetId) || cleanEnvId(runtimeConfig.repository.spreadsheetId) || OFFICIAL_SYSTEM_SPREADSHEETS.repository.spreadsheetId;
+  await setupWarehouseSpreadsheet(regId);
   const tabName = runtimeConfig.warehouse?.tabParameters || 'Parametri_Produzione';
   await ensureSheetTab(regId, tabName);
   const rows = await readRange(regId, `'${tabName}'!A1:J500`).catch(() => []);
@@ -2114,6 +2371,7 @@ async function saveProductionParameters(paramItem, user, customId) {
 
 async function fetchWarehouseMovements(customId) {
   const regId = cleanEnvId(customId) || cleanEnvId(runtimeConfig.warehouse?.spreadsheetId) || cleanEnvId(runtimeConfig.repository.spreadsheetId) || OFFICIAL_SYSTEM_SPREADSHEETS.repository.spreadsheetId;
+  await setupWarehouseSpreadsheet(regId);
   const tabName = runtimeConfig.warehouse?.tabMovements || 'Movimenti_Magazzino';
   await ensureSheetTab(regId, tabName);
   const rows = await readRange(regId, `'${tabName}'!A1:J500`).catch(() => []);
@@ -2155,6 +2413,7 @@ async function fetchWarehouseMovements(customId) {
 
 async function recordWarehouseMovement(entry, user, customId) {
   const regId = cleanEnvId(customId) || cleanEnvId(runtimeConfig.warehouse?.spreadsheetId) || cleanEnvId(runtimeConfig.repository.spreadsheetId) || OFFICIAL_SYSTEM_SPREADSHEETS.repository.spreadsheetId;
+  await setupWarehouseSpreadsheet(regId);
   const tabName = runtimeConfig.warehouse?.tabMovements || 'Movimenti_Magazzino';
   await ensureSheetTab(regId, tabName);
 
@@ -2855,6 +3114,17 @@ export default async (request, context) => {
       const customId = url.searchParams.get('id') || undefined;
       const movements = await fetchWarehouseMovements(customId);
       return json(200, { ok: true, movements });
+    }
+
+    // Explicit Setup and Formatting of Dedicated Warehouse Spreadsheet
+    if (path === 'production/setup-sheet') {
+      const customId = url.searchParams.get('id') || runtimeConfig.warehouse?.spreadsheetId || OFFICIAL_SYSTEM_SPREADSHEETS.warehouse.spreadsheetId;
+      try {
+        const ok = await setupWarehouseSpreadsheet(customId);
+        return json(200, { ok, spreadsheetId: customId, message: ok ? 'Foglio Magazzino inizializzato e formattato con successo' : 'Inizializzazione completata o già attiva' });
+      } catch (err) {
+        return json(400, { error: err.message });
+      }
     }
 
     return json(404, { error: 'Servizio non disponibile: ' + path });

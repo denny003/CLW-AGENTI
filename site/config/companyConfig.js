@@ -32,7 +32,7 @@ const OFFICIAL_SYSTEM_SPREADSHEETS = Object.freeze({
   warehouse: {
     folder: "Repository",
     fileName: "Registro Magazzino e Produzione",
-    spreadsheetId: "",
+    spreadsheetId: "1PY897bYrzckl9P3ADr6LjhCPik-9wQefEkkkn9SWCig",
     tabMovements: "Movimenti_Magazzino",
     tabParameters: "Parametri_Produzione"
   },

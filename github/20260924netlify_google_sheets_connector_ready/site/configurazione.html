@@ -293,8 +293,12 @@
           <input id="warehouseFileName" class="text-val" placeholder="Registro Magazzino e Produzione">
         </div>
         <div class="field" style="grid-column: span 2;">
-          <label for="warehouseSpreadsheetId">Spreadsheet ID "Registro Magazzino e Produzione"</label>
-          <input id="warehouseSpreadsheetId" placeholder="ID del foglio dedicato (se vuoto, usa automaticamente il Repository)">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <label for="warehouseSpreadsheetId" style="margin-bottom:0;">Spreadsheet ID o Link Google Sheet "Registro Magazzino e Produzione"</label>
+            <button type="button" id="btnFormatWarehouse" class="btn secondary" style="font-size:0.75rem; padding:4px 10px;">🎨 Formatta & Pre-popola Foglio</button>
+          </div>
+          <input id="warehouseSpreadsheetId" placeholder="1PY897bYrzckl9P3ADr6LjhCPik-9wQefEkkkn9SWCig">
+          <small style="font-size:0.75rem; color:#64748b; margin-top:4px; display:block;">Puoi incollare l'intero link o ID del foglio Google Drive. Clicca su "Formatta & Pre-popola Foglio" per creare intestazioni e stile.</small>
         </div>
         <div class="field">
           <label for="warehouseTabMovements">Tab Movimenti Magazzino</label>
@@ -332,7 +336,7 @@
         customers: { fileName: "clienti", spreadsheetId: "1rkFDBTCJD3JlrcvyOPGHjYTJDkjuMc24dJ7l6EqQ6I8", tab: "clienti" },
         products: { fileName: "Articoli", spreadsheetId: "17ErnowHZDqA3WDTN5auHkyTBPVn4MqkI8BFkiqkDhmE", tab: "q_listino_prezzi_catalogo" },
         repository: { folder: "Repository", fileName: "Registro offerte e ordini", spreadsheetId: "1Hi1Nppj4szI4UwfSeC632KkpF0dEQjqxnIVIenn-Fjc", tabOffers: "Offerte", tabOrders: "Ordini" },
-        warehouse: { folder: "Repository", fileName: "Registro Magazzino e Produzione", spreadsheetId: "", tabMovements: "Movimenti_Magazzino", tabParameters: "Parametri_Produzione" },
+        warehouse: { folder: "Repository", fileName: "Registro Magazzino e Produzione", spreadsheetId: "1PY897bYrzckl9P3ADr6LjhCPik-9wQefEkkkn9SWCig", tabMovements: "Movimenti_Magazzino", tabParameters: "Parametri_Produzione" },
         googleDrive: { sourceFolderUrl: "https://drive.google.com/drive/folders/1lr8lThQr1SxP4LAx2n69_pDxwu36ifh9", folderId: "1lr8lThQr1SxP4LAx2n69_pDxwu36ifh9" }
       };
     }
@@ -565,6 +569,33 @@
       await saveCompanyConfig(cfg);
       await checkDiagnostics();
     };
+
+    // Format & Setup Warehouse Sheet
+    if ($('btnFormatWarehouse')) {
+      $('btnFormatWarehouse').onclick = async () => {
+        const btn = $('btnFormatWarehouse');
+        btn.disabled = true;
+        btn.textContent = 'Formattazione in corso…';
+        try {
+          const cfg = readForm();
+          await saveCompanyConfig(cfg);
+          const targetId = cleanInputId($('warehouseSpreadsheetId')?.value) || '1PY897bYrzckl9P3ADr6LjhCPik-9wQefEkkkn9SWCig';
+          const res = await fetch(`/api/production/setup-sheet?id=${encodeURIComponent(targetId)}`);
+          const data = await res.json();
+          if (data.ok) {
+            toast('✅ Foglio Magazzino inizializzato, formattato e pre-popolato con successo!');
+            await checkDiagnostics();
+          } else {
+            toast('⚠️ ' + (data.message || data.error || 'Errore inizializzazione'));
+          }
+        } catch (e) {
+          toast('Errore: ' + e.message);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = '🎨 Formatta & Pre-popola Foglio';
+        }
+      };
+    }
 
     $('btnReset').onclick = async () => {
       if (confirm('Vuoi ripristinare gli ID ufficiali Google Drive del sistema (da dati-configurazione)?')) {

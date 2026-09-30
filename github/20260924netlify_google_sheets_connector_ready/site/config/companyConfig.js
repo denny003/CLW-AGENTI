@@ -32,7 +32,7 @@ const OFFICIAL_SYSTEM_SPREADSHEETS = Object.freeze({
   warehouse: {
     folder: "Repository",
     fileName: "Registro Magazzino e Produzione",
-    spreadsheetId: "",
+    spreadsheetId: "1PY897bYrzckl9P3ADr6LjhCPik-9wQefEkkkn9SWCig",
     tabMovements: "Movimenti_Magazzino",
     tabParameters: "Parametri_Produzione"
   },
@@ -88,6 +88,7 @@ function sanitizeConfig(cfg) {
   if (!c.repository.tabOrders) c.repository.tabOrders = OFFICIAL_SYSTEM_SPREADSHEETS.repository.tabOrders;
 
   if (isInvalidSpreadsheetId(c.warehouse?.spreadsheetId)) {
+    // If empty or invalid, fallback to empty string (or repository id in api)
     c.warehouse.spreadsheetId = (c.warehouse?.spreadsheetId && c.warehouse.spreadsheetId.trim().length >= 20) ? c.warehouse.spreadsheetId.trim() : "";
   }
   if (!c.warehouse.folder) c.warehouse.folder = OFFICIAL_SYSTEM_SPREADSHEETS.warehouse.folder;
