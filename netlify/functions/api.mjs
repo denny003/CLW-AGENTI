@@ -680,6 +680,7 @@ async function fetchCustomersData(customId, customTab, user = null) {
       const bankIdx = col('banca') >= 0 ? col('banca') : col('appoggio');
       const vatIdx = col('partita iva') >= 0 ? col('partita iva') : (col('p.iva') >= 0 ? col('p.iva') : col('piva'));
       const taxIdx = col('codice fiscale') >= 0 ? col('codice fiscale') : col('cf');
+      const payIdx = col('pagamento') >= 0 ? col('pagamento') : (col('payment') >= 0 ? col('payment') : col('condizioni'));
 
       let customers = [];
       for (let i = 1; i < rows.length; i++) {
@@ -708,7 +709,8 @@ async function fetchCustomersData(customId, customTab, user = null) {
           iban: ibanIdx >= 0 ? String(r[ibanIdx] || '').trim() : '',
           bank: bankIdx >= 0 ? String(r[bankIdx] || '').trim() : '',
           vatNumber: vatIdx >= 0 ? String(r[vatIdx] || '').trim() : '',
-          taxCode: taxIdx >= 0 ? String(r[taxIdx] || '').trim() : ''
+          taxCode: taxIdx >= 0 ? String(r[taxIdx] || '').trim() : '',
+          payment: payIdx >= 0 ? String(r[payIdx] || '').trim() : ''
         });
       }
 
@@ -1524,6 +1526,7 @@ async function createCustomer(body, user, customId) {
   const sdi = String(body.sdi || body.codiceSdi || body.codiceUnivoco || '').trim();
   const iban = String(body.iban || '').trim();
   const bank = String(body.bank || body.banca || '').trim();
+  const payment = String(body.payment || body.pagamento || '').trim();
 
   try {
     const rows = await readRange(custSpreadsheetId, `'${tab}'!A1:Z500`);
@@ -1558,6 +1561,14 @@ async function createCustomer(body, user, customId) {
     const bankIdx = col(['banca', 'appoggio']);
     const vatIdx = col(['partita iva', 'p.iva', 'piva']);
     const taxIdx = col(['codice fiscale', 'cf']);
+    let payIdx = col(['pagamento', 'payment', 'condizioni']);
+
+    // Se il pagamento è indicato ma non c'è la colonna, aggiungila
+    if (payment && payIdx < 0) {
+      payIdx = header.length;
+      header.push('condizioni pagamento');
+      await updateRow(custSpreadsheetId, `'${tab}'!A1:Z1`, [header]).catch(() => {});
+    }
 
     // Calcola il codice progressivo massimo
     let maxCode = 6500;
@@ -1580,7 +1591,7 @@ async function createCustomer(body, user, customId) {
       agentCell = `AG${n < 10 ? '00' + n : (n < 100 ? '0' + n : n)}`;
     }
 
-    const numCols = Math.max(16, header.length);
+    const numCols = Math.max(16, header.length, payIdx >= 0 ? payIdx + 1 : 16);
     const newRow = new Array(numCols).fill('');
     if (cTipoIdx >= 0) newRow[cTipoIdx] = 'CLI';
     if (tipoIdx >= 0) newRow[tipoIdx] = type || 'Cliente';
@@ -1603,6 +1614,7 @@ async function createCustomer(body, user, customId) {
     if (bankIdx >= 0) newRow[bankIdx] = bank;
     if (vatIdx >= 0 && (tax || body.vat)) newRow[vatIdx] = body.vat || tax;
     if (taxIdx >= 0 && tax) newRow[taxIdx] = tax;
+    if (payIdx >= 0 && payment) newRow[payIdx] = payment;
 
     // Trova la prima riga vuota
     let nextRow = -1;
@@ -1644,6 +1656,7 @@ async function createCustomer(body, user, customId) {
       sdi,
       iban,
       bank,
+      payment,
       vatNumber: body.vat || tax,
       taxCode: tax
     };
@@ -1652,6 +1665,86 @@ async function createCustomer(body, user, customId) {
   } catch (err) {
     console.error(`Error saving customer to Google Sheets:`, err);
     return json(500, { error: `Errore salvataggio cliente su Google Sheets: ${err.message}` });
+  }
+}
+
+async function updateCustomer(body, user, customId) {
+  const custSpreadsheetId = cleanEnvId(body?.spreadsheetId) || cleanEnvId(customId) || runtimeConfig.customers.spreadsheetId || OFFICIAL_SYSTEM_SPREADSHEETS.customers.spreadsheetId;
+  const tab = body?.tab || runtimeConfig.customers.tab || OFFICIAL_SYSTEM_SPREADSHEETS.customers.tab || 'clienti';
+
+  const customerId = String(body.id || body.code || '').trim();
+  const customerName = String(body.name || '').trim();
+  if (!customerId && !customerName) {
+    return json(400, { error: 'Codice o Ragione sociale obbligatoria per aggiornare il cliente' });
+  }
+
+  try {
+    const rows = await readRange(custSpreadsheetId, `'${tab}'!A1:Z500`);
+    if (!rows || rows.length <= 1) {
+      return json(404, { error: 'Scheda clienti non accessibile o vuota' });
+    }
+
+    const header = rows[0].map(c => String(c || '').toLowerCase().trim());
+    const col = patterns => {
+      const pts = Array.isArray(patterns) ? patterns : [patterns];
+      return header.findIndex(h => pts.some(p => h.includes(p)));
+    };
+
+    const codeIdx = col(['codice', 'code']);
+    const nameIdx = col(['ragione', 'cliente', 'nome']);
+    let payIdx = col(['pagamento', 'payment', 'condizioni']);
+    const phoneIdx = col(['telefono', 'tel']);
+    const mobileIdx = col(['cellulare', 'cell', 'mobile']);
+    const emailIdx = col(['e-mail', 'email']);
+    const sdiIdx = col(['sdi', 'univoco', 'destinatario']);
+    const ibanIdx = col(['iban']);
+    const bankIdx = col(['banca', 'appoggio']);
+
+    let targetRowIdx = -1;
+    for (let i = 1; i < rows.length; i++) {
+      const r = rows[i];
+      if (!r) continue;
+      const codeVal = codeIdx >= 0 ? String(r[codeIdx] || '').trim() : '';
+      const nameVal = nameIdx >= 0 ? String(r[nameIdx] || '').trim() : '';
+      if (customerId && (codeVal === customerId || codeVal.replace(/\.0$/, '') === customerId.replace(/\.0$/, ''))) {
+        targetRowIdx = i;
+        break;
+      }
+      if (customerName && nameVal.toLowerCase() === customerName.toLowerCase()) {
+        targetRowIdx = i;
+        break;
+      }
+    }
+
+    if (targetRowIdx < 0) {
+      return json(404, { error: `Cliente "${customerId || customerName}" non trovato nel foglio` });
+    }
+
+    // Se il pagamento è indicato ma la colonna non esiste ancora nel foglio, aggiungila nell'intestazione
+    if (body.payment !== undefined && payIdx < 0) {
+      payIdx = header.length;
+      header.push('condizioni pagamento');
+      await updateRow(custSpreadsheetId, `'${tab}'!A1:Z1`, [header]).catch(() => {});
+    }
+
+    const row = [...rows[targetRowIdx]];
+    while (row.length < header.length) row.push('');
+
+    if (body.payment !== undefined && payIdx >= 0) row[payIdx] = String(body.payment || '').trim();
+    if (body.mobile !== undefined && mobileIdx >= 0) row[mobileIdx] = String(body.mobile || '').trim();
+    if (body.phone !== undefined && phoneIdx >= 0) row[phoneIdx] = String(body.phone || '').trim();
+    if (body.email !== undefined && emailIdx >= 0) row[emailIdx] = String(body.email || '').trim();
+    if (body.sdi !== undefined && sdiIdx >= 0) row[sdiIdx] = String(body.sdi || '').trim();
+    if (body.iban !== undefined && ibanIdx >= 0) row[ibanIdx] = String(body.iban || '').trim();
+    if (body.bank !== undefined && bankIdx >= 0) row[bankIdx] = String(body.bank || '').trim();
+
+    const sheetRowNum = targetRowIdx + 1;
+    await updateRow(custSpreadsheetId, `'${tab}'!A${sheetRowNum}:Z${sheetRowNum}`, [row]);
+
+    return json(200, { ok: true, message: 'Dati cliente aggiornati su Google Sheets', customerId: customerId || customerName, payment: body.payment, mobile: body.mobile });
+  } catch (err) {
+    console.error('Update customer error:', err);
+    return json(500, { error: err.message });
   }
 }
 
@@ -1878,8 +1971,29 @@ async function createOfferRevision(offerIdentifier, user, customId) {
 async function listVisits(user, customId) {
   const regId = cleanEnvId(customId) || runtimeConfig.repository.spreadsheetId || OFFICIAL_SYSTEM_SPREADSHEETS.repository.spreadsheetId;
   await ensureSheetTab(regId, 'Giro_Visite');
-  const rows = await readRange(regId, "'Giro_Visite'!A1:L500").catch(() => []);
+  const rows = await readRange(regId, "'Giro_Visite'!A1:N500").catch(() => []);
   if (!rows || rows.length <= 1) return [];
+
+  const header = (rows[0] || []).map(c => String(c || '').toLowerCase().trim());
+  const col = patterns => {
+    const pts = Array.isArray(patterns) ? patterns : [patterns];
+    return header.findIndex(h => pts.some(p => h.includes(p)));
+  };
+
+  const idIdx = col(['id visita', 'id']);
+  const agCodeIdx = col(['codice agente']);
+  const agNameIdx = col(['agente', 'nome agente']);
+  const clientIdx = col(['cliente o prospect', 'cliente', 'prospect']);
+  const addrIdx = col(['indirizzo e città', 'indirizzo']);
+  const phoneIdx = col(['telefono', 'tel']);
+  const mobileIdx = col(['cellulare', 'cell', 'mobile']);
+  const emailIdx = col(['email', 'e-mail']);
+  const dateIdx = col(['data visita', 'data']);
+  const timeIdx = col(['ora', 'orario']);
+  const statusIdx = col(['stato visita', 'stato']);
+  const notesIdx = col(['note ed esito', 'note', 'esito']);
+  const followUpIdx = col(['data follow-up', 'follow-up', 'richiamo']);
+  const createdIdx = col(['data creazione', 'creazione']);
 
   const userRole = user?.role || 'agent';
   const userAgentCode = normalizeAgentId(user?.agentCode || '');
@@ -1888,23 +2002,25 @@ async function listVisits(user, customId) {
   for (let i = 1; i < rows.length; i++) {
     const r = rows[i];
     if (!r || !r[0]) continue;
-    const agCode = normalizeAgentId(r[1] || '');
+    const agCode = normalizeAgentId((agCodeIdx >= 0 ? r[agCodeIdx] : r[1]) || '');
     if (userRole !== 'admin' && userAgentCode && agCode && agCode !== userAgentCode) {
       continue;
     }
     visits.push({
-      id: r[0],
+      id: (idIdx >= 0 ? r[idIdx] : r[0]) || '',
       agentCode: agCode,
-      agentName: r[2] || '',
-      clientName: r[3] || '',
-      address: r[4] || '',
-      phone: r[5] || '',
-      date: r[6] || '',
-      time: r[7] || '',
-      status: r[8] || 'Programmata',
-      notes: r[9] || '',
-      followUpDate: r[10] || '',
-      createdAt: r[11] || ''
+      agentName: (agNameIdx >= 0 ? r[agNameIdx] : r[2]) || '',
+      clientName: (clientIdx >= 0 ? r[clientIdx] : r[3]) || '',
+      address: (addrIdx >= 0 ? r[addrIdx] : r[4]) || '',
+      phone: (phoneIdx >= 0 ? r[phoneIdx] : r[5]) || '',
+      mobile: (mobileIdx >= 0 ? r[mobileIdx] : '') || '',
+      email: (emailIdx >= 0 ? r[emailIdx] : '') || '',
+      date: (dateIdx >= 0 ? r[dateIdx] : r[6]) || '',
+      time: (timeIdx >= 0 ? r[timeIdx] : r[7]) || '',
+      status: (statusIdx >= 0 ? r[statusIdx] : r[8]) || 'Programmata',
+      notes: (notesIdx >= 0 ? r[notesIdx] : r[9]) || '',
+      followUpDate: (followUpIdx >= 0 ? r[followUpIdx] : r[10]) || '',
+      createdAt: (createdIdx >= 0 ? r[createdIdx] : r[11]) || ''
     });
   }
   return visits;
@@ -1918,10 +2034,16 @@ async function saveVisit(data, user) {
   const agentCode = normalizeAgentId(user?.agentCode || data.agentCode || 'AG01');
   const agentName = user?.name || data.agentName || knownAgentNames[agentCode] || 'Agente';
 
-  const rows = await readRange(regId, "'Giro_Visite'!A1:L500").catch(() => []);
+  const rows = await readRange(regId, "'Giro_Visite'!A1:N500").catch(() => []);
+  const defaultHeader = ['ID Visita', 'Codice Agente', 'Agente', 'Cliente o Prospect', 'Indirizzo e Città', 'Telefono', 'Cellulare', 'Email', 'Data Visita', 'Ora', 'Stato Visita', 'Note ed Esito', 'Data Follow-up', 'Data Creazione'];
+
   if (!rows || rows.length === 0) {
-    const header = ['ID Visita', 'Codice Agente', 'Agente', 'Cliente o Prospect', 'Indirizzo e Città', 'Telefono', 'Data Visita', 'Ora', 'Stato Visita', 'Note ed Esito', 'Data Follow-up', 'Data Creazione'];
-    await append(regId, "'Giro_Visite'!A1", [header]);
+    await append(regId, "'Giro_Visite'!A1", [defaultHeader]);
+  } else if (rows[0] && rows[0].length < 14) {
+    const curH = rows[0].map(c => String(c || '').toLowerCase().trim());
+    if (!curH.includes('cellulare') && !curH.includes('email')) {
+      await updateRow(regId, "'Giro_Visite'!A1:N1", [defaultHeader]).catch(() => {});
+    }
   }
 
   let existingRowIdx = -1;
@@ -1941,6 +2063,8 @@ async function saveVisit(data, user) {
     data.clientName || '',
     data.address || '',
     data.phone || '',
+    data.mobile || '',
+    data.email || '',
     data.date || '',
     data.time || '',
     data.status || 'Programmata',
@@ -1950,9 +2074,9 @@ async function saveVisit(data, user) {
   ];
 
   if (existingRowIdx > 0) {
-    await updateRow(regId, `'Giro_Visite'!A${existingRowIdx}:L${existingRowIdx}`, [row]);
+    await updateRow(regId, `'Giro_Visite'!A${existingRowIdx}:N${existingRowIdx}`, [row]);
   } else {
-    await append(regId, "'Giro_Visite'!A:L", [row]);
+    await append(regId, "'Giro_Visite'!A:N", [row]);
   }
 
   return { ok: true, id, visit: { ...data, id, agentCode, agentName } };
@@ -1961,8 +2085,27 @@ async function saveVisit(data, user) {
 async function listProspects(user, customId) {
   const regId = cleanEnvId(customId) || runtimeConfig.repository.spreadsheetId || OFFICIAL_SYSTEM_SPREADSHEETS.repository.spreadsheetId;
   await ensureSheetTab(regId, 'Contatti_Prospect');
-  const rows = await readRange(regId, "'Contatti_Prospect'!A1:K500").catch(() => []);
+  const rows = await readRange(regId, "'Contatti_Prospect'!A1:L500").catch(() => []);
   if (!rows || rows.length <= 1) return [];
+
+  const header = (rows[0] || []).map(c => String(c || '').toLowerCase().trim());
+  const col = patterns => {
+    const pts = Array.isArray(patterns) ? patterns : [patterns];
+    return header.findIndex(h => pts.some(p => h.includes(p)));
+  };
+
+  const idIdx = col(['id prospect', 'id']);
+  const agCodeIdx = col(['codice agente']);
+  const compIdx = col(['ragione sociale', 'azienda', 'nome']);
+  const personIdx = col(['referente', 'titolare']);
+  const phoneIdx = col(['telefono', 'tel']);
+  const mobileIdx = col(['cellulare', 'cell', 'mobile']);
+  const emailIdx = col(['email', 'e-mail']);
+  const addrIdx = col(['indirizzo', 'via']);
+  const cityIdx = col(['città', 'citta', 'provincia', 'pv']);
+  const interestIdx = col(['settore', 'interesse']);
+  const notesIdx = col(['note']);
+  const createdIdx = col(['data creazione', 'creazione']);
 
   const userRole = user?.role || 'agent';
   const userAgentCode = normalizeAgentId(user?.agentCode || '');
@@ -1971,22 +2114,23 @@ async function listProspects(user, customId) {
   for (let i = 1; i < rows.length; i++) {
     const r = rows[i];
     if (!r || !r[0]) continue;
-    const agCode = normalizeAgentId(r[1] || '');
+    const agCode = normalizeAgentId((agCodeIdx >= 0 ? r[agCodeIdx] : r[1]) || '');
     if (userRole !== 'admin' && userAgentCode && agCode && agCode !== userAgentCode) {
       continue;
     }
     prospects.push({
-      id: r[0],
+      id: (idIdx >= 0 ? r[idIdx] : r[0]) || '',
       agentCode: agCode,
-      companyName: r[2] || '',
-      contactPerson: r[3] || '',
-      phone: r[4] || '',
-      email: r[5] || '',
-      address: r[6] || '',
-      city: r[7] || '',
-      interest: r[8] || '',
-      notes: r[9] || '',
-      createdAt: r[10] || ''
+      companyName: (compIdx >= 0 ? r[compIdx] : r[2]) || '',
+      contactPerson: (personIdx >= 0 ? r[personIdx] : r[3]) || '',
+      phone: (phoneIdx >= 0 ? r[phoneIdx] : r[4]) || '',
+      mobile: (mobileIdx >= 0 ? r[mobileIdx] : '') || '',
+      email: (emailIdx >= 0 ? r[emailIdx] : (mobileIdx >= 0 ? r[emailIdx] : r[5])) || '',
+      address: (addrIdx >= 0 ? r[addrIdx] : r[6]) || '',
+      city: (cityIdx >= 0 ? r[cityIdx] : r[7]) || '',
+      interest: (interestIdx >= 0 ? r[interestIdx] : r[8]) || '',
+      notes: (notesIdx >= 0 ? r[notesIdx] : r[9]) || '',
+      createdAt: (createdIdx >= 0 ? r[createdIdx] : r[10]) || ''
     });
   }
   return prospects;
@@ -1999,10 +2143,16 @@ async function saveProspect(data, user) {
   const id = data.id || `PROSP-${Date.now()}`;
   const agentCode = normalizeAgentId(user?.agentCode || data.agentCode || 'AG01');
 
-  const rows = await readRange(regId, "'Contatti_Prospect'!A1:K500").catch(() => []);
+  const rows = await readRange(regId, "'Contatti_Prospect'!A1:L500").catch(() => []);
+  const defaultHeader = ['ID Prospect', 'Codice Agente', 'Ragione Sociale', 'Referente', 'Telefono', 'Cellulare', 'Email', 'Indirizzo', 'Città', 'Settore Interesse', 'Note', 'Data Creazione'];
+
   if (!rows || rows.length === 0) {
-    const header = ['ID Prospect', 'Codice Agente', 'Ragione Sociale', 'Referente', 'Telefono', 'Email', 'Indirizzo', 'Città', 'Settore Interesse', 'Note', 'Data Creazione'];
-    await append(regId, "'Contatti_Prospect'!A1", [header]);
+    await append(regId, "'Contatti_Prospect'!A1", [defaultHeader]);
+  } else if (rows[0] && rows[0].length < 12) {
+    const curH = rows[0].map(c => String(c || '').toLowerCase().trim());
+    if (!curH.includes('cellulare')) {
+      await updateRow(regId, "'Contatti_Prospect'!A1:L1", [defaultHeader]).catch(() => {});
+    }
   }
 
   const row = [
@@ -2011,15 +2161,16 @@ async function saveProspect(data, user) {
     data.companyName || '',
     data.contactPerson || '',
     data.phone || '',
+    data.mobile || '',
     data.email || '',
     data.address || '',
     data.city || '',
     data.interest || '',
     data.notes || '',
-    now
+    data.createdAt || now
   ];
 
-  await append(regId, "'Contatti_Prospect'!A:K", [row]);
+  await append(regId, "'Contatti_Prospect'!A:L", [row]);
   return { ok: true, id, prospect: { ...data, id, agentCode } };
 }
 
@@ -3036,6 +3187,13 @@ export default async (request, context) => {
       if (!user) return json(401, { error: 'Accesso non autorizzato' });
       const body = await request.json().catch(() => ({}));
       return createCustomer(body, user, url.searchParams.get('id') || undefined);
+    }
+
+    if (path === 'customers/update' && request.method === 'POST') {
+      const user = session(request);
+      if (!user) return json(401, { error: 'Accesso non autorizzato' });
+      const body = await request.json().catch(() => ({}));
+      return updateCustomer(body, user, url.searchParams.get('id') || undefined);
     }
 
     if (path === 'products' && request.method === 'GET') {

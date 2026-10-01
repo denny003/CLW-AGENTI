@@ -181,9 +181,20 @@
         <input type="text" id="vAddress" placeholder="Es. Via Roma 12, Firenze">
       </div>
 
+      <div class="two-cols" style="margin-bottom:12px;">
+        <div class="field">
+          <span>Telefono Fisso</span>
+          <input type="tel" id="vPhone" placeholder="Es. 055 123456">
+        </div>
+        <div class="field">
+          <span>Cellulare (Marketing / WhatsApp)</span>
+          <input type="tel" id="vMobile" placeholder="Es. 333 1234567">
+        </div>
+      </div>
+
       <div class="field" style="margin-bottom:12px;">
-        <span>Telefono di contatto</span>
-        <input type="tel" id="vPhone" placeholder="Es. 333 1234567">
+        <span>E-mail di contatto</span>
+        <input type="email" id="vEmail" placeholder="Es. info@studioestetico.it">
       </div>
 
       <div class="field" style="margin-bottom:12px;">
@@ -242,13 +253,18 @@
 
       <div class="two-cols" style="margin-bottom:12px;">
         <div class="field">
-          <span>Telefono</span>
+          <span>Telefono Fisso</span>
           <input type="tel" id="pPhone" placeholder="Es. 055 897654">
         </div>
         <div class="field">
-          <span>Email</span>
-          <input type="email" id="pEmail" placeholder="info@esempio.it">
+          <span>Cellulare (Marketing / WhatsApp)</span>
+          <input type="tel" id="pMobile" placeholder="Es. 333 7654321">
         </div>
+      </div>
+
+      <div class="field" style="margin-bottom:12px;">
+        <span>Email</span>
+        <input type="email" id="pEmail" placeholder="info@esempio.it">
       </div>
 
       <div class="two-cols" style="margin-bottom:12px;">
@@ -361,7 +377,9 @@
         return 'v-programmata';
       };
 
-      $('visitsContainer').innerHTML = filtered.map(v => `
+        const cleanMobile = (v.mobile || '').replace(/\D/g, '');
+        const waLink = cleanMobile ? `https://wa.me/39${cleanMobile.startsWith('39') ? cleanMobile.slice(2) : cleanMobile}` : '';
+        return `
         <div class="visit-card">
           <div class="visit-head">
             <div>
@@ -370,6 +388,8 @@
                 <span>📅 <strong>${v.date || 'Data da definire'}</strong> ${v.time ? `alle ${v.time}` : ''}</span>
                 ${v.address ? `<span>📍 <a href="https://maps.google.com/?q=${encodeURIComponent(v.address)}" target="_blank">${v.address} ↗</a></span>` : ''}
                 ${v.phone ? `<span>📞 <a href="tel:${v.phone}">${v.phone}</a></span>` : ''}
+                ${v.mobile ? `<span>📱 <a href="tel:${v.mobile}">${v.mobile}</a> ${waLink ? `· <a href="${waLink}" target="_blank" style="color:#16a34a; font-weight:700;">💬 WhatsApp</a>` : ''}</span>` : ''}
+                ${v.email ? `<span>✉️ <a href="mailto:${v.email}">${v.email}</a></span>` : ''}
               </div>
             </div>
             <span class="v-badge ${badgeClass(v.status)}">${v.status || 'Programmata'}</span>
@@ -402,23 +422,27 @@
         return;
       }
 
-      $('prospectsContainer').innerHTML = filtered.map(p => `
+      $('prospectsContainer').innerHTML = filtered.map(p => {
+        const cleanMobile = (p.mobile || '').replace(/\D/g, '');
+        const waLink = cleanMobile ? `https://wa.me/39${cleanMobile.startsWith('39') ? cleanMobile.slice(2) : cleanMobile}` : '';
+        return `
         <div class="prospect-card">
           <div class="prospect-name">${p.companyName}</div>
           ${p.contactPerson ? `<div class="prospect-person">👤 Referente: ${p.contactPerson}</div>` : ''}
           ${p.interest ? `<div class="prospect-interest">🎯 ${p.interest}</div>` : ''}
-          <div style="font-size:.84rem; color:#475569; margin-bottom:12px;">
+          <div style="font-size:.84rem; color:#475569; margin-bottom:12px; display:flex; flex-direction:column; gap:4px;">
             ${p.city ? `<div>📍 ${p.city} ${p.address ? `(${p.address})` : ''}</div>` : ''}
-            ${p.phone ? `<div>📞 <a href="tel:${p.phone}" style="color:var(--blue);">${p.phone}</a></div>` : ''}
-            ${p.email ? `<div>✉️ ${p.email}</div>` : ''}
+            ${p.phone ? `<div>📞 Tel: <a href="tel:${p.phone}" style="color:var(--blue);">${p.phone}</a></div>` : ''}
+            ${p.mobile ? `<div>📱 Cell: <a href="tel:${p.mobile}" style="color:var(--blue);">${p.mobile}</a> ${waLink ? `· <a href="${waLink}" target="_blank" style="color:#16a34a; font-weight:700;">💬 WhatsApp</a>` : ''}</div>` : ''}
+            ${p.email ? `<div>✉️ Email: <a href="mailto:${p.email}" style="color:var(--blue);">${p.email}</a></div>` : ''}
           </div>
           ${p.notes ? `<div style="font-size:.82rem; color:var(--muted); margin-bottom:12px;"><em>${p.notes}</em></div>` : ''}
           <div style="display:flex; gap:6px; border-top:1px solid #f1f5f9; padding-top:10px;">
-            <button type="button" class="btn secondary" style="padding:6px 10px; font-size:.8rem; flex:1;" onclick="scheduleVisitForProspect('${encodeURIComponent(p.companyName)}', '${encodeURIComponent(p.address || p.city || '')}', '${encodeURIComponent(p.phone || '')}')">📅 Visita</button>
+            <button type="button" class="btn secondary" style="padding:6px 10px; font-size:.8rem; flex:1;" onclick="scheduleVisitForProspect('${encodeURIComponent(p.companyName)}', '${encodeURIComponent(p.address || p.city || '')}', '${encodeURIComponent(p.phone || '')}', '${encodeURIComponent(p.mobile || '')}', '${encodeURIComponent(p.email || '')}')">📅 Visita</button>
             <a href="/offerta?new=1&client=${encodeURIComponent(p.companyName)}" class="btn primary" style="padding:6px 10px; font-size:.8rem; flex:1; text-align:center; text-decoration:none;">💼 Offerta</a>
           </div>
         </div>
-      `).join('');
+      `; }).join('');
     }
 
     $('searchVisits').oninput = renderVisits;
@@ -447,18 +471,22 @@
       $('vTime').value = v.time || '10:00';
       $('vAddress').value = v.address || '';
       $('vPhone').value = v.phone || '';
+      $('vMobile').value = v.mobile || '';
+      $('vEmail').value = v.email || '';
       $('vStatus').value = v.status || 'Programmata';
       $('vNotes').value = v.notes || '';
       $('vFollowUp').value = v.followUpDate || '';
       $('modalVisit').showModal();
     }
 
-    function scheduleVisitForProspect(name, addr, phone) {
+    function scheduleVisitForProspect(name, addr, phone, mobile, email) {
       $('formVisit').reset();
       $('vId').value = '';
-      $('vClientName').value = decodeURIComponent(name);
-      $('vAddress').value = decodeURIComponent(addr);
-      $('vPhone').value = decodeURIComponent(phone);
+      $('vClientName').value = decodeURIComponent(name || '');
+      $('vAddress').value = decodeURIComponent(addr || '');
+      $('vPhone').value = decodeURIComponent(phone || '');
+      $('vMobile').value = decodeURIComponent(mobile || '');
+      $('vEmail').value = decodeURIComponent(email || '');
       $('vDate').value = new Date().toISOString().slice(0, 10);
       $('modalVisit').showModal();
     }
@@ -473,6 +501,8 @@
         time: $('vTime').value,
         address: $('vAddress').value.trim(),
         phone: $('vPhone').value.trim(),
+        mobile: $('vMobile').value.trim(),
+        email: $('vEmail').value.trim(),
         status: $('vStatus').value,
         notes: $('vNotes').value.trim(),
         followUpDate: $('vFollowUp').value
@@ -501,6 +531,7 @@
         contactPerson: $('pPerson').value.trim(),
         interest: $('pInterest').value.trim(),
         phone: $('pPhone').value.trim(),
+        mobile: $('pMobile').value.trim(),
         email: $('pEmail').value.trim(),
         address: $('pAddress').value.trim(),
         city: $('pCity').value.trim(),

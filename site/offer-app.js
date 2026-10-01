@@ -465,7 +465,25 @@ function showCustomer() {
     $('customerDetails').classList.add('hidden');
     return;
   }
+
+  // Pre-imposta il pagamento concordato del cliente se presente in anagrafica
+  if (c.payment) {
+    const paySelect = $('payment');
+    const existingOpt = [...paySelect.options].find(o => o.value.toLowerCase() === c.payment.toLowerCase() || o.text.toLowerCase() === c.payment.toLowerCase());
+    if (existingOpt) {
+      paySelect.value = existingOpt.value;
+      $('customPaymentInput')?.classList.add('hidden');
+    } else {
+      paySelect.value = '__custom__';
+      if ($('customPaymentInput')) {
+        $('customPaymentInput').value = c.payment;
+        $('customPaymentInput').classList.remove('hidden');
+      }
+    }
+  }
+
   const extraBadges = [];
+  if (c.payment) extraBadges.push(`Pagamento: ${c.payment}`);
   if (c.sdi) extraBadges.push(`SDI: ${c.sdi}`);
   if (c.iban) extraBadges.push(`IBAN: ${c.iban}`);
   if (c.bank) extraBadges.push(`Banca: ${c.bank}`);
@@ -588,13 +606,22 @@ function updateTotals() {
   v.textContent = invalid ? 'Correggere gli sconti fuori dal limite autorizzato' : items.length ? 'Offerta pronta per invio, PDF ed Excel' : 'Inserisci almeno un articolo';
 }
 
+function currentPaymentValue() {
+  const p = $('payment');
+  if (!p) return '';
+  if (p.value === '__custom__') {
+    return $('customPaymentInput')?.value.trim() || 'Da concordare';
+  }
+  return p.value;
+}
+
 function persistOffer() {
   localStorage.setItem('offer-demo', JSON.stringify({
     items,
     customer: $('customerSelect').value,
     notes: $('notes').value,
     validity: $('validity').value,
-    payment: $('payment').value,
+    payment: currentPaymentValue(),
     shipping: $('shipping').value,
     role: currentRole()
   }));
@@ -619,7 +646,20 @@ function restoreOffer() {
     if (d.role && [...$('roleSelect').options].some(o => o.value === d.role)) $('roleSelect').value = d.role;
     $('notes').value = d.notes || '';
     $('validity').value = d.validity || '30 giorni';
-    if (d.payment) $('payment').value = d.payment;
+    if (d.payment) {
+      const paySelect = $('payment');
+      const existingOpt = [...paySelect.options].find(o => o.value.toLowerCase() === d.payment.toLowerCase() || o.text.toLowerCase() === d.payment.toLowerCase());
+      if (existingOpt) {
+        paySelect.value = existingOpt.value;
+        $('customPaymentInput')?.classList.add('hidden');
+      } else {
+        paySelect.value = '__custom__';
+        if ($('customPaymentInput')) {
+          $('customPaymentInput').value = d.payment;
+          $('customPaymentInput').classList.remove('hidden');
+        }
+      }
+    }
     if (d.shipping) $('shipping').value = d.shipping;
     let targetClient = d.customer;
     if (d.customerName) {
@@ -679,7 +719,7 @@ function buildPrintOffer() {
   const c = customerData(), t = totals(), agent = currentAgent(), label = documentType === 'order' ? 'ORDINE CLIENTE' : 'OFFERTA CLIENTE';
   const gdprClause = `Informativa Privacy (Reg. UE 2016/679): I dati personali sono trattati per finalità contrattuali e precontrattuali ex art. 6(1)(b) GDPR. Per diritti (artt. 15-22 GDPR) consultare /privacy.html o scrivere a info@pascalmilano.it.`;
   const baseLegal = esc(companyProfile.footerText || companyProfile.legalNotes || `I prezzi sono riservati al cliente intestatario e validi per il periodo indicato. L'${documentType === 'order' ? 'ordine' : 'offerta'} non costituisce conferma definitiva.`);
-  $('printOffer').innerHTML = `<div class="print-sheet"><div class="print-parties"><div class="print-party"><label>AGENTE / AZIENDA</label><strong>${esc(companyProfile.companyName || companyProfile.displayName)}</strong><br>${esc(companyAddressLine())}<br>${esc(companyContactLine())}<br>${esc(agent.name)}</div><div class="print-party"><label>SPETT.LE CLIENTE</label><strong>${esc(c.name || 'Cliente da selezionare')}</strong><br>${esc([c.address, c.postalCode, c.city, c.province].filter(Boolean).join(' · '))}<br>${esc([c.phone, c.email].filter(Boolean).join(' · '))}</div></div><div class="print-title-row"><h1>${label}</h1><strong>${offerNumber()}</strong></div><table class="print-commerce"><tr><td><span>Data</span>${new Date().toLocaleDateString('it-IT')}</td><td><span>Pagamento</span>${esc($('payment').value)}</td><td><span>Spedizione</span>${esc($('shipping').value)}</td><td><span>Validità</span>${esc($('validity').value)}</td></tr></table><table class="print-lines"><thead><tr><th class="code">Codice</th><th class="desc">Descrizione</th><th class="qty num">Q.tà</th><th class="price num">Listino</th><th class="discounts">Sconti / ricarico</th><th class="total num">Totale</th><th class="vat num">IVA</th></tr></thead><tbody>${items.map(i => `<tr><td>${esc(i.product.code)}</td><td>${esc(i.product.description)}</td><td class="num">${num.format(i.qty)}</td><td class="num">${num.format(i.product.price)}</td><td>${esc(discountLabel(i))}</td><td class="num"><strong>${num.format(lineNet(i))}</strong></td><td class="num">${i.product.vat || 22}%</td></tr>`).join('')}</tbody></table><div class="print-bottom"><div class="print-notes-dense"><strong>NOTE E CONDIZIONI</strong><p>${esc($('notes').value || companyProfile.legalNotes || 'Prezzi IVA esclusa salvo diversa indicazione. Disponibilità e tempi di consegna da confermare.')}</p></div><div class="print-totals-dense"><div><span>Imponibile</span><strong>${euro.format(t.net)}</strong></div><div><span>IVA</span><strong>${euro.format(t.vat)}</strong></div><div><span>TOTALE ${documentType === 'order' ? 'ORDINE' : 'OFFERTA'}</span><strong>${euro.format(t.grand)}</strong></div></div></div><div class="print-legal-dense">${baseLegal}<br><span style="font-size:0.75rem; color:#666;">${gdprClause}</span></div></div>`;
+  $('printOffer').innerHTML = `<div class="print-sheet"><div class="print-parties"><div class="print-party"><label>AGENTE / AZIENDA</label><strong>${esc(companyProfile.companyName || companyProfile.displayName)}</strong><br>${esc(companyAddressLine())}<br>${esc(companyContactLine())}<br>${esc(agent.name)}</div><div class="print-party"><label>SPETT.LE CLIENTE</label><strong>${esc(c.name || 'Cliente da selezionare')}</strong><br>${esc([c.address, c.postalCode, c.city, c.province].filter(Boolean).join(' · '))}<br>${esc([c.phone, c.email].filter(Boolean).join(' · '))}</div></div><div class="print-title-row"><h1>${label}</h1><strong>${offerNumber()}</strong></div><table class="print-commerce"><tr><td><span>Data</span>${new Date().toLocaleDateString('it-IT')}</td><td><span>Pagamento</span>${esc(currentPaymentValue())}</td><td><span>Spedizione</span>${esc($('shipping').value)}</td><td><span>Validità</span>${esc($('validity').value)}</td></tr></table><table class="print-lines"><thead><tr><th class="code">Codice</th><th class="desc">Descrizione</th><th class="qty num">Q.tà</th><th class="price num">Listino</th><th class="discounts">Sconti / ricarico</th><th class="total num">Totale</th><th class="vat num">IVA</th></tr></thead><tbody>${items.map(i => `<tr><td>${esc(i.product.code)}</td><td>${esc(i.product.description)}</td><td class="num">${num.format(i.qty)}</td><td class="num">${num.format(i.product.price)}</td><td>${esc(discountLabel(i))}</td><td class="num"><strong>${num.format(lineNet(i))}</strong></td><td class="num">${i.product.vat || 22}%</td></tr>`).join('')}</tbody></table><div class="print-bottom"><div class="print-notes-dense"><strong>NOTE E CONDIZIONI</strong><p>${esc($('notes').value || companyProfile.legalNotes || 'Prezzi IVA esclusa salvo diversa indicazione. Disponibilità e tempi di consegna da confermare.')}</p></div><div class="print-totals-dense"><div><span>Imponibile</span><strong>${euro.format(t.net)}</strong></div><div><span>IVA</span><strong>${euro.format(t.vat)}</strong></div><div><span>TOTALE ${documentType === 'order' ? 'ORDINE' : 'OFFERTA'}</span><strong>${euro.format(t.grand)}</strong></div></div></div><div class="print-legal-dense">${baseLegal}<br><span style="font-size:0.75rem; color:#666;">${gdprClause}</span></div></div>`;
 }
 
 function exportExcel() {
@@ -713,7 +753,7 @@ function submissionPayload() {
     total: t.grand,
     payload: {
       company: { ...companyProfile },
-      payment: $('payment').value,
+      payment: currentPaymentValue(),
       shipping: $('shipping').value,
       validity: $('validity').value,
       notes: $('notes').value,
@@ -976,7 +1016,50 @@ function bindEvents() {
     catalogLimit += 80;
     renderCatalog();
   };
-  ['validity', 'payment', 'shipping'].forEach(id => $(id).addEventListener('change', persistOffer));
+  ['validity', 'shipping'].forEach(id => $(id).addEventListener('change', persistOffer));
+  $('payment').addEventListener('change', async () => {
+    if ($('payment').value === '__custom__') {
+      $('customPaymentInput')?.classList.remove('hidden');
+      $('customPaymentInput')?.focus();
+    } else {
+      $('customPaymentInput')?.classList.add('hidden');
+    }
+    persistOffer();
+
+    // Se è selezionato un cliente esistente, aggiorna la sua condizione di pagamento in anagrafica
+    const c = customerData();
+    const newPay = currentPaymentValue();
+    if (c && c.id && newPay && newPay !== '__custom__') {
+      c.payment = newPay;
+      const idx = clients.findIndex(x => String(x.id) === String(c.id));
+      if (idx >= 0) clients[idx].payment = newPay;
+      await dbSet('dataset', { meta: dataMeta, articles: products, clients }).catch(() => {});
+      fetch('/api/customers/update', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ id: c.id, payment: newPay })
+      }).catch(e => console.warn('Sync pagamento cliente fallito:', e));
+    }
+  });
+
+  $('customPaymentInput')?.addEventListener('input', persistOffer);
+  $('customPaymentInput')?.addEventListener('blur', async () => {
+    persistOffer();
+    const c = customerData();
+    const newPay = currentPaymentValue();
+    if (c && c.id && newPay && newPay !== '__custom__') {
+      c.payment = newPay;
+      const idx = clients.findIndex(x => String(x.id) === String(c.id));
+      if (idx >= 0) clients[idx].payment = newPay;
+      await dbSet('dataset', { meta: dataMeta, articles: products, clients }).catch(() => {});
+      fetch('/api/customers/update', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ id: c.id, payment: newPay })
+      }).catch(e => console.warn('Sync pagamento personalizzato fallito:', e));
+    }
+  });
+
   $('notes').oninput = persistOffer;
   $('saveBtn').onclick = () => {
     persistOffer();
@@ -998,6 +1081,9 @@ function bindEvents() {
     const tax = ($('newCustomerTax')?.value || '').trim();
     const sdi = ($('newCustomerSdi')?.value || '').trim();
     const email = ($('newCustomerEmail')?.value || '').trim();
+    const phone = ($('newCustomerPhone')?.value || '').trim();
+    const mobile = ($('newCustomerMobile')?.value || '').trim();
+    const payment = ($('newCustomerPayment')?.value || '').trim();
     const iban = ($('newCustomerIban')?.value || '').trim().replace(/\s+/g, '');
     const bank = ($('newCustomerBank')?.value || '').trim();
     const agentId = $('assignedAgent')?.value || currentAgentId() || 'AG01';
@@ -1023,6 +1109,9 @@ function bindEvents() {
           tax,
           sdi,
           email,
+          phone,
+          mobile,
+          payment,
           iban,
           bank,
           agentId
@@ -1041,12 +1130,13 @@ function bindEvents() {
         address,
         agentId,
         sourceAgent: agentById[agentId]?.name || agentId,
-        phone: '',
-        mobile: '',
+        phone,
+        mobile,
         email,
         sdi,
         iban,
         bank,
+        payment,
         vatNumber: tax,
         taxCode: tax,
         postalCode: '',

@@ -53,7 +53,21 @@
 
     <section class="commercial-table">
       <label><span>Data</span><input id="documentDate" readonly></label>
-      <label><span>Pagamento</span><select id="payment"><option>Bonifico bancario anticipato</option><option selected>Ri.Ba. 60 gg. f.m.</option><option>Ri.Ba. 90 gg. f.m.</option><option>Da concordare</option></select></label>
+      <label>
+        <span>Pagamento</span>
+        <select id="payment">
+          <option>Bonifico bancario anticipato</option>
+          <option selected>Ri.Ba. 60 gg. f.m.</option>
+          <option>Ri.Ba. 30 gg. d.f.</option>
+          <option>Ri.Ba. 30/60 gg. f.m.</option>
+          <option>Ri.Ba. 90 gg. f.m.</option>
+          <option>Contrassegno contanti / assegno</option>
+          <option>Rimessa diretta</option>
+          <option>Da concordare</option>
+          <option value="__custom__">✍️ Altro / Personalizzato…</option>
+        </select>
+        <input id="customPaymentInput" class="hidden" style="margin-top:6px; font-size:.84rem; padding:6px 10px; border:1px solid #7dd3fc; border-radius:6px; background:#f0f9ff;" placeholder="Specifica condizione concordata…">
+      </label>
       <label><span>Spedizione</span><select id="shipping"><option selected>Franco destino</option><option>Franco partenza</option><option>Ritiro presso magazzino</option></select></label>
       <label><span>Validità</span><select id="validity"><option>15 giorni</option><option selected>30 giorni</option><option>60 giorni</option><option>90 giorni</option></select></label>
     </section>
@@ -124,21 +138,37 @@
           <input id="newCustomerSdi" placeholder="Es. 0000000 o 7 caratteri" maxlength="7">
         </label>
         <label class="field">
-          <span>E-mail Amministrazione</span>
+          <span>E-mail Amministrazione / Marketing</span>
           <input type="email" id="newCustomerEmail" placeholder="email@azienda.it">
         </label>
       </div>
 
       <div class="two-cols">
         <label class="field">
+          <span>Telefono Fisso</span>
+          <input type="tel" id="newCustomerPhone" placeholder="Es. 055 123456">
+        </label>
+        <label class="field">
+          <span>Cellulare (Marketing / WhatsApp)</span>
+          <input type="tel" id="newCustomerMobile" placeholder="Es. 333 1234567">
+        </div>
+      </div>
+
+      <div class="two-cols">
+        <label class="field">
+          <span>Condizione di Pagamento predefinita</span>
+          <input id="newCustomerPayment" placeholder="Es. Ri.Ba. 60 gg. f.m. o personalizzato">
+        </label>
+        <label class="field">
           <span>IBAN Cliente (per Ri.Ba.)</span>
           <input id="newCustomerIban" placeholder="IT00X0000000000000000000000">
         </label>
-        <label class="field">
-          <span>Banca d'appoggio</span>
-          <input id="newCustomerBank" placeholder="Banca / Filiale">
-        </label>
       </div>
+
+      <label class="field full">
+        <span>Banca d'appoggio</span>
+        <input id="newCustomerBank" placeholder="Banca / Filiale">
+      </label>
 
       <label class="field full address-field">
         <span>Agente assegnato</span>
