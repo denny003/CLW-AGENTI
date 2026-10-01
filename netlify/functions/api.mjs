@@ -71,14 +71,6 @@ function session(request) {
       }
     }
 
-    // Fallback: check x-oa-user header
-    const userHdr = request.headers.get('x-oa-user');
-    if (userHdr) {
-      try {
-        const u = JSON.parse(decodeURIComponent(userHdr));
-        if (u && (u.username || u.name)) return u;
-      } catch {}
-    }
     return null;
   } catch {
     return null;
@@ -1105,6 +1097,19 @@ async function runDiagnostics(testCfg = {}) {
       details: 'Connessione Google Sheets API non attiva'
     };
   }
+
+  // Check 7: Security & Data Protection (GDPR compliance check)
+  const isDefaultSecret = !process.env.SESSION_SECRET;
+  const isDefaultUsers = !process.env.PILOT_USERS;
+  results.security = {
+    status: (isDefaultSecret || isDefaultUsers) ? 'warning' : 'ok',
+    icon: (isDefaultSecret || isDefaultUsers) ? '🟡' : '🟢',
+    label: (isDefaultSecret || isDefaultUsers) ? 'Credenziali default' : 'Sicurezza conforme',
+    message: (isDefaultSecret || isDefaultUsers)
+      ? 'Configura le variabili PILOT_USERS e SESSION_SECRET su Netlify per la massima sicurezza dei dati personali (GDPR)'
+      : 'Credenziali operative e segreto di sessione HMAC personalizzati attivi',
+    details: 'Misure tecniche e organizzative ex art. 32 GDPR (autenticazione crittografica e segregazione accessi)'
+  };
 
   return results;
 }
@@ -2423,53 +2428,69 @@ async function recordWarehouseMovement(entry, user, customId) {
     await append(regId, `'${tabName}'!A1`, [header]);
   }
 
-  const code = String(entry.code || entry.articleCode || '').trim();
-  if (!code) throw new Error('Codice articolo mancante');
-  const qty = Number(entry.quantity) || 0;
-  if (qty <= 0) throw new Error('La quantità prodotta deve essere maggiore di 0');
+  // Handle both single entry and batch items array
+  const items = Array.isArray(entry) ? entry : (Array.isArray(entry.items) ? entry.items : [entry]);
+  if (!items.length) throw new Error('Nessun articolo fornito per la registrazione');
 
-  const now = entry.date ? new Date(entry.date).toISOString() : new Date().toISOString();
-  const id = `PRD-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 900 + 100)}`;
-  const userName = user?.name || user?.username || entry.operator || 'Operatore Produzione';
-  const type = String(entry.type || 'PRODUZIONE').trim().toUpperCase();
-  const desc = String(entry.description || '').trim();
-  const lot = String(entry.lotNumber || entry.lot || '').trim();
-  const location = String(entry.location || entry.ubicazione || '').trim();
-  const notes = String(entry.notes || '').trim();
+  const globalDate = entry.date ? new Date(entry.date).toISOString() : new Date().toISOString();
+  const globalOperator = user?.name || user?.username || entry.operator || 'Operatore Produzione';
+  const globalType = String(entry.type || 'PRODUZIONE').trim().toUpperCase();
 
-  const row = [
-    id,
-    now,
-    type,
-    code,
-    desc,
-    qty,
-    lot,
-    location,
-    userName,
-    notes
-  ];
+  const rowsToAppend = [];
+  const recordedMovements = [];
+  const locationsToUpdate = [];
 
-  await append(regId, `'${tabName}'!A:J`, [row]);
+  for (let idx = 0; idx < items.length; idx++) {
+    const item = items[idx];
+    const code = String(item.code || item.articleCode || '').trim();
+    if (!code) throw new Error(`Codice articolo mancante alla riga #${idx + 1}`);
+    const qty = Number(item.quantity) || 0;
+    if (qty <= 0) throw new Error(`La quantità per l'articolo ${code} deve essere maggiore di 0`);
 
-  // If location was declared or changed, save it into Parametri_Produzione so the article keeps its warehouse location
-  if (location) {
-    try {
-      const currentParam = (await fetchProductionParameters(customId))[code] || {};
-      await saveProductionParameters({
-        ...currentParam,
-        code,
-        location
-      }, user, customId);
-    } catch (e) {
-      console.warn('Aggiornamento ubicazione articolo non bloccante:', e.message);
+    const now = item.date ? new Date(item.date).toISOString() : globalDate;
+    const id = `PRD-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 900 + 100)}-${idx + 1}`;
+    const userName = item.operator || globalOperator;
+    const type = String(item.type || globalType).trim().toUpperCase();
+    const desc = String(item.description || '').trim();
+
+    // Normativa lotti: garantire tracciabilità e lotto non vuoto
+    let lot = String(item.lotNumber || item.lot || '').trim();
+    if (!lot) {
+      const d = new Date(now);
+      const yr = d.getFullYear();
+      const mo = String(d.getMonth() + 1).padStart(2, '0');
+      const da = String(d.getDate()).padStart(2, '0');
+      lot = `LOT-${yr}${mo}${da}-${code}`;
     }
-  }
 
-  return {
-    ok: true,
-    id,
-    movement: {
+    const location = String(item.location || item.ubicazione || '').trim();
+
+    // Convalida note ed eventuale data di scadenza o conformità QC per normative GMP
+    let notes = String(item.notes || entry.notes || '').trim();
+    const expiry = String(item.expiryDate || item.expiry || entry.expiryDate || '').trim();
+    const qcStatus = item.qcStatus || entry.qcStatus;
+    const extraTags = [];
+    if (expiry) extraTags.push(`Scad: ${expiry}`);
+    if (qcStatus) extraTags.push(`QC: ${qcStatus}`);
+    if (extraTags.length > 0) {
+      notes = notes ? `${notes} [${extraTags.join(' | ')}]` : `[${extraTags.join(' | ')}]`;
+    }
+
+    const row = [
+      id,
+      now,
+      type,
+      code,
+      desc,
+      qty,
+      lot,
+      location,
+      userName,
+      notes
+    ];
+
+    rowsToAppend.push(row);
+    recordedMovements.push({
       id,
       date: now,
       type,
@@ -2479,8 +2500,41 @@ async function recordWarehouseMovement(entry, user, customId) {
       lotNumber: lot,
       location,
       operator: userName,
-      notes
+      notes,
+      expiryDate: expiry
+    });
+
+    if (location) {
+      locationsToUpdate.push({ code, location });
     }
+  }
+
+  // Single bulk append to Google Sheets for high performance
+  await append(regId, `'${tabName}'!A:J`, rowsToAppend);
+
+  // Update locations in Parametri_Produzione if supplied
+  if (locationsToUpdate.length > 0) {
+    try {
+      const currentParam = await fetchProductionParameters(customId);
+      for (const locItem of locationsToUpdate) {
+        const cp = currentParam[locItem.code] || {};
+        await saveProductionParameters({
+          ...cp,
+          code: locItem.code,
+          location: locItem.location
+        }, user, customId);
+      }
+    } catch (e) {
+      console.warn('Aggiornamento ubicazioni non bloccante:', e.message);
+    }
+  }
+
+  return {
+    ok: true,
+    count: recordedMovements.length,
+    id: recordedMovements[0]?.id,
+    movement: recordedMovements[0],
+    movements: recordedMovements
   };
 }
 
@@ -2957,6 +3011,8 @@ export default async (request, context) => {
     }
 
     if (path === 'agents' && request.method === 'GET') {
+      const user = session(request);
+      if (!user) return json(401, { error: 'Accesso non autorizzato. È richiesta l\'autenticazione.' });
       const agRes = await fetchAgentsData(
         url.searchParams.get('id') || undefined,
         url.searchParams.get('tab') || undefined
@@ -2966,6 +3022,7 @@ export default async (request, context) => {
 
     if (path === 'customers' && request.method === 'GET') {
       const user = session(request);
+      if (!user) return json(401, { error: 'Accesso non autorizzato. È richiesta l\'autenticazione.' });
       const clRes = await fetchCustomersData(
         url.searchParams.get('id') || undefined,
         url.searchParams.get('tab') || undefined,
@@ -3010,10 +3067,12 @@ export default async (request, context) => {
     }
 
     if (path === 'offers' && request.method === 'POST') {
+      if (!user) return json(401, { error: 'Accesso non autorizzato' });
       return createDoc(runtimeConfig.repository.tabOffers || 'Offerte', await request.json(), user, url.searchParams.get('id') || undefined);
     }
 
     if (path === 'orders' && request.method === 'POST') {
+      if (!user) return json(401, { error: 'Accesso non autorizzato' });
       return createDoc(runtimeConfig.repository.tabOrders || 'Ordini', await request.json(), user, url.searchParams.get('id') || undefined);
     }
 

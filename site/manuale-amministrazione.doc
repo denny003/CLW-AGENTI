@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+  <meta charset="utf-8">
+  <title>Manuale Operativo di Gestione — Pascal Cosmesi International</title>
+  <!--[if gte mso 9]>
+  <xml>
+    <w:WordDocument>
+      <w:View>Print</w:View>
+      <w:Zoom>100</w:Zoom>
+      <w:DoNotOptimizeForBrowser/>
+    </w:WordDocument>
+  </xml>
+  <![endif]-->
+  <style>
+    @page Section1 {
+      size: 21.0cm 29.7cm;
+      margin: 2.0cm 2.0cm 2.0cm 2.0cm;
+      mso-header-margin: 1.0cm;
+      mso-footer-margin: 1.0cm;
+      mso-paper-source: 0;
+    }
+    div.Section1 { page: Section1; }
+    
+    body {
+      font-family: 'Segoe UI', Calibri, Arial, sans-serif;
+      font-size: 11pt;
+      line-height: 1.5;
+      color: #1e293b;
+      background-color: #ffffff;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Headings */
+    h1.doc-title {
+      font-size: 26pt;
+      font-weight: 800;
+      color: #0b2942;
+      margin-top: 20pt;
+      margin-bottom: 6pt;
+      text-align: center;
+      line-height: 1.2;
+    }
+    p.doc-subtitle {
+      font-size: 13pt;
+      color: #5e7282;
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 30pt;
+      font-weight: 500;
+    }
+    .badge-bar {
+      text-align: center;
+      margin-bottom: 40pt;
+    }
+    .badge {
+      display: inline-block;
+      background-color: #e2f0d9;
+      color: #276a3c;
+      padding: 4pt 12pt;
+      border-radius: 12pt;
+      font-size: 9pt;
+      font-weight: bold;
+      border: 1px solid #b8dfb8;
+    }
+
+    h1 {
+      font-size: 18pt;
+      font-weight: 700;
+      color: #0b2942;
+      border-bottom: 2pt solid #0b2942;
+      padding-bottom: 4pt;
+      margin-top: 28pt;
+      margin-bottom: 12pt;
+      page-break-after: avoid;
+    }
+    h2 {
+      font-size: 14pt;
+      font-weight: 600;
+      color: #123b5d;
+      margin-top: 18pt;
+      margin-bottom: 8pt;
+      page-break-after: avoid;
+    }
+    h3 {
+      font-size: 12pt;
+      font-weight: 600;
+      color: #2076b5;
+      margin-top: 14pt;
+      margin-bottom: 6pt;
+      page-break-after: avoid;
+    }
+
+    p {
+      margin-top: 0;
+      margin-bottom: 8pt;
+      text-align: justify;
+    }
+
+    ul, ol {
+      margin-top: 0;
+      margin-bottom: 10pt;
+      padding-left: 20pt;
+    }
+    li {
+      margin-bottom: 4pt;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10pt;
+      margin-bottom: 14pt;
+      font-size: 10pt;
+    }
+    table, th, td {
+      border: 1px solid #cbd5e1;
+    }
+    th {
+      background-color: #0b2942;
+      color: #ffffff;
+      padding: 6pt 8pt;
+      font-weight: bold;
+      text-align: left;
+    }
+    td {
+      padding: 6pt 8pt;
+      vertical-align: top;
+    }
+    tr:nth-child(even) td {
+      background-color: #f8fafc;
+    }
+
+    /* Callout Boxes */
+    .box-info {
+      background-color: #f0f7fc;
+      border-left: 4pt solid #2076b5;
+      padding: 10pt 12pt;
+      margin: 12pt 0;
+      border-radius: 0 4pt 4pt 0;
+    }
+    .box-warning {
+      background-color: #fefce8;
+      border-left: 4pt solid #ca8a04;
+      padding: 10pt 12pt;
+      margin: 12pt 0;
+      border-radius: 0 4pt 4pt 0;
+    }
+    .box-success {
+      background-color: #f0fdf4;
+      border-left: 4pt solid #16a34a;
+      padding: 10pt 12pt;
+      margin: 12pt 0;
+      border-radius: 0 4pt 4pt 0;
+    }
+
+    .toc {
+      background-color: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 16pt 20pt;
+      border-radius: 6pt;
+      margin-bottom: 30pt;
+    }
+    .toc h2 {
+      margin-top: 0;
+      color: #0b2942;
+      border-bottom: 1px solid #cbd5e1;
+      padding-bottom: 6pt;
+    }
+    .toc ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+    .toc li {
+      margin-bottom: 6pt;
+      font-weight: 500;
+    }
+    .toc a {
+      color: #2076b5;
+      text-decoration: none;
+    }
+
+    .footer-doc {
+      margin-top: 40pt;
+      padding-top: 10pt;
+      border-top: 1px solid #cbd5e1;
+      font-size: 8.5pt;
+      color: #64748b;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+<div class="Section1">
+
+  <!-- FRONTESPIZIO -->
+  <div style="text-align:center; padding-top:20pt; padding-bottom:10pt;">
+    <div style="font-size:14pt; font-weight:bold; color:#2076b5; letter-spacing:1pt; text-transform:uppercase;">Pascal Milano · Pascal Cosmesi International</div>
+    <h1 class="doc-title">MANUALE OPERATIVO DI GESTIONE AZIENDALE</h1>
+    <p class="doc-subtitle">Guida Completa all'Utilizzo del Sistema Integrato per Produzione, Magazzino e Amministrazione</p>
+    <div class="badge-bar">
+      <span class="badge">Conforme GMP Cosmetiche (Reg. CE 1223/2009)</span> &nbsp;
+      <span class="badge">Conforme Protezione Dati GDPR (Reg. UE 2016/679)</span> &nbsp;
+      <span class="badge">Sincronizzazione Cloud Google Drive Live</span>
+    </div>
+  </div>
+
+  <div class="box-info">
+    <strong>Scopo di questo manuale:</strong> Questo documento è stato redatto per consentire a <strong>chiunque</strong>, anche al suo <strong>primissimo giorno di lavoro</strong>, di comprendere con chiarezza la visione d'insieme dell'azienda e di operare con perizia, autonomia e massima sicurezza nella propria specifica area di competenza.
+  </div>
+
+  <!-- INDICE -->
+  <div class="toc">
+    <h2>Indice Generale dei Contenuti</h2>
+    <ul>
+      <li><strong>Introduzione Generale:</strong> L'Ecosistema Gestionale Pascal Cosmesi</li>
+      <li><strong>Capitolo 1: Guida Operativa per la Produzione</strong>
+        <ul>
+          <li>1.1. Come accedere alla schermata "Pianificazione Produzione & Scorte"</li>
+          <li>1.2. Lettura dei dati scorte e fabbisogni intelligenti</li>
+          <li>1.3. La formula di calcolo auto-appresa dagli ordini reali</li>
+          <li>1.4. Come modificare tempi, lotti minimi e ubicazioni</li>
+          <li>1.5. Registrazione della produzione completata e passaggio a magazzino</li>
+          <li>1.6. Nuova modalità rapida multi-articolo (per lotti piccoli e veloci)</li>
+          <li>1.7. Regole obbligatorie sulla tracciabilità dei lotti (GMP Cosmetiche)</li>
+        </ul>
+      </li>
+      <li><strong>Capitolo 2: Guida Operativa per il Magazziniere (Logistica, Picking & DDT)</strong>
+        <ul>
+          <li>2.1. Organizzazione dello stoccaggio: Ubicazioni a scaffale e corsia</li>
+          <li>2.2. Ricezione merce dal reparto produzione</li>
+          <li>2.3. La Pipeline Ordini: gli stati di lavorazione dalla ricezione all'evasione</li>
+          <li>2.4. Prelievo merci (Picking list) e controllo disponibilità</li>
+          <li>2.5. Creazione ed emissione del Documento di Trasporto (DDT / Bolla di consegna)</li>
+          <li>2.6. Stampa del DDT per corriere e cliente</li>
+          <li>2.7. Clausole di sicurezza allo scarico e conformità legale</li>
+        </ul>
+      </li>
+      <li><strong>Capitolo 3: Guida Operativa per l'Area Amministrativa</strong>
+        <ul>
+          <li>3.1. Cruscotto generale pratiche e gestione anagrafiche</li>
+          <li>3.2. Offerte commerciali, approvazione sconti e conversione in ordine (1-click)</li>
+          <li>3.3. Dati fiscali obbligatori: Partita IVA, SDI, PEC, IBAN cliente</li>
+          <li>3.4. Pannello di configurazione centrale e diagnostica dei fogli Google Drive</li>
+          <li>3.5. Adempimenti di conformità Privacy (GDPR) e conservazione decennale (art. 2220 c.c.)</li>
+        </ul>
+      </li>
+      <li><strong>Capitolo 4: Procedure di Sicurezza, Emergenza e Guida "Primo Giorno"</strong>
+        <ul>
+          <li>4.1. Cosa fare in caso di assenza temporanea di connessione Internet (Modalità Offline)</li>
+          <li>4.2. Checklist rapida "Primo Giorno di Lavoro" per ogni ruolo</li>
+          <li>4.3. Contatti interni di supporto tecnico e amministrativo</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+
+  <!-- INTRODUZIONE -->
+  <h1>Introduzione Generale: L'Ecosistema Gestionale Pascal Cosmesi</h1>
+  <p>
+    Il gestionale aziendale Pascal Cosmesi International è una piattaforma web progressiva (PWA) progettata per unire in un unico flusso continuo la <strong>rete vendite</strong> (agenti sul territorio), il <strong>reparto produttivo</strong>, il <strong>magazzino centrale</strong> e l'<strong>ufficio amministrativo</strong>.
+  </p>
+  <p>
+    La piattaforma si poggia su un'architettura cloud centralizzata in <strong>Google Drive / Google Sheets</strong>. Questo significa che tutti i dati (cataloghi prodotti, clienti, ordini, giacenze e movimentazioni) sono sempre sincronizzati in tempo reale tra tutti i dispositivi aziendali autorizzati, senza necessità di installare software complessi sui computer.
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:25%;">Area Aziendale</th>
+        <th style="width:35%;">Strumento Principale</th>
+        <th style="width:40%;">Compito Primario</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Produzione</strong></td>
+        <td><code>pianificazione-produzione.html</code></td>
+        <td>Monitorare i fabbisogni scorte, pianificare i lotti di fabbricazione e dichiarare la merce finita pronta per il magazzino.</td>
+      </tr>
+      <tr>
+        <td><strong>Magazzino</strong></td>
+        <td><code>gestione-ordini.html</code> (Sezione Pipeline & DDT)</td>
+        <td>Prendere in carico la merce prodotta, stoccarla per ubicazione, preparare il picking ordini ed emettere il DDT di spedizione.</td>
+      </tr>
+      <tr>
+        <td><strong>Amministrazione</strong></td>
+        <td><code>index.html</code> e <code>configurazione.html</code></td>
+        <td>Verificare le offerte agenti, convalidare gli ordini, gestire le anagrafiche, la fatturazione elettronica e monitorare i fogli Google Drive.</td>
+      </tr>
+      <tr>
+        <td><strong>Rete Vendite</strong></td>
+        <td><code>offerta.html</code> e <code>giro-visite.html</code></td>
+        <td>Creare preventivi e ordini clienti su tablet/smartphone, consultare listini e programmare gli incontri commerciali.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- CAPITOLO 1 -->
+  <h1>Capitolo 1: Guida Operativa per la Produzione</h1>
+  <p>
+    Questo capitolo è dedicato al <strong>Responsabile di Produzione</strong> e a tutti gli operatori incaricati della fabbricazione, del confezionamento e della dichiarazione dei prodotti finiti.
+  </p>
+
+  <h2>1.1. Come accedere alla schermata</h2>
+  <p>
+    Nel menu principale dell'applicazione o dalla barra superiore, fai clic su <strong>"🏭 Produzione & Scorte"</strong> oppure apri la pagina <code>pianificazione-produzione.html</code>. In alto a destra è sempre presente una spia verde <em>"Google Sheets Live"</em> che conferma il collegamento istantaneo al database aziendale.
+  </p>
+
+  <h2>1.2. Lettura dei dati scorte e fabbisogni intelligenti</h2>
+  <p>
+    La tabella centrale mostra tutti i prodotti a catalogo. Per ogni articolo trovi le seguenti colonne fondamentali:
+  </p>
+  <ul>
+    <li><strong>Codice & Ubicazione:</strong> Il codice univoco dell'articolo e la sua collocazione fisica a magazzino (es. <em>Scaffale A-02</em>).</li>
+    <li><strong>Giacenza Reale:</strong> I pezzi fisicamente presenti a magazzino conteggiati dal sistema.</li>
+    <li><strong>Impegnato:</strong> I pezzi già venduti ai clienti in ordini confermati non ancora spediti (merce bloccata).</li>
+    <li><strong>Offerto:</strong> I pezzi inseriti in preventivi/offerte aperte (fabbisogno potenziale nei prossimi 30 giorni).</li>
+    <li><strong>Disponibilità Libera:</strong> È il valore chiave dato da <code>Giacenza Reale − Impegnato</code>. Se questo numero è basso o negativo, l'azienda rischia di non poter evadere gli ordini in tempo!</li>
+    <li><strong>Lead Time:</strong> Giorni medi necessari per produrre e confezionare l'articolo.</li>
+    <li><strong>Consumo/gg:</strong> Quanti pezzi di quell'articolo vengono mediamente venduti al giorno.</li>
+    <li><strong>Scorta Minima (SS):</strong> Il livello di scorta cuscinetto che protegge l'azienda da picchi imprevisti di ordini o ritardi nei componenti.</li>
+    <li><strong>Punto di Riordino (ROP):</strong> La soglia di allarme. Quando la disponibilità scende sotto questo valore, è necessario avviare immediatamente la produzione!</li>
+    <li><strong>Proposta Produzione:</strong> La quantità esatta di pezzi consigliata dall'algoritmo matematico per ripristinare la scorta ottimale.</li>
+  </ul>
+
+  <div class="box-info">
+    <strong>Bollini di Stato e Urgenza:</strong>
+    <ul>
+      <li><span style="color:#b91c1c; font-weight:bold;">🚨 CRITICO (Rosso):</span> La disponibilità libera è zero o negativa. Ci sono ordini di clienti già acquisiti che attendono questi prodotti. Priorità massima assoluta!</li>
+      <li><span style="color:#c2410c; font-weight:bold;">⚠️ RIORDINO (Arancione):</span> La scorta è scesa sotto la soglia di sicurezza. Occorre programmare il lotto di produzione prima di esaurire la giacenza.</li>
+      <li><span style="color:#15803d; font-weight:bold;">✅ OTTIMALE (Verde):</span> Il magazzino è perfettamente allineato con le vendite. Nessuna azione produttiva richiesta.</li>
+      <li><span style="color:#0369a1; font-weight:bold;">ℹ️ SOVRASCORTA (Azzurro):</span> Merce abbondante a magazzino. Evitare assolutamente nuove produzioni per non immobilizzare capitale.</li>
+    </ul>
+  </div>
+
+  <h2>1.3. La formula di calcolo auto-appresa</h2>
+  <p>
+    Il sistema non usa stime teoriche arbitrarie: <strong>apprende dai dati reali degli ordini storici</strong> registrati su Google Drive:
+  </p>
+  <ul>
+    <li>Calcola il lead time reale misurando i giorni trascorsi tra la data dell'ordine e la data effettiva del DDT di spedizione.</li>
+    <li>Applica la <em>Formula di King</em> per dimensionare la scorta di sicurezza tenendo conto sia della variabilità delle vendite che dell'affidabilità dei tempi di fornitura.</li>
+    <li>Arrotonda sempre la quantità proposta al <strong>multiplo del lotto minimo</strong>, in modo che il reparto non produca quantità spezzate inefficienti per i macchinari.</li>
+  </ul>
+
+  <h2>1.4. Come modificare tempi, lotti minimi e ubicazioni</h2>
+  <p>
+    Se per un articolo cambia il fornitore di packaging o viene riorganizzato lo scaffale:
+  </p>
+  <ol>
+    <li>Nella riga dell'articolo, premi il pulsante <strong>"⚙️ Parametri"</strong>.</li>
+    <li>Si aprirà una finestra dove puoi impostare: il tempo stimato di produzione, il lotto minimo (es. 24 pz), una scorta minima forzata e l'ubicazione a scaffale.</li>
+    <li>Fai clic su <strong>"💾 Salva su Google Sheets"</strong>. Il parametro verrà salvato permanentemente nella scheda <code>Parametri_Produzione</code> di Google Drive e aggiornerà istantaneamente i calcoli per tutti gli operatori.</li>
+  </ol>
+
+  <h2>1.5. Registrazione della produzione completata e passaggio a magazzino</h2>
+  <p>
+    Quando il reparto ha terminato di fabbricare e confezionare i prodotti, <strong>è tassativo dichiarare immediatamente il carico</strong> affinché il magazziniere veda i pezzi pronti e possa spedire gli ordini.
+  </p>
+  <p>
+    Hai a disposizione due modalità:
+  </p>
+
+  <h3>A. Modalità Singolo Articolo (per grandi lotti dedicati):</h3>
+  <ol>
+    <li>Fai clic sul pulsante <strong>"➕ Singolo Articolo"</strong> in alto oppure su <strong>"📦 Carica Merci"</strong> sulla riga dell'articolo.</li>
+    <li>Inserisci la quantità prodotta (in pezzi).</li>
+    <li>Digita o conferma il <strong>Numero di Lotto</strong>.</li>
+    <li>Specifica la data di scadenza (se applicabile), l'ubicazione di stoccaggio e il nome dell'operatore.</li>
+    <li>Premi <strong>"💾 Registra e Trasferisci a Magazzino"</strong>.</li>
+  </ol>
+
+  <h3>B. Nuova Modalità Rapida Multi-Articolo (per lotti piccoli e veloci):</h3>
+  <p>
+    Spesso in laboratorio vengono preparati più articoli diversi contemporaneamente ma per poche unità ciascuno (es. 6 pezzi di una crema, 12 di un tonico, 10 di un siero). Invece di aprire una schermata per ciascun prodotto:
+  </p>
+  <ol>
+    <li>Spunta le caselle di selezione (checkbox) a sinistra degli articoli lavorati (oppure clicca sulla casella nell'intestazione per selezionarli tutti).</li>
+    <li>Premi il pulsante verde in alto: <strong>"⚡ Passaggio Rapido a Magazzino (Multi-Articolo)"</strong>.</li>
+    <li>Si aprirà un modulo tabellare compatto dove compaiono solo gli articoli selezionati.</li>
+    <li>Per ogni riga, digita velocemente la quantità finita. Il sistema compila già in automatico il numero di lotto conforme (es. <code>LOT-20260930-CODICE</code>), l'ubicazione predefinita a scaffale e la scadenza standard a 36 mesi.</li>
+    <li>Seleziona il nome dell'operatore o reparto responsabile in alto.</li>
+    <li>Fai clic su <strong>"⚡ Trasferisci Tutti a Magazzino in 1 Clic"</strong>.</li>
+  </ol>
+  <div class="box-success">
+    <strong>Risultato immediato:</strong> Il sistema salva tutte le righe contemporaneamente nel foglio centrale <code>Movimenti_Magazzino</code> su Google Sheets con una singola operazione ad alte prestazioni, aggiorna le giacenze libere e rende i prodotti istantaneamente disponibili per il picking e la spedizione!
+  </div>
+
+  <h2>1.6. Regole obbligatorie sulla tracciabilità dei lotti (GMP Cosmetiche)</h2>
+  <p>
+    Ai sensi del <strong>Regolamento (CE) n. 1223/2009 sui prodotti cosmetici</strong> e degli standard internazionali GMP (Good Manufacturing Practices - ISO 22716), nessun prodotto può uscire dal laboratorio o entrare a magazzino senza un codice di lotto univoco identificabile.
+  </p>
+  <div class="box-warning">
+    <strong>Regola tassativa:</strong> Non lasciare mai vuoto il campo "Numero Lotto". Il sistema suggerisce la sintassi standard <code>LOT-AAAAMMGG-CODICE</code> (es. <code>LOT-20260930-PC01</code>). In caso di ispezione sanitaria o segnalazione da parte di un cliente, questo codice consente di risalire in pochi secondi alla data esatta di produzione, all'operatore che ha effettuato il carico e ai DDT con cui la merce è stata distribuita sul mercato.
+  </div>
+
+  <!-- CAPITOLO 2 -->
+  <h1>Capitolo 2: Guida Operativa per il Magazziniere (Logistica, Picking & DDT)</h1>
+  <p>
+    Questo capitolo è dedicato agli <strong>addetti al magazzino, alla logistica interna e alle spedizioni</strong>.
+  </p>
+
+  <h2>2.1. Organizzazione dello stoccaggio: Ubicazioni a scaffale e corsia</h2>
+  <p>
+    Ogni articolo nel nostro magazzino ha un'ubicazione identificata (es. <em>Corsia A, Scaffale 03, Ripiano 2</em>). Questo codice compare:
+  </p>
+  <ul>
+    <li>Nella colonna "Codice & Ubicazione" sia nella schermata di produzione che nelle liste ordini.</li>
+    <li>Sul Documento di Trasporto (DDT) per facilitare il controllo a magazzino.</li>
+  </ul>
+  <p>
+    Quando riponi la merce, rispetta sempre l'ubicazione indicata a sistema per evitare che altri colleghi perdano tempo a cercare i colli. Se un articolo viene spostato in una nuova ubicazione, aggiornala subito cliccando sul tasto <em>"⚙️ Parametri"</em>.
+  </p>
+
+  <h2>2.2. Ricezione merce dal reparto produzione</h2>
+  <p>
+    Quando il reparto produzione consegna i colli al magazzino:
+  </p>
+  <ol>
+    <li>Verifica che il cartone o il vassoio rechi l'etichetta con il <strong>Numero di Lotto</strong>.</li>
+    <li>Controlla che la quantità fisica corrisponda a quanto dichiarato.</li>
+    <li>Nella schermata di produzione (sezione inferiore <em>"📜 Ultimi Movimenti di Produzione & Carico Magazzino"</em>), verifica che la riga verde di carico sia registrata.</li>
+    <li>Riponi fisicamente i pezzi nell'ubicazione a scaffale indicata.</li>
+  </ol>
+
+  <h2>2.3. La Pipeline Ordini: gli stati di lavorazione</h2>
+  <p>
+    Dalla barra di navigazione, clicca su <strong>"📦 Ordini & Picking DDT"</strong> (pagina <code>gestione-ordini.html</code>). Gli ordini dei clienti attraversano un percorso obbligato a stadi:
+  </p>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:20%;">Stato Ordine</th>
+        <th style="width:25%;">Cosa Significa</th>
+        <th style="width:55%;">Cosa deve fare il magazziniere</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>📥 Ricevuto</strong></td>
+        <td>L'agente ha inserito l'ordine dal territorio.</td>
+        <td>Nessuna azione. L'amministrazione deve verificare la correttezza commerciale prima di procedere.</td>
+      </tr>
+      <tr>
+        <td><strong>⚙️ In Lavorazione (Approvato)</strong></td>
+        <td>L'ordine è stato convalidato ed è autorizzato per l'evasione.</td>
+        <td>Verificare la disponibilità a magazzino. Se tutta la merce è pronta, cambiare lo stato in <em>"In Preparazione Magazzino"</em>.</td>
+      </tr>
+      <tr>
+        <td><strong>📦 In Preparazione Magazzino</strong></td>
+        <td>La merce è in fase di prelievo fisico e imballaggio.</td>
+        <td>Prelevare i prodotti dagli scaffali, imballare i colli e compilare i dati del DDT (Documento di Trasporto).</td>
+      </tr>
+      <tr>
+        <td><strong>🚚 Spedito</strong></td>
+        <td>I colli sono stati affidati al corriere espresso con il DDT allegato.</td>
+        <td>Registrare il numero del DDT, la data e il codice di tracking del corriere.</td>
+      </tr>
+      <tr>
+        <td><strong>💶 Fatturato</strong></td>
+        <td>L'amministrazione ha emesso la fattura elettronica collegata al DDT.</td>
+        <td>Ciclo concluso e archiviato a norma di legge.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>2.4. Prelievo merci (Picking list)</h2>
+  <p>
+    Cliccando sul pulsante <strong>"Visualizza"</strong> o <strong>"Dettagli"</strong> accanto a un ordine, si apre la lista esatta degli articoli da prelevare con le relative quantità e ubicazioni a scaffale. Raccogli i prodotti, verifica che i lotti corrispondano e posizionali nell'area bancali/imballaggio pronta per la spedizione.
+  </p>
+
+  <h2>2.5. Creazione ed emissione del Documento di Trasporto (DDT)</h2>
+  <p>
+    Il Documento di Trasporto (DDT) è il documento fiscale obbligatorio che accompagna la merce durante il viaggio:
+  </p>
+  <ol>
+    <li>Nella riga dell'ordine da spedire, clicca su <strong>"📦 Aggiorna Stato / DDT"</strong>.</li>
+    <li>Imposta lo stato su <strong>"🚚 Spedito"</strong>.</li>
+    <li>Compila i dati di trasporto:
+      <ul>
+        <li><strong>Numero Bolla / DDT:</strong> Il progressivo aziendale (es. <code>DDT-2026-0042</code>).</li>
+        <li><strong>Data Bolla / DDT:</strong> La data odierna del ritiro.</li>
+        <li><strong>Vettore / Corriere:</strong> Seleziona il corriere incaricato (es. <em>GLS, BRT, TNT/FedEx, DHL</em> o <em>Mezzo Proprio</em>).</li>
+        <li><strong>Numero Colli:</strong> Quante scatole o buste compongono la spedizione (es. <code>2 colli</code>).</li>
+        <li><strong>Numero Tracking:</strong> Incolla il codice lettera di vettura fornito dal portale del corriere.</li>
+        <li><strong>Porto:</strong> Scegli tra <em>FRANCO</em> (porto franco, trasporto a carico mittente) o <em>ASSEGNATO</em> (porto assegnato, a carico cliente).</li>
+        <li><strong>Causale del trasporto:</strong> Preimpostata su <em>VENDITA</em> (oppure conto visione, omaggio, reso se pertinente).</li>
+      </ul>
+    </li>
+    <li>Fai clic su <strong>"💾 Salva Stato & Dati Trasporto su Google Drive"</strong>.</li>
+  </ol>
+
+  <h2>2.6. Stampa del DDT per corriere e cliente</h2>
+  <ol>
+    <li>Una volta salvato, clicca sul pulsante azzurro <strong>"📄 Stampa DDT"</strong>.</li>
+    <li>Verrà visualizzata l'anteprima formattata ufficiale del DDT con intestazione aziendale Pascal Cosmesi, dati anagrafici completi del cliente, SDI, tabella analitica delle merci, numero colli, vettore e data.</li>
+    <li>Stampa <strong>2 copie</strong>:
+      <ul>
+        <li>Una copia viene inserita nella busta trasparente adesiva applicata sul primo collo della spedizione.</li>
+        <li>Una copia viene firmata dal corriere per ricevuta al momento del ritiro e trattenuta nel faldone delle spedizioni giornaliere.</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h2>2.7. Clausole di sicurezza allo scarico e conformità legale</h2>
+  <div class="box-info">
+    <strong>La dicitura legale stampata in calce al DDT:</strong><br>
+    <em>"In caso di nostra consegna il materiale verra' scaricato al numero civico. Non si accettano reclami per merce rotta o mancante se non al momento dello scarico annotati sul documento.<br>
+    Informativa Privacy (artt. 13-14 Reg. UE 2016/679 - GDPR): I dati personali sono trattati dal Titolare per adempimenti fiscali, amministrativi e di consegna contrattuale (art. 6, par. 1, lett. b-c GDPR), con conservazione per i termini di legge (10 anni ex art. 2220 c.c.)."</em>
+  </div>
+  <p>
+    Questa formula protegge legalmente l'azienda: se un cliente o corriere danneggia la merce dopo la consegna senza apporre riserva scritta sul documento al momento dello scarico, non potrà avanzare pretese ingiustificate contro l'azienda.
+  </p>
+
+  <!-- CAPITOLO 3 -->
+  <h1>Capitolo 3: Guida Operativa per l'Area Amministrativa</h1>
+  <p>
+    Questo capitolo è dedicato al <strong>Personale Amministrativo, Contabile e alla Direzione Commerciale</strong>.
+  </p>
+
+  <h2>3.1. Cruscotto generale pratiche e gestione anagrafiche</h2>
+  <p>
+    La schermata principale <code>index.html</code> (<strong>Registro Pratiche</strong>) offre la visione panoramica di tutte le offerte e gli ordini trasmessi dagli 11 agenti sul territorio.
+  </p>
+  <ul>
+    <li>Puoi filtrare le pratiche per <em>Tutte</em>, solo <em>Offerte</em> o solo <em>Ordini</em>.</li>
+    <li>La barra di ricerca istantanea consente di trovare qualsiasi pratica digitando la ragione sociale del cliente, il numero di documento o il nome dell'agente.</li>
+    <li>Ogni riga mostra l'importo totale in Euro (€), la data di invio e il badge di stato corrente.</li>
+  </ul>
+
+  <h2>3.2. Offerte commerciali, sconti e conversione in ordine (1-Click)</h2>
+  <p>
+    Quando un agente redige una proposta per un cliente:
+  </p>
+  <ol>
+    <li>L'offerta appare nel registro nello stato <em>"submitted"</em> o <em>"Da valutare"</em>.</li>
+    <li>L'amministrazione esamina i margini e gli sconti concessi (l'applicazione blocca già alla fonte sconti superiori al massimale autorizzato per quell'agente).</li>
+    <li>Se l'offerta viene confermata dal cliente, non serve riscrivere i dati da capo: basta aprire il dettaglio della pratica e cliccare su <strong>"⚡ Converti in Ordine"</strong>.</li>
+    <li>Il sistema genera immediatamente il relativo Ordine Cliente nel foglio <code>Ordini</code>, conservando lo storico della trattativa, e lo invia automaticamente alla pipeline di lavorazione del magazzino.</li>
+  </ol>
+
+  <h2>3.3. Dati fiscali obbligatori dei clienti</h2>
+  <p>
+    In conformità alla normativa fiscale italiana e comunitaria, per ogni cliente devono essere sempre verificati:
+  </p>
+  <ul>
+    <li><strong>Ragione Sociale e Indirizzo completo:</strong> Con CAP e Provincia esatta per la fatturazione elettronica.</li>
+    <li><strong>Partita IVA / Codice Fiscale:</strong> Indispensabili per la validità tributaria del documento.</li>
+    <li><strong>Codice Destinatario SDI (7 caratteri) o PEC:</strong> Per il recapito automatico della fattura elettronica tramite il Sistema di Interscambio dell'Agenzia delle Entrate. Se il cliente non dispone di codice SDI, inserire <code>0000000</code> (sette zeri) abbinato all'indirizzo PEC.</li>
+    <li><strong>IBAN e Banca d'appoggio:</strong> Necessari qualora le condizioni di pagamento concordate prevedano l'emissione di Ri.Ba. a 30/60 giorni.</li>
+  </ul>
+
+  <h2>3.4. Pannello di Configurazione Centrale e Diagnostica Google Drive</h2>
+  <p>
+    Accedendo a <code>configurazione.html</code> (<strong>⚙️ Configurazione</strong>), l'amministrazione ha il controllo dei collegamenti cloud.
+  </p>
+  <div class="box-info">
+    <strong>La Diagnostica Integrata in tempo reale:</strong><br>
+    All'apertura della pagina, il sistema esegue un test automatico su 7 indicatori:
+    <ol>
+      <li><strong>Google Sheets API:</strong> Verifica che i server di Google rispondano correttamente.</li>
+      <li><strong>Dati Azienda:</strong> Verifica la lettura dell'intestazione, P.IVA e coordinate bancarie aziendali.</li>
+      <li><strong>Anagrafica Agenti:</strong> Verifica la lista agenti operativi e le gerarchie di zona.</li>
+      <li><strong>Clienti:</strong> Verifica l'accesso al database clienti.</li>
+      <li><strong>Articoli:</strong> Verifica il listino prezzi e il catalogo prodotti.</li>
+      <li><strong>Repository Offerte & Ordini:</strong> Verifica i permessi di lettura e scrittura sul registro ordini.</li>
+      <li><strong>Protezione Dati & Sicurezza GDPR:</strong> Verifica che le sessioni siano crittografate e che non vi siano accessi esposti.</li>
+    </ol>
+  </div>
+  <p>
+    Se tutti i pallini sono verdi 🟢, l'intero sistema aziendale sta operando al massimo delle prestazioni. Se compare un triangolo giallo o rosso, il box diagnostico indica con precisione quale foglio o permesso debba essere verificato.
+  </p>
+
+  <h2>3.5. Adempimenti Privacy (GDPR) e conservazione decennale</h2>
+  <div class="box-success">
+    <strong>Garanzie di Conformità Implementate:</strong>
+    <ul>
+      <li><strong>Segregazione degli accessi:</strong> Gli agenti di commercio possono visualizzare unicamente i clienti e gli ordini di propria competenza o della loro area. Solo l'amministrazione dispone della visibilità globale (Art. 25 & 32 GDPR).</li>
+      <li><strong>Cookie Policy:</strong> La piattaforma utilizza unicamente cookie tecnici necessari all'autenticazione dell'operatore. Non vengono utilizzati cookie di profilazione o tracciamento pubblicitario di terze parti: non è quindi richiesto alcun fastidioso cookie banner invasivo.</li>
+      <li><strong>Conservazione a norma:</strong> I documenti di trasporto (DDT), le offerte accettate e le registrazioni di magazzino hanno valore probatorio commerciale e devono essere conservati per <strong>10 anni</strong> ai sensi dell'art. 2220 del Codice Civile.</li>
+      <li><strong>Pagina Privacy Ufficiale:</strong> In fondo a ogni schermata è presente il collegamento trasparente all'informativa estesa (<code>privacy.html</code>), conforme agli artt. 13 e 14 del Regolamento UE 2016/679.</li>
+    </ul>
+  </div>
+
+  <!-- CAPITOLO 4 -->
+  <h1>Capitolo 4: Procedure di Sicurezza, Emergenza e Guida "Primo Giorno"</h1>
+
+  <h2>4.1. Cosa fare in caso di assenza di connessione Internet (Modalità Offline)</h2>
+  <p>
+    Una delle caratteristiche più avanzate della nostra piattaforma è la capacità di <strong>continuare a lavorare anche se cade la linea Internet o se il segnale Wi-Fi è debole</strong>:
+  </p>
+  <ul>
+    <li>Grazie al <em>Service Worker</em> e alla memoria protetta del browser (IndexedDB), le schermate continuano ad aprirsi normalmente.</li>
+    <li>In cima alla pagina comparirà un avviso arancione: <em>"📶 Modalità offline attiva: stai visualizzando le pratiche salvate sul dispositivo"</em>.</li>
+    <li>L'agente o il magazziniere possono continuare a compilare bozze o consultare le ubicazioni. Non appena la connessione torna attiva, i dati vengono sincronizzati automaticamente con Google Drive senza alcuna perdita di informazioni.</li>
+  </ul>
+
+  <h2>4.2. Checklist Rapida "Primo Giorno di Lavoro"</h2>
+
+  <h3>Per l'Operatore di Produzione (1° giorno):</h3>
+  <ul>
+    <li>[ ] Apri la pagina <code>pianificazione-produzione.html</code> e controlla che la spia in alto sia verde <em>"Google Sheets Live"</em>.</li>
+    <li>[ ] Individua gli articoli con bollino rosso 🚨 <em>CRITICO</em>: sono quelli da produrre per primi.</li>
+    <li>[ ] Quando finisci un lotto, compila subito la dichiarazione (con il tasto rapido verde se sono più articoli piccoli).</li>
+    <li>[ ] Verifica sempre che ogni collo rechi l'etichetta con il <strong>Numero di Lotto</strong> prima di consegnarlo al magazzino.</li>
+  </ul>
+
+  <h3>Per il Magazziniere (1° giorno):</h3>
+  <ul>
+    <li>[ ] Apri <code>gestione-ordini.html</code> e filtra per gli ordini <em>"In Preparazione Magazzino"</em>.</li>
+    <li>[ ] Consulta l'ubicazione a scaffale indicata accanto a ogni articolo per fare il prelievo senza errori.</li>
+    <li>[ ] Quando i colli sono imballati, premi <em>"Aggiorna Stato / DDT"</em>, inserisci il numero DDT, il corriere e il tracking.</li>
+    <li>[ ] Stampa 2 copie del DDT con il tasto azzurro <em>"📄 Stampa DDT"</em>: una copia sul pacco, una firmata per ricevuta dal trasportatore.</li>
+  </ul>
+
+  <h3>Per l'Ufficio Amministrazione (1° giorno):</h3>
+  <ul>
+    <li>[ ] Apri <code>index.html</code> e verifica le nuove offerte trasmesse dagli agenti.</li>
+    <li>[ ] Se un'offerta è accettata, premi <em>"Converti in Ordine"</em> per avviare la preparazione.</li>
+    <li>[ ] Quando un ordine passa allo stato <em>"Spedito"</em> con il suo DDT, procedi all'emissione della fattura elettronica SDI.</li>
+    <li>[ ] Apri <code>configurazione.html</code> ed esegui una verifica diagnostica periodica per accertarti che tutti i 7 indicatori siano verdi 🟢.</li>
+  </ul>
+
+  <h2>4.3. Contatti Interni di Assistenza</h2>
+  <div class="box-info">
+    <strong>Pascal Cosmesi International — Recapiti Operativi Interni:</strong><br>
+    <ul>
+      <li><strong>Sede:</strong> Via F.lli Bandiera 24, 50100 Sovigliana (FI)</li>
+      <li><strong>Centralino / Ufficio Amministrazione:</strong> 055/42.89.074</li>
+      <li><strong>Email Supporto Operativo & Privacy:</strong> info@pascalmilano.it</li>
+      <li><strong>Registro Cloud Google Drive:</strong> Cartella condivisa "Repository"</li>
+    </ul>
+  </div>
+
+  <div class="footer-doc">
+    Manuale Operativo di Gestione Aziendale · Edizione Ufficiale Settembre 2026 · Pascal Milano / Pascal Cosmesi International<br>
+    Documento a diffusione interna aziendale. Conforme alle linee guida GMP Cosmetiche (Reg. CE 1223/2009) e Protezione Dati (Reg. UE 2016/679 GDPR).
+  </div>
+
+</div>
+</body>
+</html>

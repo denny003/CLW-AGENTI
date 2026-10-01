@@ -55,6 +55,7 @@
       </div>
     </div>
     <div class="heading-actions">
+      <a class="btn secondary" href="/manuale-amministrazione.doc" download>📖 Manuale Operativo (.doc)</a>
       <a class="btn secondary" href="/">← Torna alle pratiche</a>
       <a class="btn secondary" href="/offerta?new=1&type=offer">Nuova offerta</a>
     </div>
@@ -140,6 +141,16 @@
             <span class="val">In attesa…</span>
           </div>
           <span class="diag-details" id="diagRepositoryDetails">Verifica schede Offerte e Ordini</span>
+        </div>
+
+        <!-- 7. Sicurezza & GDPR -->
+        <div class="diag-box">
+          <small>Protezione Dati & GDPR</small>
+          <div class="diag-status" id="diagSecurity">
+            <span class="dot">⏳</span>
+            <span class="val">In attesa…</span>
+          </div>
+          <span class="diag-details" id="diagSecurityDetails">Verifica autenticazione e privacy</span>
         </div>
       </div>
 
@@ -316,6 +327,13 @@
       <button type="button" id="btnSave" class="btn primary btn-green">💾 Salva configurazione</button>
     </div>
   </main>
+
+  <footer style="text-align: center; padding: 24px 16px 36px; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--line); margin-top: 36px;">
+    <div>© Pascal Milano / Pascal Cosmesi International — Pannello Configurazione & Amministrazione</div>
+    <div style="margin-top: 6px;">
+      <a href="/privacy.html" style="color: var(--blue); text-decoration: none; font-weight: 500;">🔒 Informativa Privacy & Protezione Dati (GDPR Reg. UE 2016/679)</a>
+    </div>
+  </footer>
 
   <div id="toast" class="toast" role="status"></div>
 
@@ -514,6 +532,7 @@
         applyDiag('diagCustomers', 'diagCustomersDetails', d.customers);
         applyDiag('diagProducts', 'diagProductsDetails', d.products);
         applyDiag('diagRepository', 'diagRepositoryDetails', d.repository);
+        applyDiag('diagSecurity', 'diagSecurityDetails', d.security);
 
         const time = new Date().toLocaleTimeString('it-IT');
         $('diagLastRun').textContent = `Verificato alle ${time}`;

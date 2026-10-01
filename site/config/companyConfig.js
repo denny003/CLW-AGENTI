@@ -88,8 +88,7 @@ function sanitizeConfig(cfg) {
   if (!c.repository.tabOrders) c.repository.tabOrders = OFFICIAL_SYSTEM_SPREADSHEETS.repository.tabOrders;
 
   if (isInvalidSpreadsheetId(c.warehouse?.spreadsheetId)) {
-    // If empty or invalid, fallback to empty string (or repository id in api)
-    c.warehouse.spreadsheetId = (c.warehouse?.spreadsheetId && c.warehouse.spreadsheetId.trim().length >= 20) ? c.warehouse.spreadsheetId.trim() : "";
+    c.warehouse.spreadsheetId = OFFICIAL_SYSTEM_SPREADSHEETS.warehouse.spreadsheetId;
   }
   if (!c.warehouse.folder) c.warehouse.folder = OFFICIAL_SYSTEM_SPREADSHEETS.warehouse.folder;
   if (!c.warehouse.fileName) c.warehouse.fileName = OFFICIAL_SYSTEM_SPREADSHEETS.warehouse.fileName;

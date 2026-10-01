@@ -495,6 +495,205 @@
       transform: translateY(0);
     }
 
+    /* BULK ACTION STICKY BAR */
+    .bulk-action-bar {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0f172a;
+      color: #fff;
+      padding: 10px 22px;
+      border-radius: 50px;
+      box-shadow: 0 14px 40px rgba(15, 23, 42, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.12);
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      z-index: 1000;
+      animation: slideUpBulk 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      backdrop-filter: blur(10px);
+    }
+    @keyframes slideUpBulk {
+      from { transform: translate(-50%, 25px); opacity: 0; }
+      to { transform: translate(-50%, 0); opacity: 1; }
+    }
+    .bulk-action-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.88rem;
+    }
+    .bulk-count-badge {
+      background: #059669;
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.8rem;
+      padding: 3px 9px;
+      border-radius: 12px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* MODAL LARGE & MULTI-BATCH STYLES */
+    .modal-large {
+      max-width: 1100px;
+      width: calc(100vw - 32px);
+      max-height: 92vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .batch-session-card {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+      align-items: flex-end;
+    }
+    .batch-qc-banner {
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      color: #065f46;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .batch-qc-banner input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #059669;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .batch-table-container {
+      max-height: 380px;
+      overflow-y: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      background: #fff;
+    }
+    .batch-grid-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+    .batch-grid-table th {
+      position: sticky;
+      top: 0;
+      background: #f1f5f9;
+      color: #334155;
+      font-weight: 700;
+      padding: 10px 12px;
+      border-bottom: 2px solid #cbd5e1;
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      z-index: 5;
+    }
+    .batch-grid-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: middle;
+    }
+    .batch-grid-table tr:hover td {
+      background: #f8fafc;
+    }
+    .batch-qty-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .batch-qty-btn {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 0.76rem;
+      color: #334155;
+      padding: 3px 6px;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .batch-qty-btn:hover {
+      background: #e2e8f0;
+    }
+    .batch-qty-input {
+      width: 60px;
+      text-align: center;
+      font-weight: 800;
+      font-size: 0.95rem;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 5px 4px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+    }
+    .batch-qty-input:focus {
+      border-color: #059669;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15);
+    }
+    .batch-lot-input {
+      width: 175px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #0369a1;
+      padding: 6px 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+    }
+    .batch-lot-input.lot-empty-warning {
+      border-color: #ef4444;
+      background: #fef2f2;
+      color: #b91c1c;
+    }
+    .batch-expiry-input {
+      width: 125px;
+      font-size: 0.8rem;
+      padding: 6px 6px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+    }
+    .batch-loc-input {
+      width: 125px;
+      font-size: 0.8rem;
+      padding: 6px 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+    }
+    .batch-summary-strip {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 0.85rem;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .btn-quick-release {
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+      font-weight: 700;
+    }
+    .btn-quick-release:hover {
+      background: #d1fae5;
+      border-color: #6ee7b7;
+    }
+    .row-checkbox {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: #059669;
+    }
+
     /* MOVEMENTS DRAWER */
     .movements-section {
       margin-top: 36px;
@@ -547,8 +746,11 @@
         <p>Monitoraggio scorte in tempo reale, ubicazioni di stoccaggio a scaffale, fabbisogni produttivi e registrazione carichi reparto.</p>
       </div>
       <div style="display:flex; gap:10px; flex-wrap:wrap;">
-        <button type="button" class="btn btn-action-prod" onclick="openRecordProductionModal()">
-          ➕ Dichiara Produzione / Carico Merci
+        <button type="button" class="btn btn-action-prod" style="background:#059669; border-color:#059669;" onclick="openMultiBatchModal()">
+          ⚡ Passaggio Rapido a Magazzino (Multi-Articolo)
+        </button>
+        <button type="button" class="btn secondary" onclick="openRecordProductionModal()">
+          ➕ Singolo Articolo
         </button>
         <button type="button" class="btn secondary" onclick="loadData()">
           🔄 Ricarica Dati
@@ -633,6 +835,20 @@
           </select>
         </div>
       </div>
+
+      <!-- QUICK SELECTION SHORTCUTS FOR FAST MULTI-BATCH ENTRY -->
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; padding-top:8px; border-top:1px dashed var(--line); font-size:0.82rem;">
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <span style="color:var(--muted); font-weight:700;">⚡ Selezione rapida:</span>
+          <button type="button" class="btn secondary btn-sm" onclick="selectUrgentItems()" title="Seleziona tutti gli articoli in rottura o riordino">🚨 Seleziona Critici & Riordino</button>
+          <button type="button" class="btn secondary btn-sm" onclick="selectNeededItems()" title="Seleziona tutti gli articoli con pezzi da produrre > 0">📦 Con Fabbisogno (>0 pz)</button>
+          <button type="button" class="btn secondary btn-sm" onclick="selectAllVisibleItems()">Tutti i Visibili</button>
+          <button type="button" class="btn secondary btn-sm" onclick="clearSelections()">✕ Deseleziona</button>
+        </div>
+        <div style="font-size:0.75rem; color:#065f46; background:#ecfdf5; border:1px solid #a7f3d0; padding:2px 8px; border-radius:6px; font-weight:600;">
+          🛡️ Normativa: Reg. CE 1223/2009 & GMP ISO 22716 (Tracciabilità lotti obbligatoria)
+        </div>
+      </div>
     </div>
 
     <!-- TABLE -->
@@ -640,6 +856,7 @@
       <table class="data-table">
         <thead>
           <tr>
+            <th style="width:36px; text-align:center;"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" title="Seleziona / deseleziona tutti gli articoli visibili"></th>
             <th style="width:140px;">Codice & Ubicazione</th>
             <th>Descrizione Prodotto & Linea</th>
             <th style="text-align:center;">Giacenza Reale</th>
@@ -701,13 +918,20 @@
     </div>
   </main>
 
-  <!-- MODAL: DICHIARA PRODUZIONE / CARICO MERCI -->
+  <footer style="text-align: center; padding: 24px 16px 36px; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--line); margin-top: 36px;">
+    <div>© Pascal Milano / Pascal Cosmesi International — Reparto Produzione & Magazzino</div>
+    <div style="margin-top: 6px;">
+      <a href="/privacy.html" style="color: var(--blue); text-decoration: none; font-weight: 500;">🔒 Informativa Privacy & Protezione Dati (GDPR Reg. UE 2016/679)</a>
+    </div>
+  </footer>
+
+  <!-- MODAL: DICHIARA PRODUZIONE / CARICO MERCI (SINGOLO) -->
   <dialog id="modalRecordProd" style="max-width:580px;">
     <form id="recordProdForm" method="dialog">
       <div class="modal-head">
         <div>
           <h2>➕ Dichiara Produzione / Carico Merci</h2>
-          <p>Registra pezzi finiti a magazzino e aggiorna la giacenza live su Google Sheets</p>
+          <p>Registra pezzi finiti a magazzino con tracciabilità lotti a norma</p>
         </div>
         <button type="button" class="btn secondary btn-sm" onclick="$('modalRecordProd').close()">✕</button>
       </div>
@@ -721,39 +945,50 @@
         </div>
 
         <div id="recArticleInfoBox" style="display:none; background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:10px 14px; font-size:.82rem;">
-          <div style="display:flex; justify-content:space-between;">
+          <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px;">
             <span>Giacenza attuale: <strong id="recInfoStock">--</strong></span>
             <span>Disp. Netta: <strong id="recInfoFree">--</strong></span>
-            <span>Ubicazione standard: <strong id="recInfoLoc" style="color:#0369a1;">--</strong></span>
+            <span>Ubicazione: <strong id="recInfoLoc" style="color:#0369a1;">--</strong></span>
           </div>
         </div>
 
         <div class="form-grid">
           <div class="form-group">
-            <label for="recProdQty">Quantità Prodotta / Caricata (Pezzi) *</label>
+            <label for="recProdQty">Quantità Prodotta (Pezzi) *</label>
             <input type="number" id="recProdQty" min="1" required placeholder="Es. 50">
           </div>
           <div class="form-group">
-            <label for="recProdLot">Numero Lotto</label>
-            <input type="text" id="recProdLot" placeholder="Es. LOT-2026-09">
+            <label for="recProdLot">Numero Lotto (Normativa GMP) *</label>
+            <input type="text" id="recProdLot" required placeholder="Es. LOT-20260930-PC01">
           </div>
         </div>
 
         <div class="form-grid">
           <div class="form-group">
-            <label for="recProdLocation">Ubicazione di Stoccaggio</label>
-            <input type="text" id="recProdLocation" placeholder="Es. Scaffale A-02, Pallet B-1">
-            <small>Indica dove l'operatore posiziona i colli</small>
+            <label for="recProdExpiry">Data Scadenza Lotto (GMP)</label>
+            <input type="date" id="recProdExpiry">
           </div>
           <div class="form-group">
-            <label for="recProdOperator">Operatore / Reparto</label>
-            <input type="text" id="recProdOperator" placeholder="Es. Reparto Confezionamento">
+            <label for="recProdLocation">Ubicazione di Stoccaggio</label>
+            <input type="text" id="recProdLocation" placeholder="Es. Scaffale A-02">
           </div>
         </div>
 
         <div class="form-group">
+          <label for="recProdOperator">Operatore / Reparto Responsabile</label>
+          <input type="text" id="recProdOperator" placeholder="Es. Reparto Confezionamento / Tina Cucci">
+        </div>
+
+        <div class="batch-qc-banner" style="margin-top:2px;">
+          <input type="checkbox" id="recProdQcCheck" checked required>
+          <label for="recProdQcCheck" style="cursor:pointer; font-weight:600; font-size:0.8rem;">
+            <strong>Controllo Qualità Conforme (GMP):</strong> Certifico che l'articolo ha superato i controlli organolettici, etichettatura lotto/scadenza e sigillatura.
+          </label>
+        </div>
+
+        <div class="form-group">
           <label for="recProdNotes">Note di Lavorazione</label>
-          <textarea id="recProdNotes" rows="2" placeholder="Es. Conforme a standard QC, imballo primario completato"></textarea>
+          <textarea id="recProdNotes" rows="2" placeholder="Es. Conforme a standard QC, campioni trattenuti..."></textarea>
         </div>
       </div>
 
@@ -763,6 +998,154 @@
       </div>
     </form>
   </dialog>
+
+  <!-- MODAL: BOLLA DI PASSAGGIO RAPIDO PRODUZIONE -> MAGAZZINO (MULTI-ARTICOLO A NORMA LOTTI) -->
+  <dialog id="modalMultiProdBatch" class="modal-large">
+    <div class="modal-head" style="background: linear-gradient(135deg, #064e3b 0%, #065f46 100%); color:#fff; border-bottom:none;">
+      <div>
+        <h2 style="color:#fff; display:flex; align-items:center; gap:8px;">
+          <span>⚡</span> Bolla Rapida di Passaggio a Magazzino
+          <span style="font-size:0.75rem; background:rgba(255,255,255,0.2); padding:2px 8px; border-radius:12px; font-weight:700;">Multi-Articolo GMP</span>
+        </h2>
+        <p style="color:#d1fae5; margin-top:2px;">Riconciliazione lotti, esito conformità e trasferimento fisico rapido a magazzino (Reg. CE 1223/2009)</p>
+      </div>
+      <button type="button" class="btn secondary btn-sm" style="background:rgba(255,255,255,0.15); color:#fff; border-color:rgba(255,255,255,0.3);" onclick="$('modalMultiProdBatch').close()">✕</button>
+    </div>
+
+    <div class="modal-body" style="gap:14px; overflow-y:auto; max-height:calc(88vh - 130px);">
+      <!-- REGOLE GLOBALI DI SESSIONE (COMPILATE UNA SOLA VOLTA) -->
+      <div class="batch-session-card">
+        <div class="form-group">
+          <label for="batchGlobalOperator">👤 Operatore / Reparto Responsabile *</label>
+          <input type="text" id="batchGlobalOperator" placeholder="Es. Laboratorio Produzione / Tina Cucci">
+        </div>
+        <div class="form-group">
+          <label for="batchGlobalDate">📅 Data & Turno Lavorazione</label>
+          <input type="datetime-local" id="batchGlobalDate">
+        </div>
+        <div class="form-group">
+          <label for="batchLotStrategy">🏷️ Strategia Lotti a Norma</label>
+          <div style="display:flex; gap:6px;">
+            <select id="batchLotStrategy" onchange="applyLotStrategyToRows()" style="flex:1;">
+              <option value="unique_code">Lotto Univoco: LOT-AAAAMMGG-[Codice] (Consigliato)</option>
+              <option value="session_shared">Lotto di Sessione Condiviso: LOT-AAAAMMGG-S01</option>
+              <option value="daily_seq">Progressivo Giornata: L260930-01, 02...</option>
+            </select>
+            <button type="button" class="btn secondary btn-sm" title="Rigenera i numeri di lotto per tutte le righe" onclick="applyLotStrategyToRows()">🔄</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="batchGlobalExpiry">🗓️ Scadenza Lotto Consigliata (GMP)</label>
+          <div style="display:flex; gap:4px; align-items:center;">
+            <input type="date" id="batchGlobalExpiry" style="flex:1;">
+            <button type="button" class="btn secondary btn-sm" onclick="setGlobalExpiryMonths(24)" title="+24 Mesi da oggi">+24m</button>
+            <button type="button" class="btn secondary btn-sm" onclick="setGlobalExpiryMonths(36)" title="+36 Mesi da oggi">+36m</button>
+            <button type="button" class="btn secondary btn-sm" onclick="applyExpiryToRows()" title="Applica a tutte le righe">Applica</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- QC COMPLIANCE BANNER -->
+      <div class="batch-qc-banner">
+        <input type="checkbox" id="batchQcCheck" checked required>
+        <label for="batchQcCheck" style="cursor:pointer; font-weight:600; line-height:1.4;">
+          <strong>Conformità Normativa Lotti & GMP (ISO 22716):</strong> Dichiaro che gli articoli sotto elencati sono stati verificati (controllo peso/volume, chiusura ermetica, integrità confezione, aspetto ed etichettatura lotto/scadenza) e risultano conformi per il trasferimento e stoccaggio nel magazzino centrale.
+        </label>
+      </div>
+
+      <!-- SEARCH & QUICK ADD ROW -->
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <div style="flex:1; min-width:300px; display:flex; gap:8px;">
+          <input type="text" id="batchSearchInput" placeholder="🔍 Aggiungi articolo al volo (digita codice PC... o nome prodotto e premi Invio)..." style="flex:1; padding:8px 12px; border:1px solid var(--line); border-radius:8px; font-size:0.86rem;" onkeydown="handleBatchSearchKeydown(event)">
+          <button type="button" class="btn secondary" onclick="addArticleFromSearch()">➕ Aggiungi</button>
+        </div>
+        <div style="display:flex; gap:6px;">
+          <button type="button" class="btn secondary btn-sm" onclick="clearBatchRows()">🗑️ Svuota Tutto</button>
+        </div>
+      </div>
+
+      <!-- TABLE MATRIX -->
+      <div class="batch-table-container">
+        <table class="batch-grid-table">
+          <thead>
+            <tr>
+              <th style="width:30px; text-align:center;">#</th>
+              <th style="min-width:210px;">Articolo & Ubicazione Abituale</th>
+              <th style="width:130px; text-align:center;">Quantità (PZ) *</th>
+              <th style="width:195px;">Numero Lotto (Tracciabilità) *</th>
+              <th style="width:130px;">Scadenza Lotto</th>
+              <th style="width:140px;">Ubicazione Magazzino</th>
+              <th style="width:85px; text-align:center;">Stato QC</th>
+              <th style="width:35px; text-align:center;"></th>
+            </tr>
+          </thead>
+          <tbody id="batchTableBody">
+            <!-- Dynamic rows rendered here -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- SESSION NOTES -->
+      <div class="form-group">
+        <label for="batchGlobalNotes">Note di Lavorazione / Riconciliazione (Opzionale)</label>
+        <input type="text" id="batchGlobalNotes" placeholder="Es. Lavorazione mista fine turno, controlli qualità conformi, campioni QC trattenuti in laboratorio">
+      </div>
+
+      <!-- SUMMARY STRIP -->
+      <div class="batch-summary-strip">
+        <div>
+          <span>Articoli in bolla: <strong id="batchTotalCount" style="color:var(--navy); font-size:1.05rem;">0</strong></span>
+          <span style="margin: 0 10px; color:#cbd5e1;">|</span>
+          <span>Pezzi Complessivi: <strong id="batchTotalQty" style="color:#059669; font-size:1.15rem; font-family:'JetBrains Mono', monospace;">0 PZ</strong></span>
+        </div>
+        <div id="batchComplianceIndicator" style="display:flex; align-items:center; gap:6px; font-weight:700; color:#059669;">
+          <span>✅</span> Tutti i lotti convalidati a norma
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <button type="button" class="btn secondary" onclick="$('modalMultiProdBatch').close()">Annulla</button>
+      <button type="button" id="btnSubmitMultiBatch" class="btn primary" style="background:#059669; border-color:#059669; font-size:0.95rem; padding:9px 20px;" onclick="submitMultiBatchProduction()">
+        🚀 Rilascia e Passa a Magazzino
+      </button>
+    </div>
+  </dialog>
+
+  <!-- SUCCESS & PRINT MODAL FOR MULTI-BATCH TRANSFER -->
+  <dialog id="modalBatchSuccess" style="max-width:540px;">
+    <div class="modal-head" style="background:#ecfdf5; border-bottom:1px solid #a7f3d0;">
+      <div>
+        <h2 style="color:#065f46; display:flex; align-items:center; gap:8px;">✅ Trasferimento a Magazzino Completato!</h2>
+        <p style="color:#047857;">Articoli e lotti registrati con successo nel registro Google Sheets (Movimenti_Magazzino).</p>
+      </div>
+      <button type="button" class="btn secondary btn-sm" onclick="$('modalBatchSuccess').close()">✕</button>
+    </div>
+    <div class="modal-body" id="batchSuccessBody" style="font-size:0.88rem; max-height:360px; overflow-y:auto;">
+      <!-- Content populated after save -->
+    </div>
+    <div class="modal-foot" style="justify-content:space-between;">
+      <button type="button" class="btn secondary" onclick="$('modalBatchSuccess').close()">Chiudi</button>
+      <button type="button" class="btn primary" style="background:#059669; border-color:#059669;" onclick="printLastBatchTransferSlip()">
+        🖨️ Stampa Verbale di Passaggio Lotti (Bolla Magazzino)
+      </button>
+    </div>
+  </dialog>
+
+  <!-- FLOATING STICKY ACTION BAR FOR SELECTED ARTICLES -->
+  <div id="bulkActionBar" class="bulk-action-bar" style="display:none;">
+    <div class="bulk-action-info">
+      <span class="bulk-count-badge" id="bulkCountBadge">0</span>
+      <span id="bulkSelectedText">articoli selezionati per il passaggio a magazzino</span>
+      <span id="bulkPcsText" style="color:#34d399; font-weight:700;">(0 pz consigliati)</span>
+    </div>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <button type="button" class="btn secondary btn-sm" style="background:rgba(255,255,255,0.15); color:#fff; border-color:rgba(255,255,255,0.3);" onclick="clearSelections()">Deseleziona</button>
+      <button type="button" class="btn primary btn-sm" style="background:#059669; border-color:#059669; font-weight:700;" onclick="openMultiBatchFromSelection()">
+        ⚡ Apri Bolla di Passaggio a Magazzino
+      </button>
+    </div>
+  </div>
 
   <!-- MODAL: MODIFICA PARAMETRI PRODUZIONE & UBICAZIONE -->
   <dialog id="modalProdParam" style="max-width:560px;">
@@ -844,6 +1227,12 @@
     let allMovements = [];
     let currentFilter = 'all';
 
+    // Selection & Multi-Batch state
+    let selectedArticleCodes = new Set();
+    let batchItems = [];
+    let lastSavedBatch = null;
+    let currentFilteredArticles = [];
+
     function toast(msg) {
       const t = $('toast');
       t.textContent = msg;
@@ -858,10 +1247,37 @@
       }[m]));
     }
 
+    function calculateDefaultExpiry(monthsAhead = 24) {
+      const d = new Date();
+      d.setMonth(d.getMonth() + monthsAhead);
+      const yr = d.getFullYear();
+      const mo = String(d.getMonth() + 1).padStart(2, '0');
+      const da = String(d.getDate()).padStart(2, '0');
+      return `${yr}-${mo}-${da}`;
+    }
+
+    function generateCompliantLot(code, index = 0, strategy = 'unique_code') {
+      const now = new Date();
+      const yr = now.getFullYear();
+      const mo = String(now.getMonth() + 1).padStart(2, '0');
+      const da = String(now.getDate()).padStart(2, '0');
+      const y2 = String(yr).slice(-2);
+
+      if (strategy === 'session_shared') {
+        return `LOT-${yr}${mo}${da}-S01`;
+      }
+      if (strategy === 'daily_seq') {
+        return `L${y2}${mo}${da}-${String(index + 1).padStart(2, '0')}`;
+      }
+      // Default: Unique compliant lot per article
+      const cleanCode = (code || 'ART').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+      return `LOT-${yr}${mo}${da}-${cleanCode}`;
+    }
+
     async function loadData() {
       $('tableBody').innerHTML = `
         <tr>
-          <td colspan="14" style="text-align:center; padding:48px; color:var(--muted);">
+          <td colspan="15" style="text-align:center; padding:48px; color:var(--muted);">
             🔄 Connessione a Google Drive in corso… calcolo tempi reali e fabbisogni…
           </td>
         </tr>
@@ -897,7 +1313,7 @@
         $('familyFilter').innerHTML = '<option value="">Tutte le Famiglie / Linee</option>' +
           families.map(f => `<option value="${escapeHtml(f)}">${escapeHtml(f)}</option>`).join('');
 
-        // Populate Article select in production recording modal
+        // Populate Article select in single production recording modal
         const artSelect = $('recProdArticle');
         artSelect.innerHTML = '<option value="">-- Seleziona Articolo da Caricare --</option>' +
           allProduction.map(p => `<option value="${escapeHtml(p.code)}">${escapeHtml(p.code)} - ${escapeHtml(p.description)} (${p.location ? '📍 ' + escapeHtml(p.location) : 'Magazzino'})</option>`).join('');
@@ -908,7 +1324,7 @@
         console.error('Error loading production analysis:', err);
         $('tableBody').innerHTML = `
           <tr>
-            <td colspan="14" style="text-align:center; padding:48px; color:var(--critical);">
+            <td colspan="15" style="text-align:center; padding:48px; color:var(--critical);">
               Errore caricamento dati da Google Drive: ${err.message}. Riprova tra poco.
             </td>
           </tr>
@@ -949,14 +1365,17 @@
         });
       }
 
+      currentFilteredArticles = filtered;
+
       if (!filtered.length) {
         $('tableBody').innerHTML = `
           <tr>
-            <td colspan="14" style="text-align:center; padding:48px; color:var(--muted);">
+            <td colspan="15" style="text-align:center; padding:48px; color:var(--muted);">
               Nessun articolo corrisponde ai filtri selezionati.
             </td>
           </tr>
         `;
+        updateBulkActionBar();
         return;
       }
 
@@ -971,8 +1390,13 @@
           ? `<div class="loc-badge">📍 ${escapeHtml(item.location)}</div>`
           : `<div style="font-size:0.7rem; color:var(--muted); margin-top:2px;">📍 Non assegnata</div>`;
 
+        const isChecked = selectedArticleCodes.has(item.code);
+
         return `
-          <tr>
+          <tr style="${isChecked ? 'background-color:#ecfdf5;' : ''}">
+            <td style="text-align:center;">
+              <input type="checkbox" class="row-checkbox" value="${escapeHtml(item.code)}" data-code="${escapeHtml(item.code)}" ${isChecked ? 'checked' : ''} onchange="onRowSelectionChange('${escapeHtml(item.code)}', this.checked)">
+            </td>
             <td>
               <strong style="font-family:'JetBrains Mono', monospace; font-size:.88rem; color:var(--navy);">${escapeHtml(item.code)}</strong>
               ${locHtml}
@@ -1018,121 +1442,393 @@
             </td>
             <td style="text-align:center;">
               <div style="display:flex; gap:4px; justify-content:center;">
-                <button type="button" class="btn secondary btn-sm" title="Dichiara carico merci per questo articolo" onclick="quickProduce('${escapeHtml(item.code)}')">➕ Carica</button>
+                <button type="button" class="btn btn-sm btn-quick-release" title="Passaggio rapido a magazzino per questo articolo" onclick="openMultiBatchModal(['${escapeHtml(item.code)}'])">⚡ Passa</button>
+                <button type="button" class="btn secondary btn-sm" title="Dichiara singolo carico con schermata dettagliata" onclick="quickProduce('${escapeHtml(item.code)}')">➕</button>
                 <button type="button" class="btn secondary btn-sm" title="Modifica ubicazione e parametri" onclick="openParamModal('${escapeHtml(item.code)}')">⚙️</button>
               </div>
             </td>
           </tr>
         `;
       }).join('');
+
+      updateBulkActionBar();
     }
 
-    function renderMovements() {
-      if (!allMovements.length) {
-        $('movementsTableBody').innerHTML = `
+    // -------------------------------------------------------------
+    // SELECTION & QUICK ACTIONS LOGIC
+    // -------------------------------------------------------------
+
+    function onRowSelectionChange(code, isChecked) {
+      if (isChecked) {
+        selectedArticleCodes.add(code);
+      } else {
+        selectedArticleCodes.delete(code);
+      }
+      renderTable();
+    }
+
+    function toggleSelectAll(masterCheckbox) {
+      const isChecked = masterCheckbox.checked;
+      currentFilteredArticles.forEach(item => {
+        if (isChecked) {
+          selectedArticleCodes.add(item.code);
+        } else {
+          selectedArticleCodes.delete(item.code);
+        }
+      });
+      renderTable();
+    }
+
+    function selectUrgentItems() {
+      const urgent = allProduction.filter(x => x.urgency === 'CRITICO' || x.urgency === 'RIORDINO');
+      urgent.forEach(x => selectedArticleCodes.add(x.code));
+      toast(`Selezionati ${urgent.length} articoli critici & in riordino`);
+      renderTable();
+    }
+
+    function selectNeededItems() {
+      const needed = allProduction.filter(x => x.suggestedProduction > 0);
+      needed.forEach(x => selectedArticleCodes.add(x.code));
+      toast(`Selezionati ${needed.length} articoli con fabbisogno di produzione`);
+      renderTable();
+    }
+
+    function selectAllVisibleItems() {
+      currentFilteredArticles.forEach(x => selectedArticleCodes.add(x.code));
+      renderTable();
+    }
+
+    function clearSelections() {
+      selectedArticleCodes.clear();
+      renderTable();
+    }
+
+    function updateBulkActionBar() {
+      const bar = $('bulkActionBar');
+      const count = selectedArticleCodes.size;
+
+      if (count > 0) {
+        bar.style.display = 'flex';
+        $('bulkCountBadge').textContent = count;
+        $('bulkSelectedText').textContent = count === 1 ? 'articolo selezionato per il magazzino' : 'articoli selezionati per il magazzino';
+
+        // Calculate total proposed pieces among selected
+        let totalPieces = 0;
+        selectedArticleCodes.forEach(code => {
+          const item = allProduction.find(x => x.code === code);
+          if (item) {
+            totalPieces += (item.suggestedProduction > 0 ? item.suggestedProduction : (item.minProductionLot || 1));
+          }
+        });
+        $('bulkPcsText').textContent = `(Tot. ~${totalPieces} pz stimati)`;
+      } else {
+        bar.style.display = 'none';
+      }
+
+      // Master select checkbox state
+      const masterCheckbox = $('selectAllCheckbox');
+      if (masterCheckbox && currentFilteredArticles.length > 0) {
+        const visibleSelectedCount = currentFilteredArticles.filter(x => selectedArticleCodes.has(x.code)).length;
+        masterCheckbox.checked = visibleSelectedCount === currentFilteredArticles.length;
+        masterCheckbox.indeterminate = visibleSelectedCount > 0 && visibleSelectedCount < currentFilteredArticles.length;
+      }
+    }
+
+    function openMultiBatchFromSelection() {
+      if (selectedArticleCodes.size === 0) {
+        toast('Seleziona almeno un articolo dalla tabella');
+        return;
+      }
+      openMultiBatchModal(Array.from(selectedArticleCodes));
+    }
+
+    // -------------------------------------------------------------
+    // MULTI-BATCH FAST ENTRY WORKFLOW (COMPLIANT LOT MANAGEMENT)
+    // -------------------------------------------------------------
+
+    function openMultiBatchModal(prefillCodes = []) {
+      // Set defaults for global session
+      const now = new Date();
+      // Format local datetime string YYYY-MM-DDTHH:mm
+      const localIso = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      $('batchGlobalDate').value = localIso;
+      $('batchGlobalExpiry').value = calculateDefaultExpiry(24);
+      $('batchGlobalOperator').value = $('recProdOperator')?.value || 'Laboratorio Produzione';
+      $('batchGlobalNotes').value = '';
+      $('batchQcCheck').checked = true;
+      $('batchLotStrategy').value = 'unique_code';
+
+      // Build batch items
+      batchItems = [];
+      const codesToAdd = prefillCodes.length > 0 ? prefillCodes : Array.from(selectedArticleCodes);
+
+      codesToAdd.forEach((code, idx) => {
+        const pr = allProduction.find(x => x.code === code);
+        if (pr && !batchItems.some(x => x.code === code)) {
+          const qty = pr.suggestedProduction > 0 ? pr.suggestedProduction : (pr.minProductionLot || 1);
+          batchItems.push({
+            code: pr.code,
+            description: pr.description,
+            brand: pr.brand || '',
+            family: pr.family || '',
+            currentStock: pr.currentStock || 0,
+            freeStock: pr.freeStock || 0,
+            location: pr.location || 'Magazzino',
+            quantity: qty,
+            lotNumber: generateCompliantLot(pr.code, idx, 'unique_code'),
+            expiryDate: calculateDefaultExpiry(24),
+            qcStatus: 'CONFORME_QC'
+          });
+        }
+      });
+
+      renderBatchTable();
+      $('modalMultiProdBatch').showModal();
+    }
+
+    function renderBatchTable() {
+      const tbody = $('batchTableBody');
+      if (!batchItems.length) {
+        tbody.innerHTML = `
           <tr>
-            <td colspan="9" style="text-align:center; padding:24px; color:var(--muted);">
-              Nessun movimento registrato finora nel registro Movimenti_Magazzino.
+            <td colspan="8" style="text-align:center; padding:36px; color:var(--muted);">
+              Nessun articolo nella bolla. Usa la barra di ricerca sopra oppure seleziona gli articoli dalla tabella principale.
             </td>
           </tr>
         `;
+        $('batchTotalCount').textContent = '0';
+        $('batchTotalQty').textContent = '0 PZ';
+        $('batchComplianceIndicator').innerHTML = '<span>⚠️</span> Bolla vuota';
         return;
       }
 
-      $('movementsTableBody').innerHTML = allMovements.slice(0, 30).map(m => {
-        const dateStr = m.date ? new Date(m.date).toLocaleString('it-IT') : '--';
+      let totalQty = 0;
+      let allLotsValid = true;
+
+      tbody.innerHTML = batchItems.map((item, idx) => {
+        totalQty += (Number(item.quantity) || 0);
+        const hasValidLot = String(item.lotNumber || '').trim().length > 0;
+        if (!hasValidLot) allLotsValid = false;
+
         return `
           <tr>
-            <td style="font-family:'JetBrains Mono', monospace; font-size:.76rem; color:#475569;">${dateStr}</td>
-            <td><strong style="color:#0369a1; font-size:.76rem;">${escapeHtml(m.type || 'PRODUZIONE')}</strong></td>
-            <td><strong style="font-family:'JetBrains Mono', monospace;">${escapeHtml(m.code)}</strong></td>
-            <td>${escapeHtml(m.description || '')}</td>
-            <td style="text-align:center; font-weight:800; color:#15803d; font-family:'JetBrains Mono', monospace;">+${m.quantity} pz</td>
-            <td><span style="font-family:'JetBrains Mono', monospace; font-size:.78rem; background:#f1f5f9; padding:1px 5px; border-radius:4px;">${escapeHtml(m.lotNumber || '—')}</span></td>
-            <td><strong>📍 ${escapeHtml(m.location || '—')}</strong></td>
-            <td>${escapeHtml(m.operator || 'Operatore')}</td>
-            <td style="font-size:.78rem; color:#475569;">${escapeHtml(m.notes || '—')}</td>
+            <td style="text-align:center; font-weight:700; color:#64748b;">${idx + 1}</td>
+            <td>
+              <strong style="font-family:'JetBrains Mono', monospace; font-size:.85rem; color:var(--navy);">${escapeHtml(item.code)}</strong>
+              <div style="font-weight:600; color:#1e293b; font-size:.82rem;">${escapeHtml(item.description)}</div>
+              <div style="font-size:.72rem; color:var(--muted);">Giacenza: ${item.currentStock} pz · Abituale: <span style="color:#0369a1; font-weight:600;">${escapeHtml(item.location || 'N/D')}</span></div>
+            </td>
+            <td style="text-align:center;">
+              <div class="batch-qty-control">
+                <button type="button" class="batch-qty-btn" onclick="changeBatchQty(${idx}, -1)" title="-1 pz">-</button>
+                <input type="number" min="1" class="batch-qty-input" value="${item.quantity}" oninput="onBatchQtyInputChange(${idx}, this.value)">
+                <button type="button" class="batch-qty-btn" onclick="changeBatchQty(${idx}, 1)" title="+1 pz">+</button>
+                <button type="button" class="batch-qty-btn" onclick="changeBatchQty(${idx}, 5)" title="+5 pz">+5</button>
+              </div>
+            </td>
+            <td>
+              <input type="text" class="batch-lot-input ${!hasValidLot ? 'lot-empty-warning' : ''}" value="${escapeHtml(item.lotNumber)}" placeholder="Es. LOT-20260930-${escapeHtml(item.code)}" oninput="onBatchLotChange(${idx}, this.value)" required>
+              ${!hasValidLot ? '<div style="color:#ef4444; font-size:0.7rem; font-weight:700; margin-top:2px;">⚠️ Lotto obbligatorio GMP</div>' : '<div style="color:#059669; font-size:0.7rem; margin-top:2px;">✓ Conforme GMP</div>'}
+            </td>
+            <td>
+              <input type="date" class="batch-expiry-input" value="${escapeHtml(item.expiryDate || '')}" onchange="onBatchExpiryChange(${idx}, this.value)">
+            </td>
+            <td>
+              <input type="text" class="batch-loc-input" value="${escapeHtml(item.location || '')}" placeholder="Scaffale / Pallet" oninput="onBatchLocationChange(${idx}, this.value)">
+            </td>
+            <td style="text-align:center;">
+              <span style="font-size:0.75rem; font-weight:700; color:#065f46; background:#ecfdf5; border:1px solid #a7f3d0; padding:2px 6px; border-radius:4px; white-space:nowrap;">
+                ✅ Conforme
+              </span>
+            </td>
+            <td style="text-align:center;">
+              <button type="button" class="btn secondary btn-sm" style="padding:4px 8px; color:#ef4444;" onclick="removeBatchRow(${idx})" title="Rimuovi questo articolo dalla bolla">✕</button>
+            </td>
           </tr>
         `;
       }).join('');
-    }
 
-    async function loadMovements() {
-      try {
-        const res = await fetch('/api/production/movements');
-        const data = await res.json();
-        allMovements = data.movements || [];
-        renderMovements();
-        toast('Registro movimenti aggiornato da Google Sheets');
-      } catch (e) {
-        toast('Errore caricamento movimenti: ' + e.message);
-      }
-    }
+      $('batchTotalCount').textContent = batchItems.length;
+      $('batchTotalQty').textContent = `${totalQty} PZ`;
 
-    // Quick open production modal prefilling article
-    function quickProduce(code) {
-      openRecordProductionModal(code);
-    }
-
-    function openRecordProductionModal(prefillCode) {
-      const artSelect = $('recProdArticle');
-      if (prefillCode) {
-        artSelect.value = prefillCode;
-      }
-      onArticleSelectedForProduction();
-
-      // Pre-fill lot with suggested code
-      const now = new Date();
-      const yr = now.getFullYear();
-      const mo = String(now.getMonth() + 1).padStart(2, '0');
-      $('recProdLot').value = `LOT-${yr}${mo}-${prefillCode || 'PC'}`;
-      $('recProdQty').value = '';
-      $('recProdNotes').value = '';
-      $('modalRecordProd').showModal();
-    }
-
-    function onArticleSelectedForProduction() {
-      const code = $('recProdArticle').value;
-      const item = allProduction.find(x => x.code === code);
-      if (item) {
-        $('recArticleInfoBox').style.display = 'block';
-        $('recInfoStock').textContent = `${item.currentStock} pz`;
-        $('recInfoFree').textContent = `${item.freeStock} pz`;
-        $('recInfoLoc').textContent = item.location ? `📍 ${item.location}` : 'N/D';
-        $('recProdLocation').value = item.location || '';
-        if (item.suggestedProduction > 0 && !$('recProdQty').value) {
-          $('recProdQty').value = item.suggestedProduction;
-        }
+      if (allLotsValid) {
+        $('batchComplianceIndicator').innerHTML = '<span style="color:#059669;">✅</span> <span style="color:#059669;">Tutti i lotti validati a norma GMP</span>';
       } else {
-        $('recArticleInfoBox').style.display = 'none';
-        $('recProdLocation').value = '';
+        $('batchComplianceIndicator').innerHTML = '<span style="color:#ef4444;">⚠️</span> <span style="color:#ef4444;">Attenzione: numero di lotto mancante su uno o più articoli!</span>';
       }
     }
 
-    // Submit Production Movement
-    $('recordProdForm').onsubmit = async e => {
-      e.preventDefault();
-      const code = $('recProdArticle').value;
-      if (!code) {
-        toast('Seleziona un articolo valido');
+    function changeBatchQty(idx, delta) {
+      if (!batchItems[idx]) return;
+      const current = Number(batchItems[idx].quantity) || 0;
+      batchItems[idx].quantity = Math.max(1, current + delta);
+      renderBatchTable();
+    }
+
+    function onBatchQtyInputChange(idx, val) {
+      if (!batchItems[idx]) return;
+      batchItems[idx].quantity = Math.max(1, Number(val) || 1);
+      // Update totals without full re-render
+      let totalQty = 0;
+      batchItems.forEach(x => totalQty += (Number(x.quantity) || 0));
+      $('batchTotalQty').textContent = `${totalQty} PZ`;
+    }
+
+    function onBatchLotChange(idx, val) {
+      if (!batchItems[idx]) return;
+      batchItems[idx].lotNumber = val.trim();
+      // Recheck validity
+      const allLotsValid = batchItems.every(x => String(x.lotNumber || '').trim().length > 0);
+      if (allLotsValid) {
+        $('batchComplianceIndicator').innerHTML = '<span style="color:#059669;">✅</span> <span style="color:#059669;">Tutti i lotti validati a norma GMP</span>';
+      } else {
+        $('batchComplianceIndicator').innerHTML = '<span style="color:#ef4444;">⚠️</span> <span style="color:#ef4444;">Attenzione: numero di lotto mancante su uno o più articoli!</span>';
+      }
+    }
+
+    function onBatchExpiryChange(idx, val) {
+      if (batchItems[idx]) batchItems[idx].expiryDate = val;
+    }
+
+    function onBatchLocationChange(idx, val) {
+      if (batchItems[idx]) batchItems[idx].location = val.trim();
+    }
+
+    function removeBatchRow(idx) {
+      batchItems.splice(idx, 1);
+      renderBatchTable();
+    }
+
+    function clearBatchRows() {
+      batchItems = [];
+      renderBatchTable();
+    }
+
+    function applyLotStrategyToRows() {
+      const strategy = $('batchLotStrategy').value;
+      batchItems.forEach((item, idx) => {
+        item.lotNumber = generateCompliantLot(item.code, idx, strategy);
+      });
+      renderBatchTable();
+      toast('Strategia lotti applicata a tutti gli articoli in bolla');
+    }
+
+    function setGlobalExpiryMonths(months) {
+      $('batchGlobalExpiry').value = calculateDefaultExpiry(months);
+      applyExpiryToRows();
+    }
+
+    function applyExpiryToRows() {
+      const exp = $('batchGlobalExpiry').value;
+      if (!exp) return;
+      batchItems.forEach(item => item.expiryDate = exp);
+      renderBatchTable();
+      toast(`Scadenza ${exp} applicata a tutti gli articoli`);
+    }
+
+    function addArticleFromSearch() {
+      const input = $('batchSearchInput');
+      const term = input.value.trim().toLowerCase();
+      if (!term) return;
+
+      const found = allProduction.find(x =>
+        x.code.toLowerCase() === term ||
+        x.code.toLowerCase().includes(term) ||
+        x.description.toLowerCase().includes(term)
+      );
+
+      if (!found) {
+        toast(`Nessun articolo trovato per "${term}"`);
         return;
       }
-      const item = allProduction.find(x => x.code === code) || {};
+
+      if (batchItems.some(x => x.code === found.code)) {
+        toast(`L'articolo ${found.code} è già presente nella bolla`);
+        input.value = '';
+        return;
+      }
+
+      const strategy = $('batchLotStrategy').value || 'unique_code';
+      const qty = found.suggestedProduction > 0 ? found.suggestedProduction : (found.minProductionLot || 1);
+      batchItems.push({
+        code: found.code,
+        description: found.description,
+        brand: found.brand || '',
+        family: found.family || '',
+        currentStock: found.currentStock || 0,
+        freeStock: found.freeStock || 0,
+        location: found.location || 'Magazzino',
+        quantity: qty,
+        lotNumber: generateCompliantLot(found.code, batchItems.length, strategy),
+        expiryDate: $('batchGlobalExpiry').value || calculateDefaultExpiry(24),
+        qcStatus: 'CONFORME_QC'
+      });
+
+      input.value = '';
+      renderBatchTable();
+      toast(`➕ Aggiunto: ${found.code} - ${found.description}`);
+    }
+
+    function handleBatchSearchKeydown(event) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        addArticleFromSearch();
+      }
+    }
+
+    // -------------------------------------------------------------
+    // SUBMIT MULTI-BATCH PRODUCTION DECLARATION
+    // -------------------------------------------------------------
+
+    async function submitMultiBatchProduction() {
+      if (!batchItems.length) {
+        toast('La bolla è vuota. Aggiungi almeno un articolo.');
+        return;
+      }
+
+      // Check Lot regulations: lot cannot be empty!
+      for (let i = 0; i < batchItems.length; i++) {
+        const it = batchItems[i];
+        if (!it.lotNumber || !it.lotNumber.trim()) {
+          toast(`Errore Normativa: Il lotto per l'articolo ${it.code} (${it.description}) è obbligatorio!`);
+          renderBatchTable();
+          return;
+        }
+        if (!it.quantity || it.quantity <= 0) {
+          toast(`La quantità per l'articolo ${it.code} deve essere maggiore di zero.`);
+          return;
+        }
+      }
+
+      if (!$('batchQcCheck').checked) {
+        toast('Conferma la conformità del controllo qualità prima di rilasciare i colli.');
+        return;
+      }
+
+      const globalOperator = $('batchGlobalOperator').value.trim() || 'Operatore Produzione';
+      const globalDate = $('batchGlobalDate').value ? new Date($('batchGlobalDate').value).toISOString() : new Date().toISOString();
+      const globalNotes = $('batchGlobalNotes').value.trim();
+
       const payload = {
         type: 'PRODUZIONE',
-        code,
-        description: item.description || '',
-        quantity: Number($('recProdQty').value),
-        lotNumber: $('recProdLot').value.trim(),
-        location: $('recProdLocation').value.trim(),
-        operator: $('recProdOperator').value.trim() || 'Operatore Produzione',
-        notes: $('recProdNotes').value.trim(),
-        date: new Date().toISOString()
+        operator: globalOperator,
+        date: globalDate,
+        qcStatus: 'CONFORME_GMP',
+        notes: globalNotes,
+        items: batchItems.map(item => ({
+          code: item.code,
+          description: item.description,
+          quantity: Number(item.quantity),
+          lotNumber: String(item.lotNumber).trim(),
+          expiryDate: item.expiryDate || '',
+          location: String(item.location || '').trim(),
+          notes: globalNotes
+        }))
       };
 
-      const btn = $('btnSubmitProdRecord');
+      const btn = $('btnSubmitMultiBatch');
       btn.disabled = true;
-      btn.textContent = 'Registrazione su Google Sheets…';
+      btn.textContent = 'Trasferimento e registrazione su Google Sheets…';
 
       try {
         const res = await fetch('/api/production/record', {
@@ -1142,16 +1838,147 @@
         });
         const resp = await res.json();
         if (!res.ok) throw new Error(resp.error || 'Errore registrazione');
-        toast(`✅ Registrati ${payload.quantity} pz di ${code} su Google Sheets!`);
-        $('modalRecordProd').close();
+
+        const totalPieces = payload.items.reduce((acc, x) => acc + x.quantity, 0);
+        lastSavedBatch = {
+          date: globalDate,
+          operator: globalOperator,
+          notes: globalNotes,
+          items: [...payload.items],
+          totalPieces
+        };
+
+        // Close batch modal
+        $('modalMultiProdBatch').close();
+        clearSelections();
+
+        // Populate Success Modal
+        $('batchSuccessBody').innerHTML = `
+          <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:12px; margin-bottom:14px;">
+            <div style="font-weight:800; color:#15803d; font-size:1rem;">✅ ${payload.items.length} Articoli Rilasciati al Magazzino</div>
+            <div style="color:#166534; font-size:.85rem; margin-top:2px;">Totale: <strong>${totalPieces} Pezzi</strong> · Operatore: <strong>${escapeHtml(globalOperator)}</strong></div>
+            <div style="color:#166534; font-size:.82rem;">Tracciabilità Lotti: <strong>Conforme Reg. CE 1223/2009 & GMP ISO 22716</strong></div>
+          </div>
+          <table style="width:100%; border-collapse:collapse; font-size:0.8rem;">
+            <thead>
+              <tr style="background:#f8fafc; border-bottom:1px solid #cbd5e1;">
+                <th style="padding:6px; text-align:left;">Codice</th>
+                <th style="padding:6px; text-align:left;">Descrizione</th>
+                <th style="padding:6px; text-align:center;">Quantità</th>
+                <th style="padding:6px; text-align:left;">Lotto</th>
+                <th style="padding:6px; text-align:left;">Ubicazione</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${payload.items.map(it => `
+                <tr style="border-bottom:1px solid #f1f5f9;">
+                  <td style="padding:6px; font-family:'JetBrains Mono', monospace; font-weight:700;">${escapeHtml(it.code)}</td>
+                  <td style="padding:6px;">${escapeHtml(it.description)}</td>
+                  <td style="padding:6px; text-align:center; font-weight:800; color:#059669;">+${it.quantity} pz</td>
+                  <td style="padding:6px; font-family:'JetBrains Mono', monospace; font-size:.78rem;">${escapeHtml(it.lotNumber)}</td>
+                  <td style="padding:6px;">📍 ${escapeHtml(it.location || 'Magazzino')}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+
+        $('modalBatchSuccess').showModal();
+        toast(`✅ Rilasciati ${totalPieces} pz per ${payload.items.length} articoli su Google Sheets!`);
         await loadData();
       } catch (err) {
         toast(`Errore: ${err.message}`);
       } finally {
         btn.disabled = false;
-        btn.textContent = '💾 Registra Movimento & Aggiorna Giacenza';
+        btn.textContent = '🚀 Rilascia e Passa a Magazzino';
       }
-    };
+    }
+
+    // -------------------------------------------------------------
+    // PRINT TRANSFER VOUCHER (BOLLA DI PASSAGGIO A MAGAZZINO)
+    // -------------------------------------------------------------
+
+    function printLastBatchTransferSlip() {
+      if (!lastSavedBatch || !lastSavedBatch.items.length) {
+        toast('Nessuna bolla recente da stampare');
+        return;
+      }
+
+      const b = lastSavedBatch;
+      const dateStr = new Date(b.date).toLocaleString('it-IT');
+
+      const rowsHtml = b.items.map((it, idx) => `
+        <tr>
+          <td style="text-align:center;">${idx + 1}</td>
+          <td><strong>${escapeHtml(it.code)}</strong></td>
+          <td>${escapeHtml(it.description)}</td>
+          <td style="text-align:center; font-size:1.05rem; font-weight:800; color:#059669;">+${it.quantity} PZ</td>
+          <td style="font-family:'JetBrains Mono', monospace; font-weight:700;">${escapeHtml(it.lotNumber)}</td>
+          <td style="text-align:center;">${escapeHtml(it.expiryDate || '—')}</td>
+          <td><strong>📍 ${escapeHtml(it.location || 'Magazzino')}</strong></td>
+          <td style="text-align:center; color:#059669; font-weight:700;">CONFORME ✅</td>
+        </tr>
+      `).join('');
+
+      $('printableArea').innerHTML = `
+        <div style="padding:24px; font-family:'Plus Jakarta Sans', sans-serif;">
+          <div style="display:flex; justify-content:space-between; border-bottom:2px solid #0f172a; padding-bottom:12px; margin-bottom:16px;">
+            <div>
+              <h1 style="margin:0; font-size:1.35rem; color:#0f172a;">🏭 VERBALE DI RILASCIO LOTTI E TRASFERIMENTO A MAGAZZINO</h1>
+              <div style="font-size:0.95rem; font-weight:700; color:#475569; margin-top:4px;">Pascal Cosmesi International - Consegna Interna Produzione ➔ Magazzino</div>
+              <div style="font-size:0.78rem; color:#059669; font-weight:600; margin-top:2px;">Conforme a: Reg. CE 1223/2009 art. 19 & Good Manufacturing Practices (ISO 22716)</div>
+            </div>
+            <div style="text-align:right; font-size:0.85rem;">
+              <div><strong>Data / Ora Rilascio:</strong> ${dateStr}</div>
+              <div><strong>Operatore Responsabile:</strong> ${escapeHtml(b.operator)}</div>
+              <div><strong>Totale Pezzi Consegnati:</strong> <span style="font-size:1.1rem; font-weight:800; color:#059669;">${b.totalPieces} PZ</span></div>
+            </div>
+          </div>
+
+          ${b.notes ? `
+            <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; margin-bottom:14px; font-size:0.82rem;">
+              <strong>Note di lavorazione:</strong> ${escapeHtml(b.notes)}
+            </div>
+          ` : ''}
+
+          <table style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+            <thead>
+              <tr style="background:#f1f5f9; border-bottom:2px solid #cbd5e1;">
+                <th style="padding:8px; width:35px; text-align:center;">#</th>
+                <th style="padding:8px; width:95px;">Codice</th>
+                <th style="padding:8px;">Descrizione Articolo</th>
+                <th style="padding:8px; width:80px; text-align:center;">Quantità</th>
+                <th style="padding:8px; width:170px;">Numero Lotto (GMP)</th>
+                <th style="padding:8px; width:90px; text-align:center;">Scadenza</th>
+                <th style="padding:8px; width:120px;">Ubicazione</th>
+                <th style="padding:8px; width:90px; text-align:center;">Esito QC</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+
+          <div style="margin-top:30px; padding:12px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:6px; font-size:0.8rem; color:#166534;">
+            <strong>Dichiarazione di conformità:</strong> Si certifica che tutti i lotti sopra identificati hanno superato con successo i controlli organolettici, stabilità, etichettatura conforme e sigillatura, risultando idonei all'immissione nel circuito di vendita e distribuzione logistica.
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:30px; margin-top:40px; padding-top:20px; border-top:1px solid #cbd5e1; font-size:0.85rem;">
+            <div>
+              <strong>Responsabile Produzione & Controllo Qualità:</strong><br><br>
+              Firma: _____________________________________
+            </div>
+            <div>
+              <strong>Addetto Ricevimento Merci / Stoccaggio Magazzino:</strong><br><br>
+              Firma: _____________________________________
+            </div>
+          </div>
+        </div>
+      `;
+
+      $('modalBatchSuccess').close();
+      window.print();
+    }
 
     // Open Param Modal
     function openParamModal(code) {
