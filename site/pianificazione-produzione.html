@@ -694,6 +694,77 @@
       accent-color: #059669;
     }
 
+    /* BATCH PRODUCT PICKER & LIVE RESULTS (LIKE ORDINI & OFFERTE) */
+    .batch-product-picker {
+      position: relative;
+    }
+    .batch-search-results {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% + 4px);
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.22);
+      max-height: 310px;
+      overflow-y: auto;
+      z-index: 1000;
+    }
+    .batch-product-result {
+      width: 100%;
+      border: 0;
+      border-bottom: 1px solid #f1f5f9;
+      background: #ffffff;
+      text-align: left;
+      padding: 10px 14px;
+      cursor: pointer;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      transition: background 0.12s ease;
+      font-family: inherit;
+    }
+    .batch-product-result:last-child {
+      border-bottom: 0;
+    }
+    .batch-product-result:hover,
+    .batch-product-result.active-result {
+      background: #f0f7ff !important;
+    }
+    .batch-product-result strong {
+      display: block;
+      color: #0f172a;
+      font-size: 0.86rem;
+      font-weight: 700;
+    }
+    .batch-product-result small {
+      color: #64748b;
+      display: block;
+      margin-top: 3px;
+      font-size: 0.74rem;
+    }
+    .batch-result-meta {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 3px;
+    }
+    .batch-result-stock {
+      font-size: 0.8rem;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      color: #0f172a;
+    }
+    .batch-result-badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
     /* MOVEMENTS DRAWER */
     .movements-section {
       margin-top: 36px;
@@ -1053,11 +1124,14 @@
         </label>
       </div>
 
-      <!-- SEARCH & QUICK ADD ROW -->
+      <!-- SEARCH & QUICK ADD ROW (LIVE AUTOCOMPLETE & PRODUCT PICKER LIKE ORDINI/OFFERTE) -->
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-        <div style="flex:1; min-width:300px; display:flex; gap:8px;">
-          <input type="text" id="batchSearchInput" placeholder="🔍 Aggiungi articolo al volo (digita codice PC... o nome prodotto e premi Invio)..." style="flex:1; padding:8px 12px; border:1px solid var(--line); border-radius:8px; font-size:0.86rem;" onkeydown="handleBatchSearchKeydown(event)">
-          <button type="button" class="btn secondary" onclick="addArticleFromSearch()">➕ Aggiungi</button>
+        <div class="batch-product-picker" style="flex:1; min-width:320px; display:flex; gap:8px;">
+          <div style="flex:1; position:relative;">
+            <input type="search" id="batchSearchInput" placeholder="🔍 Cerca per codice, descrizione, marca o famiglia (es. 81, terra, crema)…" autocomplete="off" style="width:100%; box-sizing:border-box; padding:9px 12px; border:1.5px solid var(--line); border-radius:8px; font-size:0.88rem; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--line)'">
+            <div id="batchSearchResults" class="batch-search-results hidden"></div>
+          </div>
+          <button type="button" class="btn secondary" onclick="addArticleFromSearch()" title="Aggiungi l'articolo digitato o selezionato" style="white-space:nowrap;">➕ Aggiungi</button>
         </div>
         <div style="display:flex; gap:6px;">
           <button type="button" class="btn secondary btn-sm" onclick="clearBatchRows()">🗑️ Svuota Tutto</button>
@@ -1583,7 +1657,12 @@
       });
 
       renderBatchTable();
+      if ($('batchSearchInput')) $('batchSearchInput').value = '';
+      hideBatchSearchResults();
       $('modalMultiProdBatch').showModal();
+      setTimeout(() => {
+        if ($('batchSearchInput')) $('batchSearchInput').focus();
+      }, 60);
     }
 
     function renderBatchTable() {
@@ -1726,25 +1805,106 @@
       toast(`Scadenza ${exp} applicata a tutti gli articoli`);
     }
 
-    function addArticleFromSearch() {
-      const input = $('batchSearchInput');
-      const term = input.value.trim().toLowerCase();
-      if (!term) return;
+    // -------------------------------------------------------------
+    // LIVE ARTICLE PICKER FOR MULTI-BATCH (STESSA LOGICA DI ORDINI/OFFERTE)
+    // -------------------------------------------------------------
 
-      const found = allProduction.find(x =>
-        x.code.toLowerCase() === term ||
-        x.code.toLowerCase().includes(term) ||
-        x.description.toLowerCase().includes(term)
-      );
+    let batchSearchActiveIndex = -1;
 
+    function normSearchStr(str) {
+      return String(str || '').toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function renderBatchSearchResults(query = '') {
+      const container = $('batchSearchResults');
+      if (!container) return;
+
+      const q = normSearchStr(query);
+      let matches = [];
+
+      if (!q) {
+        // Suggerimenti rapidi all'apertura/focus: prima gli articoli con fabbisogno o in scorta critica/riordino
+        const urgentItems = allProduction.filter(p => p.suggestedProduction > 0 || p.urgency === 'CRITICO' || p.urgency === 'RIORDINO');
+        matches = (urgentItems.length > 0 ? urgentItems : allProduction).slice(0, 20);
+      } else {
+        const terms = q.split(/\s+/).filter(Boolean);
+        matches = allProduction.filter(p => {
+          const haystack = normSearchStr([p.code, p.description, p.brand, p.family, p.macroFamily, p.location].join(' '));
+          return terms.every(t => haystack.includes(t));
+        }).slice(0, 40);
+      }
+
+      batchSearchActiveIndex = -1;
+
+      if (!matches.length) {
+        container.innerHTML = `<div style="padding:16px; text-align:center; color:var(--muted); font-size:0.84rem;">Nessun articolo trovato per "${escapeHtml(query)}"</div>`;
+        container.classList.remove('hidden');
+        return;
+      }
+
+      const isDefaultRecommendations = !q;
+      const headerHtml = isDefaultRecommendations
+        ? `<div style="padding:7px 12px; background:#f8fafc; border-bottom:1px solid #e2e8f0; font-size:0.72rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">⚡ Articoli con fabbisogno o riordino suggerito (${matches.length})</div>`
+        : '';
+
+      const itemsHtml = matches.map((p, idx) => {
+        const isAlready = batchItems.some(b => b.code === p.code);
+        const badgeColor = p.urgency === 'CRITICO' ? '#ef4444' : p.urgency === 'RIORDINO' ? '#f97316' : '#10b981';
+        const urgencyLabel = p.urgency === 'CRITICO' ? 'Scorta Critica' : p.urgency === 'RIORDINO' ? 'In Riordino' : 'Giacenza Regolare';
+        const badgeBg = p.urgency === 'CRITICO' ? '#fee2e2' : p.urgency === 'RIORDINO' ? '#ffedd5' : '#d1fae5';
+
+        return `
+          <button type="button" class="batch-product-result" data-code="${escapeHtml(p.code)}" data-idx="${idx}" style="${isAlready ? 'opacity:0.65;' : ''}">
+            <span>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <strong style="color:var(--navy); font-size:0.86rem;">${escapeHtml(p.description)}</strong>
+                ${isAlready ? '<span style="font-size:0.66rem; background:#e2e8f0; color:#475569; padding:1px 5px; border-radius:4px; font-weight:700;">Già in bolla</span>' : ''}
+              </div>
+              <small>
+                <b style="font-family:'JetBrains Mono', monospace; color:var(--primary);">${escapeHtml(p.code)}</b> · ${escapeHtml([p.brand, p.family].filter(Boolean).join(' · '))} · 📍 Ubicazione: <b style="color:#0369a1;">${escapeHtml(p.location || 'Magazzino')}</b>
+              </small>
+            </span>
+            <span class="batch-result-meta">
+              <span class="batch-result-stock">Giacenza: ${p.currentStock || 0} pz</span>
+              <span class="batch-result-badge" style="background:${badgeBg}; color:${badgeColor};">${urgencyLabel}</span>
+              ${p.suggestedProduction > 0 ? `<span style="font-size:0.7rem; font-weight:800; color:#059669;">Fabbisogno: +${p.suggestedProduction} pz</span>` : ''}
+            </span>
+          </button>
+        `;
+      }).join('');
+
+      container.innerHTML = headerHtml + itemsHtml;
+      container.classList.remove('hidden');
+
+      container.querySelectorAll('.batch-product-result').forEach(btn => {
+        btn.onclick = () => {
+          addArticleToBatch(btn.dataset.code);
+        };
+      });
+    }
+
+    function hideBatchSearchResults() {
+      const container = $('batchSearchResults');
+      if (container) container.classList.add('hidden');
+      batchSearchActiveIndex = -1;
+    }
+
+    function addArticleToBatch(code) {
+      if (!code) return;
+      const found = allProduction.find(x => x.code === code);
       if (!found) {
-        toast(`Nessun articolo trovato per "${term}"`);
+        toast(`Articolo ${code} non trovato`);
         return;
       }
 
       if (batchItems.some(x => x.code === found.code)) {
         toast(`L'articolo ${found.code} è già presente nella bolla`);
-        input.value = '';
+        const input = $('batchSearchInput');
+        if (input) {
+          input.value = '';
+          input.focus();
+        }
+        hideBatchSearchResults();
         return;
       }
 
@@ -1764,17 +1924,101 @@
         qcStatus: 'CONFORME_QC'
       });
 
-      input.value = '';
+      const input = $('batchSearchInput');
+      if (input) {
+        input.value = '';
+        input.focus();
+      }
+      hideBatchSearchResults();
       renderBatchTable();
-      toast(`➕ Aggiunto: ${found.code} - ${found.description}`);
+      toast(`➕ Aggiunto in bolla: ${found.code} - ${found.description}`);
+    }
+
+    function addArticleFromSearch() {
+      const input = $('batchSearchInput');
+      const term = (input ? input.value : '').trim();
+      if (!term) {
+        renderBatchSearchResults('');
+        return;
+      }
+
+      const container = $('batchSearchResults');
+      const isVisible = container && !container.classList.contains('hidden');
+      const results = container ? container.querySelectorAll('.batch-product-result') : [];
+
+      if (isVisible && batchSearchActiveIndex >= 0 && results[batchSearchActiveIndex]) {
+        addArticleToBatch(results[batchSearchActiveIndex].dataset.code);
+        return;
+      }
+
+      if (isVisible && results.length > 0) {
+        addArticleToBatch(results[0].dataset.code);
+        return;
+      }
+
+      // Ricerca diretta per codice esatto o parziale
+      const q = normSearchStr(term);
+      const found = allProduction.find(x => normSearchStr(x.code) === q) ||
+                    allProduction.find(x => normSearchStr(x.code).includes(q) || normSearchStr(x.description).includes(q));
+
+      if (found) {
+        addArticleToBatch(found.code);
+      } else {
+        toast(`Nessun articolo trovato per "${term}"`);
+      }
     }
 
     function handleBatchSearchKeydown(event) {
-      if (event.key === 'Enter') {
+      const container = $('batchSearchResults');
+      const isVisible = container && !container.classList.contains('hidden');
+      const results = container ? Array.from(container.querySelectorAll('.batch-product-result')) : [];
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        if (!isVisible || !results.length) {
+          renderBatchSearchResults($('batchSearchInput').value);
+          return;
+        }
+        batchSearchActiveIndex++;
+        if (batchSearchActiveIndex >= results.length) batchSearchActiveIndex = 0;
+        updateActiveBatchResult(results);
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        if (!isVisible || !results.length) return;
+        batchSearchActiveIndex--;
+        if (batchSearchActiveIndex < 0) batchSearchActiveIndex = results.length - 1;
+        updateActiveBatchResult(results);
+      } else if (event.key === 'Enter') {
         event.preventDefault();
         addArticleFromSearch();
+      } else if (event.key === 'Escape') {
+        hideBatchSearchResults();
       }
     }
+
+    function updateActiveBatchResult(results) {
+      results.forEach((el, i) => {
+        if (i === batchSearchActiveIndex) {
+          el.classList.add('active-result');
+          el.scrollIntoView({ block: 'nearest' });
+        } else {
+          el.classList.remove('active-result');
+        }
+      });
+    }
+
+    // Event listeners per ricerca rapida articoli
+    if ($('batchSearchInput')) {
+      $('batchSearchInput').onfocus = e => renderBatchSearchResults(e.target.value);
+      $('batchSearchInput').oninput = e => renderBatchSearchResults(e.target.value);
+      $('batchSearchInput').onkeydown = handleBatchSearchKeydown;
+    }
+
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.batch-product-picker')) {
+        hideBatchSearchResults();
+      }
+    });
 
     // -------------------------------------------------------------
     // SUBMIT MULTI-BATCH PRODUCTION DECLARATION
