@@ -523,6 +523,23 @@
       font-size: .78rem;
       margin-top: 4px;
     }
+
+    /* Order Details Modal */
+    .details-table-wrap { overflow-x: auto; margin: 16px 0; border: 1px solid var(--line); border-radius: 10px; }
+    .details-table { width: 100%; border-collapse: collapse; font-size: .88rem; background: #fff; }
+    .details-table th, .details-table td { padding: 10px 12px; border-bottom: 1px solid #eef2f5; text-align: left; }
+    .details-table th { background: #f8fafc; font-weight: 750; color: #475569; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
+    .details-table tr:last-child td { border-bottom: 0; }
+    .details-table tr:hover td { background: #f8fafc; }
+    .details-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .details-table th.num { text-align: right; }
+    .discount-tag { display: inline-block; background: #e0f2fe; color: #0369a1; padding: 2px 7px; border-radius: 6px; font-weight: 700; font-size: .8rem; }
+    .discount-tag.high { background: #fef3c7; color: #92400e; }
+    .discount-tag.zero { background: #f1f5f9; color: #64748b; font-weight: 500; }
+    .order-info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 16px; font-size: .86rem; }
+    .order-info-item label { display: block; font-size: .72rem; text-transform: uppercase; color: var(--muted); font-weight: 750; margin-bottom: 2px; }
+    .order-info-item strong { color: #1e293b; font-size: .92rem; }
+    .summary-box-grid { display: grid; grid-template-columns: 1fr auto; gap: 16px; background: #f1f5f9; border-radius: 10px; padding: 14px 18px; margin-top: 14px; align-items: center; }
   </style>
 </head>
 <body>
@@ -828,6 +845,11 @@
 
       <input type="hidden" id="modalOrderId">
 
+      <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:10px; padding:10px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <span style="font-size:.85rem; color:#0369a1; font-weight:700;">🔍 Controllo amministrativo righe e prezzi</span>
+        <button type="button" class="btn secondary btn-sm" style="font-weight:750; color:#0369a1; background:#fff; border-color:#7dd3fc;" onclick="openOrderDetailsModal($('modalOrderId').value)">Apri Dettaglio & Sconti ↗</button>
+      </div>
+
       <div class="field" style="margin-bottom:14px;">
         <span>Stato Avanzamento</span>
         <select id="modalStatusSelect" required>
@@ -976,6 +998,62 @@
         <button type="submit" id="btnSaveStatus" class="btn primary">💾 Salva su Google Sheets</button>
       </div>
     </form>
+  </dialog>
+
+  <!-- MODAL: DETTAGLIO ORDINE & CONTROLLO PREZZI/SCONTI -->
+  <dialog id="orderDetailsModal" style="width: min(920px, calc(100vw - 28px)); max-height: calc(100vh - 40px); overflow-y: auto;">
+    <div style="padding: 22px;">
+      <div class="dialog-head" style="margin-bottom: 16px;">
+        <div>
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <h2 id="detailOrderTitle" style="font-size:1.35rem; font-weight:800; color:var(--navy); margin:0;">Dettaglio Ordine</h2>
+            <span id="detailStatusBadge" class="status-badge"></span>
+          </div>
+          <p id="detailOrderSubtitle" style="margin:4px 0 0; color:var(--muted); font-size:.88rem;">Verifica righe, prezzi di listino, sconti applicati e totali per approvazione amministrativa</p>
+        </div>
+        <button type="button" class="icon-btn" onclick="$('orderDetailsModal').close()">✕</button>
+      </div>
+
+      <div id="detailOrderMeta" class="order-info-grid">
+        <!-- populated dynamically with client, agent, date, payment, etc. -->
+      </div>
+
+      <div class="details-table-wrap">
+        <table class="details-table">
+          <thead>
+            <tr>
+              <th style="width:110px;">Codice</th>
+              <th>Descrizione Articolo</th>
+              <th class="num" style="width:65px;">Q.tà</th>
+              <th class="num" style="width:100px;">Listino Cad.</th>
+              <th style="width:130px;">Sconto / Ric.</th>
+              <th class="num" style="width:105px;">Netto Cad.</th>
+              <th class="num" style="width:110px;">Totale Riga</th>
+              <th class="num" style="width:65px;">IVA</th>
+            </tr>
+          </thead>
+          <tbody id="detailLinesBody">
+            <!-- populated dynamically -->
+          </tbody>
+        </table>
+      </div>
+
+      <div id="detailEconomicSummary" class="summary-box-grid">
+        <!-- populated dynamically -->
+      </div>
+
+      <div id="detailNotesBox" style="margin-top:12px; font-size:.84rem; color:#475569; background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px; display:none;">
+        <strong>💡 Note & Istruzioni dell'ordine:</strong> <span id="detailNotesText"></span>
+      </div>
+
+      <div class="dialog-actions" style="margin-top:20px; flex-wrap:wrap;">
+        <button type="button" class="btn secondary" onclick="$('orderDetailsModal').close()">Chiudi</button>
+        <button type="button" class="btn secondary" id="btnDetailPrintPicking">📦 Stampa Picking</button>
+        <button type="button" class="btn secondary" id="btnDetailPrintDdt">📄 Stampa DDT</button>
+        <button type="button" class="btn secondary" id="btnDetailOpenStatus" style="font-weight:700;">✏️ Modifica Stato & DDT</button>
+        <button type="button" class="btn primary" id="btnDetailApprove" style="background:#0284c7; font-weight:750;">⚙️ Approva Ordine</button>
+      </div>
+    </div>
   </dialog>
 
   <!-- MODAL: ANTEPRIMA STAMPA (PICKING LIST / DDT) -->
@@ -1155,7 +1233,7 @@
             <div class="order-header">
               <div>
                 <div class="order-main-info">
-                  <span class="order-num">${ord.number}</span>
+                  <span class="order-num" style="cursor:pointer;" onclick="openOrderDetailsModal('${ord.id || ord.number}')" title="Clicca per visualizzare articoli, prezzi e sconti">${ord.number} 🔍</span>
                   <span class="order-date">📅 ${ord.submitted_at ? new Date(ord.submitted_at).toLocaleDateString('it-IT') : ''}</span>
                   <span class="status-badge ${currentMeta.cls}">${currentMeta.label}</span>
                 </div>
@@ -1170,6 +1248,7 @@
 
             <div class="order-actions">
               <div class="btn-group">
+                <button type="button" class="btn secondary btn-sm" style="font-weight:700; color:#0369a1; border-color:#7dd3fc; background:#f0f9ff;" onclick="openOrderDetailsModal('${ord.id || ord.number}')">🔍 Dettaglio & Prezzi</button>
                 <button type="button" class="btn secondary btn-sm" onclick="openPrintPicking('${ord.id || ord.number}')">📦 Stampa Picking</button>
                 <button type="button" class="btn secondary btn-sm" onclick="openPrintDdt('${ord.id || ord.number}')">📄 Stampa DDT</button>
               </div>
@@ -1367,6 +1446,238 @@
       }
     }
 
+    function getOrderLines(ord) {
+      if (!ord) return [];
+      let lines = ord.payload?.lines || [];
+      if ((!lines || lines.length === 0) && (ord.origin_offer_id || ord.payload?.convertedFromOffer)) {
+        const offNum = ord.origin_offer_id || ord.payload?.convertedFromOffer;
+        const matched = allOffers.find(o => o.number === offNum || o.id === offNum || o.offerNumber === offNum);
+        if (matched?.payload?.lines && matched.payload.lines.length > 0) {
+          lines = matched.payload.lines;
+        }
+      }
+      if ((!lines || lines.length === 0) && Array.isArray(ord.payload?.items)) {
+        lines = ord.payload.items;
+      }
+      if ((!lines || lines.length === 0) && Array.isArray(ord.payload?.products)) {
+        lines = ord.payload.products;
+      }
+      return lines || [];
+    }
+
+    function computeLineDetails(l) {
+      const code = l.code || l.product?.code || l.codice || 'N/D';
+      const desc = l.description || l.product?.description || l.descrizione || (window.catalogProductsMap?.[code]?.description) || 'Articolo';
+      const qty = Number(l.quantity ?? l.qty ?? l.qta ?? 1);
+      const catProd = window.catalogProductsMap?.[code] || {};
+      const listPrice = Number(l.listPrice ?? l.price ?? l.product?.price ?? catProd.price ?? 0);
+      
+      let rawDiscounts = l.discounts ?? l.discount ?? l.sconti ?? [];
+      if (typeof rawDiscounts === 'number') rawDiscounts = [rawDiscounts];
+      else if (typeof rawDiscounts === 'string') rawDiscounts = rawDiscounts.split(/[+,/]/).map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+      else if (!Array.isArray(rawDiscounts)) rawDiscounts = [];
+
+      const discounts = rawDiscounts.map(d => Number(d) || 0).filter(d => d > 0);
+      const markup = Number(l.markup ?? l.ricarico ?? 0);
+      
+      const discountMultiplier = discounts.reduce((m, d) => m * (1 - d / 100), 1);
+      const markupMultiplier = 1 + (markup / 100);
+      const unitNet = listPrice > 0 ? (listPrice * discountMultiplier * markupMultiplier) : 0;
+      
+      const lineNetTotal = (l.net != null && !isNaN(Number(l.net))) 
+        ? Number(l.net) 
+        : (unitNet * qty);
+        
+      const vatRate = Number(l.vat ?? l.product?.vat ?? catProd.vat ?? 22);
+      const vatAmount = lineNetTotal * (vatRate / 100);
+      
+      let discountStr = discounts.length > 0 ? discounts.map(d => `${d}%`).join(' + ') : '0%';
+      if (markup > 0) discountStr += ` (+${markup}% ric.)`;
+
+      const effDiscount = (1 - (discountMultiplier * markupMultiplier)) * 100;
+
+      return {
+        code,
+        desc,
+        qty,
+        listPrice,
+        discounts,
+        markup,
+        discountStr,
+        effDiscount,
+        unitNet,
+        lineNetTotal,
+        vatRate,
+        vatAmount
+      };
+    }
+
+    async function openOrderDetailsModal(orderId) {
+      try {
+        const ord = allOrders.find(o => o.id === orderId || o.number === orderId);
+        if (!ord) {
+          toast('Ordine non trovato');
+          return;
+        }
+
+        if ((!allOffers || allOffers.length === 0) && (ord.origin_offer_id || ord.payload?.convertedFromOffer)) {
+          try { await loadAuxiliaryData(); } catch {}
+        }
+
+        const lines = getOrderLines(ord);
+        const cust = allCustomers.find(c =>
+          (ord.customer_id && (String(c.id) === String(ord.customer_id) || String(c.code) === String(ord.customer_id))) ||
+          (c.name && ord.customer_name && c.name.trim().toLowerCase() === ord.customer_name.trim().toLowerCase())
+        ) || {};
+
+        const st = ord.workflow_status || 'ricevuto';
+        const stLabels = {
+          ricevuto: { label: '📥 Ricevuto (In verifica)', cls: 'status-ricevuto' },
+          approvato: { label: '⚙️ In Lavorazione (Approvato)', cls: 'status-approvato' },
+          magazzino: { label: '📦 In Magazzino (Picking)', cls: 'status-magazzino' },
+          spedito: { label: '🚚 Spedito', cls: 'status-spedito' },
+          fatturato: { label: '💶 Fatturato & Concluso', cls: 'status-fatturato' },
+          respinto: { label: '❌ Respinto', cls: 'status-respinto' }
+        };
+        const currentMeta = stLabels[st] || stLabels.ricevuto;
+
+        $('detailOrderTitle').textContent = `Ordine ${ord.number}`;
+        const badgeEl = $('detailStatusBadge');
+        badgeEl.className = `status-badge ${currentMeta.cls}`;
+        badgeEl.textContent = currentMeta.label;
+
+        const dateStr = ord.submitted_at ? new Date(ord.submitted_at).toLocaleDateString('it-IT') : 'N/D';
+        const clientName = ord.customer_name || cust.name || 'Cliente non specificato';
+        const clientAddress = cust.address ? `${cust.address}, ${cust.city || ''} (${cust.province || ''})` : (ord.destination_address || ord.payload?.destinationAddress || 'N/D');
+        const pivaOrCf = cust.vatNumber || cust.taxCode || ord.payload?.customerVat || 'N/D';
+        const payment = ord.payment_method || ord.payload?.payment || cust.payment || 'Non specificato';
+        const sdi = ord.sdi || ord.payload?.sdi || cust.sdi || '';
+        const iban = ord.iban || ord.payload?.iban || cust.iban || '';
+
+        $('detailOrderMeta').innerHTML = `
+          <div class="order-info-item">
+            <label>Cliente / Ragione Sociale</label>
+            <strong>${escapeHtml(clientName)}</strong>
+            <small style="color:var(--muted); display:block; margin-top:2px;">${escapeHtml(clientAddress)}</small>
+          </div>
+          <div class="order-info-item">
+            <label>Agente</label>
+            <strong>${escapeHtml(ord.agent_name || ord.agent_code || 'N/D')}</strong>
+            ${ord.origin_offer_id ? `<small style="color:#0284c7; display:block; margin-top:2px; font-weight:600;">🔗 Da Offerta: ${escapeHtml(ord.origin_offer_id)}</small>` : ''}
+          </div>
+          <div class="order-info-item">
+            <label>Data Registrazione</label>
+            <strong>📅 ${dateStr}</strong>
+            <small style="color:var(--muted); display:block; margin-top:2px;">P.IVA / CF: ${escapeHtml(pivaOrCf)}</small>
+          </div>
+          <div class="order-info-item">
+            <label>Pagamento & Dati Fiscali</label>
+            <strong>💳 ${escapeHtml(payment)}</strong>
+            ${(sdi || iban) ? `<small style="color:var(--muted); display:block; margin-top:2px;">${sdi ? `SDI: ${escapeHtml(sdi)}` : ''} ${iban ? `· IBAN: ${escapeHtml(iban)}` : ''}</small>` : ''}
+          </div>
+        `;
+
+        const tbody = $('detailLinesBody');
+        let calcNetSum = 0;
+        let calcVatSum = 0;
+
+        if (!lines || lines.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="8" style="text-align:center; padding:28px; color:var(--muted);">
+                <em>Nessuna riga articolo dettagliata trovata per questo ordine. Totale complessivo registrato: <strong>${euro(ord.total)}</strong>.</em>
+              </td>
+            </tr>
+          `;
+          calcNetSum = Number(ord.total) || 0;
+        } else {
+          tbody.innerHTML = lines.map(l => {
+            const row = computeLineDetails(l);
+            calcNetSum += row.lineNetTotal;
+            calcVatSum += row.vatAmount;
+
+            let discountTagCls = 'discount-tag';
+            if (row.discounts.length === 0 && row.markup === 0) discountTagCls += ' zero';
+            else if (row.effDiscount >= 30) discountTagCls += ' high';
+
+            return `
+              <tr>
+                <td><strong style="color:var(--navy); font-family:monospace;">${escapeHtml(row.code)}</strong></td>
+                <td>
+                  <div style="font-weight:600; color:#1e293b;">${escapeHtml(row.desc)}</div>
+                </td>
+                <td class="num" style="font-weight:750; font-size:.95rem;">${row.qty}</td>
+                <td class="num">${row.listPrice > 0 ? euro(row.listPrice) : '—'}</td>
+                <td>
+                  <span class="${discountTagCls}">${escapeHtml(row.discountStr)}</span>
+                  ${row.effDiscount > 0 ? `<small style="display:block; color:var(--muted); font-size:.73rem; margin-top:2px;">eff. -${row.effDiscount.toFixed(1)}%</small>` : ''}
+                </td>
+                <td class="num" style="color:#0369a1; font-weight:600;">${row.unitNet > 0 ? euro(row.unitNet) : euro(row.listPrice)}</td>
+                <td class="num" style="font-weight:800; color:var(--navy); font-size:.95rem;">${euro(row.lineNetTotal)}</td>
+                <td class="num" style="color:var(--muted); font-size:.82rem;">${row.vatRate}%</td>
+              </tr>
+            `;
+          }).join('');
+        }
+
+        const orderGrandTotal = Number(ord.total) > 0 ? Number(ord.total) : (calcNetSum + calcVatSum);
+        $('detailEconomicSummary').innerHTML = `
+          <div>
+            <div style="font-size:.85rem; color:#475569;">
+              Imponibile Totale Merce: <strong>${euro(calcNetSum)}</strong>
+              ${calcVatSum > 0 ? `· IVA Totale: <strong>${euro(calcVatSum)}</strong>` : ''}
+            </div>
+            <div style="font-size:.78rem; color:var(--muted); margin-top:4px;">
+              ${lines.length} articoli/righe in ordine · Valuta: ${ord.currency || 'EUR'}
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <span style="display:block; font-size:.75rem; text-transform:uppercase; font-weight:750; color:var(--muted);">Totale Documento</span>
+            <strong style="font-size:1.55rem; color:var(--navy); font-weight:850;">${euro(orderGrandTotal)}</strong>
+          </div>
+        `;
+
+        const notes = ord.notes || ord.payload?.notes || '';
+        const notesBox = $('detailNotesBox');
+        if (notes) {
+          $('detailNotesText').textContent = notes;
+          notesBox.style.display = 'block';
+        } else {
+          notesBox.style.display = 'none';
+        }
+
+        const btnApprove = $('btnDetailApprove');
+        if (st === 'ricevuto') {
+          btnApprove.style.display = 'inline-flex';
+          btnApprove.textContent = '⚙️ Approva Ordine';
+          btnApprove.onclick = async () => {
+            if (confirm(`Confermi l'approvazione dell'ordine ${ord.number} per un totale di ${euro(orderGrandTotal)}?`)) {
+              $('orderDetailsModal').close();
+              await quickNextStep(ord.id || ord.number, 'approvato');
+            }
+          };
+        } else {
+          btnApprove.style.display = 'none';
+        }
+
+        $('btnDetailOpenStatus').onclick = () => {
+          $('orderDetailsModal').close();
+          openStatusModal(ord.id || ord.number);
+        };
+        $('btnDetailPrintPicking').onclick = () => {
+          openPrintPicking(ord.id || ord.number);
+        };
+        $('btnDetailPrintDdt').onclick = () => {
+          openPrintDdt(ord.id || ord.number);
+        };
+
+        $('orderDetailsModal').showModal();
+      } catch (err) {
+        console.error('Errore apertura dettaglio ordine:', err);
+        toast(`Errore: ${err.message}`);
+      }
+    }
+
     // Print Picking List for warehouse staff
     function openPrintPicking(orderId) {
       try {
@@ -1374,20 +1685,7 @@
         if (!ord) return;
 
         const dateStr = ord.submitted_at ? new Date(ord.submitted_at).toLocaleDateString('it-IT') : new Date().toLocaleDateString('it-IT');
-        let lines = ord.payload?.lines || [];
-        if ((!lines || lines.length === 0) && (ord.origin_offer_id || ord.payload?.convertedFromOffer)) {
-          const offNum = ord.origin_offer_id || ord.payload?.convertedFromOffer;
-          const matched = allOffers.find(o => o.number === offNum || o.id === offNum || o.offerNumber === offNum);
-          if (matched?.payload?.lines && matched.payload.lines.length > 0) {
-            lines = matched.payload.lines;
-          }
-        }
-        if ((!lines || lines.length === 0) && Array.isArray(ord.payload?.items)) {
-          lines = ord.payload.items;
-        }
-        if ((!lines || lines.length === 0) && Array.isArray(ord.payload?.products)) {
-          lines = ord.payload.products;
-        }
+        let lines = getOrderLines(ord);
 
         const processedLines = lines.map(l => {
           const code = String(l.code || '').trim();
@@ -1517,20 +1815,7 @@
         const orderNotes = ord.notes || ord.payload?.notes || '';
 
         // Items list (Quantities ONLY, NO PRICES as explicitly requested)
-        let lines = ord.payload?.lines || [];
-        if ((!lines || lines.length === 0) && (ord.origin_offer_id || ord.payload?.convertedFromOffer)) {
-          const offNum = ord.origin_offer_id || ord.payload?.convertedFromOffer;
-          const matched = allOffers.find(o => o.number === offNum || o.id === offNum || o.offerNumber === offNum);
-          if (matched?.payload?.lines && matched.payload.lines.length > 0) {
-            lines = matched.payload.lines;
-          }
-        }
-        if ((!lines || lines.length === 0) && Array.isArray(ord.payload?.items)) {
-          lines = ord.payload.items;
-        }
-        if ((!lines || lines.length === 0) && Array.isArray(ord.payload?.products)) {
-          lines = ord.payload.products;
-        }
+        let lines = getOrderLines(ord);
 
         // Generate rows and empty filler rows: compact and fits many articles
         const targetRows = Math.max(12, (lines ? lines.length : 1) + 1);
