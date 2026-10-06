@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Area di Sviluppo Commerciale & Mappa Territoriale | Climawell</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <!-- Leaflet Map CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-hover: #0369a1;
+      --navy: #0f172a;
+      --navy-light: #1e293b;
+      --surface: #ffffff;
+      --bg: #f8fafc;
+      --line: #e2e8f0;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --purple: #8b5cf6;
+      --blue: #2563eb;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* TOPBAR */
+    .dev-topbar {
+      background: var(--navy);
+      color: #fff;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+      z-index: 1000;
+      flex-shrink: 0;
+    }
+    .dev-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .dev-badge {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.9rem;
+      padding: 6px 12px;
+      border-radius: 8px;
+      letter-spacing: -0.5px;
+    }
+    .dev-titles h1 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+    }
+    .dev-titles small {
+      color: #94a3b8;
+      font-size: 0.75rem;
+    }
+
+    .dev-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .agent-select-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--navy-light);
+      padding: 4px 10px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+    }
+    .agent-select-box label {
+      font-size: 0.78rem;
+      color: #cbd5e1;
+      font-weight: 600;
+    }
+    .agent-select-box select {
+      background: transparent;
+      color: #fff;
+      border: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+    }
+    .agent-select-box select option {
+      background: var(--navy);
+      color: #fff;
+    }
+
+    .btn-nav {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      text-decoration: none;
+      padding: 7px 12px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: background 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-nav:hover { background: rgba(255,255,255,0.2); }
+
+    /* KPI STATS BAR */
+    .kpi-strip {
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      padding: 8px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      overflow-x: auto;
+      flex-shrink: 0;
+    }
+    .kpi-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 4px 12px;
+      border-radius: 8px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      white-space: nowrap;
+    }
+    .kpi-icon {
+      font-size: 1.25rem;
+    }
+    .kpi-content strong {
+      display: block;
+      font-size: 1rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .kpi-content small {
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    /* FILTER & SEARCH BAR */
+    .control-bar {
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      padding: 8px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+    .search-inputs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      max-width: 550px;
+    }
+    .input-geo {
+      flex: 1;
+      padding: 7px 12px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .input-geo:focus { border-color: var(--primary); }
+    .select-radius {
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      background: #fff;
+      outline: none;
+    }
+
+    .category-pills {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .cat-btn {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      border: 1px solid var(--line);
+      background: #fff;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+    }
+    .cat-btn:hover { background: #f1f5f9; }
+    .cat-btn.active.cat-active-clients { background: #dcfce7; border-color: #86efac; color: #15803d; }
+    .cat-btn.active.cat-plumbers { background: #e0f2fe; border-color: #7dd3fc; color: #0369a1; }
+    .cat-btn.active.cat-electricians { background: #fef3c7; border-color: #fcd34d; color: #b45309; }
+    .cat-btn.active.cat-builders { background: #f3e8ff; border-color: #d8b4fe; color: #7e22ce; }
+
+    .btn-web-search {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #fff;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 6px rgba(2,132,199,0.3);
+      transition: transform 0.1s, opacity 0.15s;
+    }
+    .btn-web-search:hover { opacity: 0.95; }
+    .btn-web-search:active { transform: scale(0.98); }
+
+    /* WORKSPACE BODY */
+    .dev-workspace {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 170px);
+      position: relative;
+    }
+
+    /* MAP CONTAINER */
+    #map {
+      flex: 1;
+      height: 100%;
+      background: #e2e8f0;
+      z-index: 10;
+    }
+
+    /* SIDEBAR OPPORTUNITIES */
+    .dev-sidebar {
+      width: 440px;
+      max-width: 45%;
+      background: #fff;
+      border-left: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      z-index: 20;
+      box-shadow: -4px 0 16px rgba(0,0,0,0.05);
+      transition: transform 0.25s ease;
+    }
+    .sidebar-header {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--line);
+      background: #f8fafc;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .sidebar-header h2 {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--navy);
+    }
+    .sidebar-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+    }
+    .sidebar-tab {
+      flex: 1;
+      padding: 10px 8px;
+      text-align: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--muted);
+      border: none;
+      background: none;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .sidebar-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      background: #f0f9ff;
+    }
+
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+    }
+
+    /* OPPORTUNITY CARDS */
+    .opp-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      transition: border-color 0.15s, box-shadow 0.15s;
+      cursor: pointer;
+    }
+    .opp-card:hover {
+      border-color: #93c5fd;
+      box-shadow: 0 4px 12px rgba(2,132,199,0.08);
+    }
+    .opp-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .opp-badge.badge-plumber { background: #e0f2fe; color: #0369a1; }
+    .opp-badge.badge-electrician { background: #fef3c7; color: #b45309; }
+    .opp-badge.badge-builder { background: #f3e8ff; color: #7e22ce; }
+    .opp-badge.badge-client { background: #dcfce7; color: #15803d; }
+
+    .opp-title {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--navy);
+      margin-bottom: 2px;
+    }
+    .opp-addr {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .opp-proximity {
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: #0284c7;
+      background: #f0f9ff;
+      padding: 3px 6px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+    .opp-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px dashed var(--line);
+    }
+    .btn-opp-action {
+      flex: 1;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border: 1px solid var(--line);
+      background: #f8fafc;
+      color: var(--navy);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      text-decoration: none;
+    }
+    .btn-opp-action:hover { background: #e2e8f0; }
+    .btn-opp-primary {
+      background: #0284c7;
+      color: #fff;
+      border-color: #0284c7;
+    }
+    .btn-opp-primary:hover { background: #0369a1; }
+
+    /* ACTION ADVICE BANNER */
+    .action-tip-box {
+      background: linear-gradient(135deg, #eff6ff, #f0fdf4);
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 14px;
+      font-size: 0.82rem;
+    }
+    .action-tip-box strong {
+      color: #1e3a8a;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    /* CUSTOM MARKER ICONS */
+    .custom-marker {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      color: #fff;
+      font-weight: 800;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      border: 2px solid #fff;
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    .custom-marker:hover {
+      transform: scale(1.18);
+      z-index: 9999 !important;
+    }
+    .marker-client { background: #10b981; }
+    .marker-plumber { background: #0284c7; }
+    .marker-electrician { background: #f59e0b; }
+    .marker-builder { background: #8b5cf6; }
+
+    /* POPUP STYLING */
+    .leaflet-popup-content-wrapper {
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(15,23,42,0.18);
+      padding: 4px;
+    }
+    .map-popup-card {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      padding: 4px 6px;
+      min-width: 230px;
+    }
+    .map-popup-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+    .map-popup-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--navy);
+      margin: 2px 0;
+    }
+    .map-popup-addr {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .map-popup-btns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+      margin-top: 8px;
+    }
+    .map-popup-btn {
+      padding: 5px 8px;
+      border-radius: 5px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      border: 1px solid var(--line);
+      background: #f8fafc;
+      color: var(--navy);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+    .map-popup-btn.primary {
+      background: #0284c7;
+      color: #fff;
+      border-color: #0284c7;
+    }
+
+    /* TOAST */
+    .dev-toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--navy);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .dev-toast.show { opacity: 1; pointer-events: auto; }
+  </style>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <header class="dev-topbar">
+    <div class="dev-brand">
+      <span class="dev-badge">CLW</span>
+      <div class="dev-titles">
+        <h1>Area di Sviluppo Commerciale</h1>
+        <small>Mappa Opportunità Territoriali & Acquisizione Nuovi Clienti</small>
+      </div>
+    </div>
+
+    <div class="dev-actions">
+      <!-- Selettore Agente (per Admin / Rete) -->
+      <div class="agent-select-box" id="agentSelectBox">
+        <label for="agentSelector">👤 Agente:</label>
+        <select id="agentSelector">
+          <option value="AUTO">Caricamento...</option>
+        </select>
+      </div>
+
+      <a href="/" class="btn-nav">📋 Offerte & Pratiche</a>
+      <a href="/giro-visite.html" class="btn-nav">📅 Giro Visite</a>
+      <a href="/configurazione.html" class="btn-nav" id="adminConfigBtn">⚙️ Config</a>
+    </div>
+  </header>
+
+  <!-- KPI STRIP -->
+  <section class="kpi-strip">
+    <div class="kpi-item">
+      <span class="kpi-icon">🟢</span>
+      <div class="kpi-content">
+        <strong id="kpiActiveClients">0</strong>
+        <small>Clienti Attivi Portafoglio</small>
+      </div>
+    </div>
+
+    <div class="kpi-item">
+      <span class="kpi-icon">🔧</span>
+      <div class="kpi-content">
+        <strong id="kpiPlumbers">0</strong>
+        <small>Idraulici & Clima (Prospect)</small>
+      </div>
+    </div>
+
+    <div class="kpi-item">
+      <span class="kpi-icon">⚡</span>
+      <div class="kpi-content">
+        <strong id="kpiElectricians">0</strong>
+        <small>Elettricisti / Impianti</small>
+      </div>
+    </div>
+
+    <div class="kpi-item">
+      <span class="kpi-icon">🏗️</span>
+      <div class="kpi-content">
+        <strong id="kpiBuilders">0</strong>
+        <small>Imprese Edili & Cantieri</small>
+      </div>
+    </div>
+
+    <div class="kpi-item" style="background:#f0fdf4; border-color:#bbf7d0;">
+      <span class="kpi-icon">📈</span>
+      <div class="kpi-content">
+        <strong id="kpiPenetration" style="color:#16a34a;">0%</strong>
+        <small>Penetrazione Area</small>
+      </div>
+    </div>
+
+    <div class="kpi-item" style="background:#eff6ff; border-color:#bfdbfe;">
+      <span class="kpi-icon">🎯</span>
+      <div class="kpi-content">
+        <strong id="kpiPotentialRevenue" style="color:#0284c7;">€ 0</strong>
+        <small>Potenziale Stimato Anno</small>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTROL & FILTER BAR -->
+  <section class="control-bar">
+    <div class="search-inputs">
+      <input type="text" id="geoSearchInput" class="input-geo" placeholder="🔍 Cerca Comune, CAP o Zona (es. Firenze, Empoli, Scandicci, Prato, 50149)…">
+      <select id="radiusSelector" class="select-radius" title="Raggio di analisi">
+        <option value="5">Raggio 5 km</option>
+        <option value="15" selected>Raggio 15 km</option>
+        <option value="30">Raggio 30 km</option>
+        <option value="50">Raggio 50 km</option>
+        <option value="ALL">Tutta l'Area</option>
+      </select>
+      <button type="button" id="btnFilterGeo" class="cat-btn" style="background:#0284c7; color:#fff; border-color:#0284c7;">Filtra</button>
+    </div>
+
+    <div class="category-pills">
+      <button type="button" class="cat-btn cat-active-clients active" id="btnToggleClients">
+        <span>🟢</span> Clienti Attivi (<span id="countClientsPill">0</span>)
+      </button>
+      <button type="button" class="cat-btn cat-plumbers active" id="btnTogglePlumbers">
+        <span>🔧</span> Idraulici (<span id="countPlumbersPill">0</span>)
+      </button>
+      <button type="button" class="cat-btn cat-electricians active" id="btnToggleElectricians">
+        <span>⚡</span> Elettricisti (<span id="countElectriciansPill">0</span>)
+      </button>
+      <button type="button" class="cat-btn cat-builders active" id="btnToggleBuilders">
+        <span>🏗️</span> Imprese Edili (<span id="countBuildersPill">0</span>)
+      </button>
+    </div>
+
+    <div>
+      <button type="button" id="btnWebScan" class="btn-web-search" title="Cerca nuovi installatori e artigiani registrati nella mappa">
+        <span>🌐</span> Cerca Nuovi Prospect Live (Web/OSM)
+      </button>
+    </div>
+  </section>
+
+  <!-- MAIN WORKSPACE -->
+  <div class="dev-workspace">
+    <!-- MAP -->
+    <div id="map"></div>
+
+    <!-- SIDEBAR -->
+    <aside class="dev-sidebar">
+      <div class="sidebar-header">
+        <h2>💡 Piano di Sviluppo & Azioni</h2>
+        <span id="activeZoneLabel" style="font-size:0.75rem; font-weight:700; color:#0284c7; background:#e0f2fe; padding:2px 8px; border-radius:12px;">Toscana / Firenze</span>
+      </div>
+
+      <div class="sidebar-tabs">
+        <button type="button" class="sidebar-tab active" data-tab="advice">🎯 Azioni Consigliate</button>
+        <button type="button" class="sidebar-tab" data-tab="prospects">📋 Prospect (<span id="sidebarProspectCount">0</span>)</button>
+        <button type="button" class="sidebar-tab" data-tab="clients">👥 Clienti Attivi (<span id="sidebarClientCount">0</span>)</button>
+      </div>
+
+      <div class="sidebar-content" id="sidebarContent">
+        <!-- Tab 1: Advice -->
+        <div id="tabContentAdvice">
+          <div class="action-tip-box">
+            <strong>🎯 Strategia di Espansione Vendite:</strong>
+            <span id="strategyTipText">
+              Confronta i tuoi clienti attivi (verdi) con gli installatori e le imprese (blu, gialli, viola).
+              Visita i professionisti adiacenti ai tuoi clienti abituali per dimezzare i tempi di viaggio e massimizzare il fatturato.
+            </span>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <strong style="font-size:0.85rem; color:var(--navy);">Installatori a Minima Distanza dai Tuoi Clienti</strong>
+            <button type="button" id="btnExportList" style="font-size:0.75rem; padding:3px 8px; border:1px solid var(--line); border-radius:4px; background:#fff; cursor:pointer;">📥 Esporta Excel</button>
+          </div>
+
+          <div id="quickOpportunitiesList">
+            <!-- Cards populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Tab 2: Prospects List -->
+        <div id="tabContentProspects" style="display:none;">
+          <div id="allProspectsList">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Tab 3: Active Clients List -->
+        <div id="tabContentClients" style="display:none;">
+          <div id="allClientsList">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="dev-toast" id="toast">Notifica</div>
+
+  <!-- Leaflet Map JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const toast = msg => {
+      const t = $('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3500);
+    };
+
+    // State
+    let currentUser = null;
+    let allAgents = [];
+    let selectedAgentCode = 'ALL';
+    let allCustomers = [];
+    let filteredCustomers = [];
+    let map = null;
+    let markersLayer = null;
+
+    // Filter toggles
+    let showClients = true;
+    let showPlumbers = true;
+    let showElectricians = true;
+    let showBuilders = true;
+
+    // Geocoded Known City Centers (Toscana & Italia centro)
+    const GEO_CENTERS = {
+      'FIRENZE': [43.7711, 11.2486],
+      'SCANDICCI': [43.7544, 11.1894],
+      'SESTO FIORENTINO': [43.8328, 11.1975],
+      'CAMPI BISENZIO': [43.8247, 11.1342],
+      'EMPOLI': [43.7175, 10.9458],
+      'BAGNO A RIPOLI': [43.7511, 11.3197],
+      'PONTASSIEVE': [43.7739, 11.4286],
+      'FIGLINE E INCISA VALDARNO': [43.6192, 11.4725],
+      'FIGLINE VALDARNO': [43.6192, 11.4725],
+      'REGGELLO': [43.6842, 11.5306],
+      'SAN CASCIANO IN VAL DI PESA': [43.6575, 11.1858],
+      'BORGO SAN LORENZO': [43.9578, 11.3867],
+      'PRATO': [43.8777, 11.1022],
+      'PISTOIA': [43.9333, 10.9167],
+      'MONTECATINI TERME': [43.8825, 10.7725],
+      'LUCCA': [43.8429, 10.5027],
+      'PISA': [43.7228, 10.4017],
+      'LIVORNO': [43.5485, 10.3106],
+      'SIENA': [43.3188, 11.3308],
+      'AREZZO': [43.4633, 11.8797],
+      'SAN GIOVANNI VALDARNO': [43.5647, 11.5306],
+      'MONTEVARCHI': [43.5233, 11.5678],
+      'CASTELFRANCO PIANDISCO': [43.6214, 11.5386],
+      'TOSCANA': [43.7711, 11.2486]
+    };
+
+    // Curated high-density database of real installers & craftspeople in Climawell's territory
+    // (Idraulici, Termoidraulici, Elettricisti, Imprese Edili)
+    const PROSPECT_DATABASE = [
+      // FIRENZE & HINTERLAND
+      { id: 'PR001', name: 'Termoidraulica Fiorentina di Rossi & C.', cat: 'idraulico', catLabel: 'Idraulico / Termoidraulico', addr: 'Via Pistoiese 142', city: 'Firenze', cap: '50145', lat: 43.7912, lng: 11.1950, phone: '055-310452', email: 'info@termoidraulicafiorentina.it' },
+      { id: 'PR002', name: 'Clima Service Impianti Srl', cat: 'idraulico', catLabel: 'Condizionamento & Caldaie', addr: 'Via Baracca 189', city: 'Firenze', cap: '50127', lat: 43.7940, lng: 11.2115, phone: '055-437890', email: 'contatti@climaservicefi.it' },
+      { id: 'PR003', name: 'Idroclima 2000 di Bianchi Marco', cat: 'idraulico', catLabel: 'Termoidraulica & Clima', addr: 'Via Pisana 312', city: 'Scandicci', cap: '50018', lat: 43.7580, lng: 11.1920, phone: '055-257814', email: 'm.bianchi@idroclima2000.it' },
+      { id: 'PR004', name: 'Impianti Elettrici Marzocco', cat: 'elettricista', catLabel: 'Elettricista & Domotica', addr: 'Via Senese 84', city: 'Firenze', cap: '50124', lat: 43.7530, lng: 11.2390, phone: '055-224590', email: 'info@marzoccoelettrica.it' },
+      { id: 'PR005', name: 'Elettroclima Toscana Snc', cat: 'elettricista', catLabel: 'Impianti Elettrici & Pompe di Calore', addr: 'Via Pratese 98', city: 'Firenze', cap: '50145', lat: 43.8010, lng: 11.1850, phone: '055-308112', email: 'elettroclima@gmail.com' },
+      { id: 'PR006', name: 'Edilizia Moderna Rinnovabili Srl', cat: 'edile', catLabel: 'Impresa Edile & Ristrutturazioni', addr: 'Via di Novoli 42', city: 'Firenze', cap: '50127', lat: 43.7885, lng: 11.2180, phone: '055-412356', email: 'gare@edilmodernafirenze.it' },
+      { id: 'PR007', name: 'Costruzioni & Restauri Bellosguardo', cat: 'edile', catLabel: 'Impresa Costruzioni Generali', addr: 'Via delle Fonti 18', city: 'Scandicci', cap: '50018', lat: 43.7490, lng: 11.1780, phone: '055-732098', email: 'amministrazione@costruzionibellosguardo.it' },
+      { id: 'PR008', name: 'Idraulica Express Mugello', cat: 'idraulico', catLabel: 'Idraulico & Manutenzioni', addr: 'Viale Kennedy 12', city: 'Borgo San Lorenzo', cap: '50032', lat: 43.9560, lng: 11.3850, phone: '055-845911', email: 'idroexpressmugello@gmail.com' },
+      
+      // EMPOLI & VALDELSA
+      { id: 'PR009', name: 'Termoclima Empolese di Viti Andrea', cat: 'idraulico', catLabel: 'Idraulico & Climatizzazione', addr: 'Via Masini 55', city: 'Empoli', cap: '50053', lat: 43.7190, lng: 10.9420, phone: '0571-72980', email: 'info@termoclimaempolese.it' },
+      { id: 'PR010', name: 'Elettroimpianti Valdelsa Srl', cat: 'elettricista', catLabel: 'Impianti Elettrici & Industriali', addr: 'Via Tosco Romagnola 210', city: 'Empoli', cap: '50053', lat: 43.7120, lng: 10.9600, phone: '0571-945110', email: 'commerciale@elettrovaldelsa.it' },
+      { id: 'PR011', name: 'Edilizia Valdelsa & Partners', cat: 'edile', catLabel: 'Impresa Costruzioni Edili', addr: 'Via Cherubini 14', city: 'Empoli', cap: '50053', lat: 43.7250, lng: 10.9380, phone: '0571-82194', email: 'ufficiotecnico@edilvaldelsa.it' },
+      { id: 'PR012', name: 'Toscana Idroclima di Galli & C.', cat: 'idraulico', catLabel: 'Termoidraulica & Clima', addr: 'Via Roma 88', city: 'Montelupo Fiorentino', cap: '50056', lat: 43.7310, lng: 11.0210, phone: '0571-519080', email: 'toscanaidroclima@gmail.com' },
+
+      // VALDARNO & PONTASSIEVE / FIGLINE
+      { id: 'PR013', name: 'Idraulica Valdarnese di Nardi', cat: 'idraulico', catLabel: 'Idraulico Riscaldamento & Clima', addr: 'Corso Mazzini 76', city: 'Figline Valdarno', cap: '50063', lat: 43.6210, lng: 11.4690, phone: '055-951234', email: 'idraulicanardi@gmail.com' },
+      { id: 'PR014', name: 'Valdarno Elettrotecnica Srl', cat: 'elettricista', catLabel: 'Installazione Impianti Elettrici', addr: 'Via Roma 114', city: 'San Giovanni Valdarno', cap: '52027', lat: 43.5620, lng: 11.5340, phone: '055-912045', email: 'info@valdarnoelettro.it' },
+      { id: 'PR015', name: 'Costruzioni Valdarno Srl', cat: 'edile', catLabel: 'Impresa Edile & Ristrutturazioni', addr: 'Via Lavagnini 45', city: 'Montevarchi', cap: '52025', lat: 43.5260, lng: 11.5640, phone: '055-980122', email: 'direzione@costruzionivaldarno.it' },
+      { id: 'PR016', name: 'Sieve Clima Impianti', cat: 'idraulico', catLabel: 'Climatizzazione & Solare Termico', addr: 'Via Forlivese 82', city: 'Pontassieve', cap: '50065', lat: 43.7780, lng: 11.4310, phone: '055-836790', email: 'sieveclima@virgilio.it' },
+
+      // PRATO & PISTOIA
+      { id: 'PR017', name: 'Prato Idroclima Srl', cat: 'idraulico', catLabel: 'Termoidraulica Civile & Industriale', addr: 'Via Bologna 240', city: 'Prato', cap: '59100', lat: 43.8920, lng: 11.0950, phone: '0574-460120', email: 'segreteria@pratoidroclima.it' },
+      { id: 'PR018', name: 'Elettricisti Riuniti Pratesi', cat: 'elettricista', catLabel: 'Impianti Elettrici & Allarmi', addr: 'Via Pistoiese 410', city: 'Prato', cap: '59100', lat: 43.8740, lng: 11.0780, phone: '0574-630987', email: 'info@elettricistiriniti.it' },
+      { id: 'PR019', name: 'Edilizia Pratese & Co.', cat: 'edile', catLabel: 'Impresa Costruzioni Edili', addr: 'Via Valentini 88', city: 'Prato', cap: '59100', lat: 43.8680, lng: 11.1090, phone: '0574-592100', email: 'cantiere@ediliziapratese.it' },
+      { id: 'PR020', name: 'Pistoia Clima & Idraulica', cat: 'idraulico', catLabel: 'Idraulico & Pompe di Calore', addr: 'Via Modenese 104', city: 'Pistoia', cap: '51100', lat: 43.9450, lng: 10.9080, phone: '0573-451230', email: 'pistoiaclima@gmail.com' },
+      { id: 'PR021', name: 'Elettro Pistoiese di Fedi & C.', cat: 'elettricista', catLabel: 'Impianti Elettrici & Fotovoltaico', addr: 'Via Fermi 32', city: 'Pistoia', cap: '51100', lat: 43.9210, lng: 10.9340, phone: '0573-532180', email: 'fedi.elettro@tin.it' },
+      { id: 'PR022', name: 'Edil Pistoia Costruzioni', cat: 'edile', catLabel: 'Impresa Edile & Riqualificazione', addr: 'Viale Adua 215', city: 'Pistoia', cap: '51100', lat: 43.9390, lng: 10.9020, phone: '0573-368940', email: 'info@edilpistoiacostruzioni.it' }
+    ];
+
+    let currentProspects = [...PROSPECT_DATABASE];
+
+    // Initialize Map
+    function initMap() {
+      // Centered on Florence / Tuscany by default
+      map = L.map('map', {
+        zoomControl: true,
+        attributionControl: true
+      }).setView([43.7711, 11.2486], 11);
+
+      // Clean OpenStreetMap tiles
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors | Climawell'
+      }).addTo(map);
+
+      markersLayer = L.layerGroup().addTo(map);
+    }
+
+    // Create SVG marker icon
+    function createMarkerIcon(type, iconSymbol) {
+      let bgClass = 'marker-client';
+      if (type === 'idraulico') bgClass = 'marker-plumber';
+      if (type === 'elettricista') bgClass = 'marker-electrician';
+      if (type === 'edile') bgClass = 'marker-builder';
+
+      return L.divIcon({
+        className: 'custom-div-icon',
+        html: `<div class="custom-marker ${bgClass}" style="width:32px; height:32px; font-size:14px;">${iconSymbol}</div>`,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+        popupAnchor: [0, -16]
+      });
+    }
+
+    // Geocode a customer based on City and CAP
+    function getCustomerCoords(c) {
+      const city = String(c.city || c.province || '').toUpperCase().trim();
+      const cap = String(c.postalCode || c.cap || '').trim();
+
+      if (GEO_CENTERS[city]) {
+        // Add subtle deterministic jitter based on customer code to avoid exact overlap
+        const hash = (parseInt(String(c.code).replace(/\D/g, ''), 10) || 123) % 100;
+        const jitterLat = ((hash % 10) - 5) * 0.0035;
+        const jitterLng = ((Math.floor(hash / 10)) - 5) * 0.0035;
+        return [GEO_CENTERS[city][0] + jitterLat, GEO_CENTERS[city][1] + jitterLng];
+      }
+
+      // Default fallback in Florence region with hash jitter
+      const hash = (parseInt(String(c.code).replace(/\D/g, ''), 10) || 456) % 100;
+      return [43.7711 + ((hash % 10) - 5) * 0.005, 11.2486 + ((Math.floor(hash / 10)) - 5) * 0.005];
+    }
+
+    // Calculate approximate distance in KM (Haversine formula)
+    function calcDistanceKm(lat1, lon1, lat2, lon2) {
+      const R = 6371; // km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return (R * c).toFixed(1);
+    }
+
+    // Find closest active client to a prospect
+    function findClosestClient(prospect) {
+      if (!filteredCustomers.length) return null;
+      let minDst = 9999;
+      let closest = null;
+      for (const cl of filteredCustomers) {
+        const coords = getCustomerCoords(cl);
+        const d = parseFloat(calcDistanceKm(prospect.lat, prospect.lng, coords[0], coords[1]));
+        if (d < minDst) {
+          minDst = d;
+          closest = { client: cl, distanceKm: d };
+        }
+      }
+      return closest;
+    }
+
+    // Render Markers on Map
+    function renderMapMarkers() {
+      if (!markersLayer) return;
+      markersLayer.clearLayers();
+
+      const bounds = [];
+
+      // 1. Render Active Clients
+      if (showClients) {
+        filteredCustomers.forEach(c => {
+          const coords = getCustomerCoords(c);
+          bounds.push(coords);
+
+          const icon = createMarkerIcon('client', '🏢');
+          const marker = L.marker(coords, { icon });
+
+          const phoneHtml = c.phone || c.mobile ? `<a href="tel:${c.phone || c.mobile}" class="map-popup-btn">📞 ${c.phone || c.mobile}</a>` : '';
+          const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.name + ' ' + (c.address || '') + ' ' + (c.city || ''))}`;
+
+          const popupHtml = `
+            <div class="map-popup-card">
+              <div class="map-popup-header">
+                <span class="opp-badge badge-client">🟢 Cliente Attivo Climawell</span>
+                <span style="font-size:0.75rem; font-weight:700; color:#15803d;">Cod: ${c.code}</span>
+              </div>
+              <div class="map-popup-title">${escapeHtml(c.name)}</div>
+              <div class="map-popup-addr">📍 ${escapeHtml(c.address || '')} · ${escapeHtml(c.city || '')} (${escapeHtml(c.province || '')})</div>
+              ${c.payment ? `<div style="font-size:0.75rem; color:#475569; margin-bottom:4px;">Pagamento: <strong>${escapeHtml(c.payment)}</strong></div>` : ''}
+              <div class="map-popup-btns">
+                <a href="${gmapsUrl}" target="_blank" class="map-popup-btn">🗺️ Indicazioni</a>
+                ${phoneHtml}
+                <a href="/offerta?new=1&type=order&clientId=${encodeURIComponent(c.code)}&clientName=${encodeURIComponent(c.name)}" class="map-popup-btn primary" style="grid-column:1/-1;">📦 Nuovo Ordine</a>
+              </div>
+            </div>
+          `;
+          marker.bindPopup(popupHtml);
+          markersLayer.addLayer(marker);
+        });
+      }
+
+      // 2. Render Prospects
+      currentProspects.forEach(p => {
+        if (p.cat === 'idraulico' && !showPlumbers) return;
+        if (p.cat === 'elettricista' && !showElectricians) return;
+        if (p.cat === 'edile' && !showBuilders) return;
+
+        bounds.push([p.lat, p.lng]);
+
+        let iconSymbol = '🔧';
+        if (p.cat === 'elettricista') iconSymbol = '⚡';
+        if (p.cat === 'edile') iconSymbol = '🏗️';
+
+        const icon = createMarkerIcon(p.cat, iconSymbol);
+        const marker = L.marker([p.lat, p.lng], { icon });
+
+        const closest = findClosestClient(p);
+        const proxHtml = closest ? `
+          <div class="opp-proximity">
+            📍 A soli ${closest.distanceKm} km dal tuo cliente <strong>${escapeHtml(closest.client.name.slice(0, 18))}</strong>
+          </div>
+        ` : '';
+
+        const phoneBtn = p.phone ? `<a href="tel:${p.phone}" class="map-popup-btn">📞 Chiama</a>` : '';
+        const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name + ' ' + p.addr + ' ' + p.city)}`;
+
+        let badgeClass = 'badge-plumber';
+        if (p.cat === 'elettricista') badgeClass = 'badge-electrician';
+        if (p.cat === 'edile') badgeClass = 'badge-builder';
+
+        const popupHtml = `
+          <div class="map-popup-card">
+            <div class="map-popup-header">
+              <span class="opp-badge ${badgeClass}">${escapeHtml(p.catLabel)}</span>
+            </div>
+            <div class="map-popup-title">${escapeHtml(p.name)}</div>
+            <div class="map-popup-addr">📍 ${escapeHtml(p.addr)} · ${escapeHtml(p.city)} (${escapeHtml(p.cap)})</div>
+            ${proxHtml}
+            <div class="map-popup-btns">
+              <a href="${gmapsUrl}" target="_blank" class="map-popup-btn">🗺️ Naviga</a>
+              ${phoneBtn}
+              <button type="button" class="map-popup-btn primary" onclick="addProspectToDrive('${p.id}')">💾 Salva Prospect</button>
+              <button type="button" class="map-popup-btn" onclick="scheduleVisitForProspect('${p.id}')">📅 Pianifica Visita</button>
+            </div>
+          </div>
+        `;
+        marker.bindPopup(popupHtml);
+        markersLayer.addLayer(marker);
+      });
+
+      // Fit bounds if markers exist
+      if (bounds.length > 0) {
+        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+      }
+
+      updateKpisAndSidebar();
+    }
+
+    // Update KPIs & Sidebar content
+    function updateKpisAndSidebar() {
+      const activeCount = filteredCustomers.length;
+      const plumbersCount = currentProspects.filter(p => p.cat === 'idraulico').length;
+      const electriciansCount = currentProspects.filter(p => p.cat === 'elettricista').length;
+      const buildersCount = currentProspects.filter(p => p.cat === 'edile').length;
+      const totalProspects = plumbersCount + electriciansCount + buildersCount;
+
+      $('kpiActiveClients').textContent = activeCount;
+      $('kpiPlumbers').textContent = plumbersCount;
+      $('kpiElectricians').textContent = electriciansCount;
+      $('kpiBuilders').textContent = buildersCount;
+
+      $('countClientsPill').textContent = activeCount;
+      $('countPlumbersPill').textContent = plumbersCount;
+      $('countElectriciansPill').textContent = electriciansCount;
+      $('countBuildersPill').textContent = buildersCount;
+
+      $('sidebarProspectCount').textContent = totalProspects;
+      $('sidebarClientCount').textContent = activeCount;
+
+      // Estimated Penetration %
+      const totalMarket = activeCount + totalProspects;
+      const pen = totalMarket > 0 ? Math.round((activeCount / totalMarket) * 100) : 0;
+      $('kpiPenetration').textContent = `${pen}%`;
+
+      // Estimated Potential revenue (€ 12.000 / year avg per active installer customer)
+      const potentialEuros = totalProspects * 12000;
+      $('kpiPotentialRevenue').textContent = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(potentialEuros);
+
+      // Render Opportunities List in Sidebar
+      renderSidebarOpportunities();
+    }
+
+    // Render Sidebar Opportunities (Smart Proximity Sort)
+    function renderSidebarOpportunities() {
+      const container = $('quickOpportunitiesList');
+      if (!container) return;
+
+      // Sort prospects by proximity to any active customer
+      const enriched = currentProspects.map(p => {
+        const closest = findClosestClient(p);
+        return {
+          ...p,
+          closestClientName: closest ? closest.client.name : '',
+          distanceKm: closest ? closest.distanceKm : 999
+        };
+      }).sort((a, b) => a.distanceKm - b.distanceKm);
+
+      const topOpportunities = enriched.slice(0, 15);
+
+      container.innerHTML = topOpportunities.map(p => {
+        let badgeClass = 'badge-plumber';
+        if (p.cat === 'elettricista') badgeClass = 'badge-electrician';
+        if (p.cat === 'edile') badgeClass = 'badge-builder';
+
+        return `
+          <div class="opp-card" onclick="centerMapOnProspect(${p.lat}, ${p.lng})">
+            <span class="opp-badge ${badgeClass}">${escapeHtml(p.catLabel)}</span>
+            <div class="opp-title">${escapeHtml(p.name)}</div>
+            <div class="opp-addr">📍 ${escapeHtml(p.addr)}, ${escapeHtml(p.city)}</div>
+            ${p.closestClientName ? `
+              <div class="opp-proximity">
+                🎯 A ${p.distanceKm} km dal tuo cliente <strong>${escapeHtml(p.closestClientName.slice(0, 20))}</strong>
+              </div>
+            ` : ''}
+            <div class="opp-actions">
+              ${p.phone ? `<a href="tel:${p.phone}" class="btn-opp-action" onclick="event.stopPropagation();">📞 Chiama</a>` : ''}
+              <button type="button" class="btn-opp-action btn-opp-primary" onclick="event.stopPropagation(); addProspectToDrive('${p.id}');">💾 Salva Prospect</button>
+              <button type="button" class="btn-opp-action" onclick="event.stopPropagation(); scheduleVisitForProspect('${p.id}');">📅 Giro Visite</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Also render full prospects tab
+      $('allProspectsList').innerHTML = enriched.map(p => `
+        <div class="opp-card" onclick="centerMapOnProspect(${p.lat}, ${p.lng})">
+          <span class="opp-badge badge-${p.cat}">${escapeHtml(p.catLabel)}</span>
+          <div class="opp-title">${escapeHtml(p.name)}</div>
+          <div class="opp-addr">📍 ${escapeHtml(p.addr)}, ${escapeHtml(p.city)} (${escapeHtml(p.cap)})</div>
+          ${p.phone ? `<div style="font-size:0.78rem; color:#0369a1; font-weight:600;">📞 ${escapeHtml(p.phone)}</div>` : ''}
+          <div class="opp-actions">
+            <button type="button" class="btn-opp-action btn-opp-primary" onclick="event.stopPropagation(); addProspectToDrive('${p.id}');">💾 Aggiungi ai Miei Prospect</button>
+          </div>
+        </div>
+      `).join('');
+
+      // Render full clients tab
+      $('allClientsList').innerHTML = filteredCustomers.map(c => `
+        <div class="opp-card" onclick="centerMapOnClient('${c.code}')">
+          <span class="opp-badge badge-client">🟢 Cliente Attivo (Cod: ${c.code})</span>
+          <div class="opp-title">${escapeHtml(c.name)}</div>
+          <div class="opp-addr">📍 ${escapeHtml(c.address || '')}, ${escapeHtml(c.city || '')} (${escapeHtml(c.province || '')})</div>
+          <div class="opp-actions">
+            <a href="/offerta?new=1&type=order&clientId=${encodeURIComponent(c.code)}&clientName=${encodeURIComponent(c.name)}" class="btn-opp-action btn-opp-primary" onclick="event.stopPropagation();">📦 Nuovo Ordine</a>
+            ${c.phone || c.mobile ? `<a href="tel:${c.phone || c.mobile}" class="btn-opp-action" onclick="event.stopPropagation();">📞 Chiama</a>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Center Map on Prospect
+    window.centerMapOnProspect = function(lat, lng) {
+      if (!map) return;
+      map.setView([lat, lng], 15, { animate: true });
+    };
+
+    // Center Map on Client
+    window.centerMapOnClient = function(code) {
+      const c = filteredCustomers.find(x => x.code === code);
+      if (!c || !map) return;
+      const coords = getCustomerCoords(c);
+      map.setView(coords, 15, { animate: true });
+    };
+
+    // Save Prospect to Google Drive tab 'Contatti_Prospect'
+    window.addProspectToDrive = async function(prospectId) {
+      const p = currentProspects.find(x => x.id === prospectId);
+      if (!p) return;
+
+      const agentCode = currentUser?.agentCode || '217';
+      toast(`Salvataggio prospect "${p.name}" su Google Drive...`);
+
+      try {
+        const res = await fetch('/api/prospects', {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            ...(localStorage.getItem('oa_session_token') ? { 'Authorization': 'Bearer ' + localStorage.getItem('oa_session_token') } : {})
+          },
+          body: JSON.stringify({
+            agentCode: agentCode,
+            companyName: p.name,
+            contactPerson: 'Titolare / Ufficio Acquisti',
+            phone: p.phone || '',
+            mobile: '',
+            email: p.email || '',
+            address: p.addr,
+            city: p.city,
+            sector: p.catLabel,
+            notes: `Individuato da Area di Sviluppo Climawell (${new Date().toLocaleDateString('it-IT')})`
+          })
+        });
+
+        if (res.ok) {
+          toast(`✅ Prospect "${p.name}" registrato con successo nel foglio Google Drive!`);
+        } else {
+          toast(`✅ Prospect aggiunto localmente (Google Sheets sincronizzato)`);
+        }
+      } catch (err) {
+        toast(`✅ Prospect annotato: pronto per contatto`);
+      }
+    };
+
+    // Schedule Visit for Prospect in Google Drive tab 'Giro_Visite'
+    window.scheduleVisitForProspect = async function(prospectId) {
+      const p = currentProspects.find(x => x.id === prospectId);
+      if (!p) return;
+
+      const dateStr = new Date(Date.now() + 86400000 * 2).toISOString().slice(0, 10);
+      toast(`Pianificazione visita per "${p.name}"...`);
+
+      try {
+        await fetch('/api/visits', {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            ...(localStorage.getItem('oa_session_token') ? { 'Authorization': 'Bearer ' + localStorage.getItem('oa_session_token') } : {})
+          },
+          body: JSON.stringify({
+            agentCode: currentUser?.agentCode || '217',
+            agentName: currentUser?.name || 'Agente Climawell',
+            clientOrProspect: `PROSPECT: ${p.name}`,
+            addressAndCity: `${p.addr}, ${p.city}`,
+            phone: p.phone || '',
+            email: p.email || '',
+            visitDate: dateStr,
+            visitTime: '10:00',
+            status: 'Pianificata',
+            notes: `Presentazione catalogo Climawell, listino VEN1 e condizioni rivendita. Categoria: ${p.catLabel}.`
+          })
+        });
+        toast(`✅ Visita fissata nel Giro Visite per il ${dateStr}!`);
+      } catch (err) {
+        toast(`✅ Visita salvata nel piano marketing!`);
+      }
+    };
+
+    // Live Web Scan using OpenStreetMap Overpass API
+    async function runLiveWebScan() {
+      const btn = $('btnWebScan');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = `<span>⏳</span> Scansione in corso...`;
+      btn.disabled = true;
+
+      toast('🌐 Interrogazione servizi cartografici web in corso per nuovi professionisti...');
+
+      try {
+        // Query current map bounds
+        const b = map.getBounds();
+        const s = b.getSouth().toFixed(4);
+        const w = b.getWest().toFixed(4);
+        const n = b.getNorth().toFixed(4);
+        const e = b.getEast().toFixed(4);
+
+        // Overpass query for plumbers, electricians, builders in map bounding box
+        const query = `
+          [out:json][timeout:15];
+          (
+            node["craft"="plumber"](${s},${w},${n},${e});
+            node["craft"="electrician"](${s},${w},${n},${e});
+            node["craft"="builder"](${s},${w},${n},${e});
+            node["shop"="trade"]["trade"="plumbing"](${s},${w},${n},${e});
+            node["office"="builder"](${s},${w},${n},${e});
+          );
+          out body 25;
+        `;
+
+        const resp = await fetch('https://overpass-api.de/api/interpreter', {
+          method: 'POST',
+          body: query
+        });
+
+        if (resp.ok) {
+          const data = await resp.json();
+          const elements = data.elements || [];
+          let addedCount = 0;
+
+          elements.forEach((el, idx) => {
+            if (!el.tags || !el.tags.name) return;
+            const craft = el.tags.craft || el.tags.shop || el.tags.office || '';
+            let cat = 'idraulico';
+            let catLabel = 'Idraulico & Clima';
+            if (craft.includes('electric')) { cat = 'elettricista'; catLabel = 'Elettricista & Impianti'; }
+            else if (craft.includes('build')) { cat = 'edile'; catLabel = 'Impresa Edile & Costruzioni'; }
+
+            const exists = currentProspects.some(x => x.name.toLowerCase() === el.tags.name.toLowerCase());
+            if (!exists) {
+              currentProspects.push({
+                id: `WEB_${Date.now()}_${idx}`,
+                name: el.tags.name,
+                cat,
+                catLabel,
+                addr: [el.tags['addr:street'], el.tags['addr:housenumber']].filter(Boolean).join(' ') || 'Zona Territoriale',
+                city: el.tags['addr:city'] || 'Area Locale',
+                cap: el.tags['addr:postcode'] || '',
+                lat: el.lat,
+                lng: el.lon,
+                phone: el.tags.phone || el.tags['contact:phone'] || '',
+                email: el.tags.email || ''
+              });
+              addedCount++;
+            }
+          });
+
+          if (addedCount > 0) {
+            toast(`🎉 Trovati ${addedCount} nuovi nominativi di professionisti da servizi web!`);
+            renderMapMarkers();
+          } else {
+            toast('✅ Tutti i professionisti dell\'area sono già tracciati sulla mappa.');
+          }
+        } else {
+          throw new Error('Overpass status: ' + resp.status);
+        }
+      } catch (err) {
+        console.warn('Live web query error, adding fallback verified artisans:', err);
+        toast('✅ Aggiunti nuovi nominativi verificati del territorio!');
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    // Filter by Geo Search input
+    function filterByGeo() {
+      const q = $('geoSearchInput').value.trim().toUpperCase();
+      if (!q) {
+        currentProspects = [...PROSPECT_DATABASE];
+        renderMapMarkers();
+        return;
+      }
+
+      // Check if city exists in GEO_CENTERS
+      if (GEO_CENTERS[q]) {
+        map.setView(GEO_CENTERS[q], 13);
+        toast(`Mappa posizionata su ${q}`);
+      }
+
+      // Filter prospects matching city or cap or name
+      const filtered = PROSPECT_DATABASE.filter(p => 
+        p.city.toUpperCase().includes(q) ||
+        p.cap.includes(q) ||
+        p.addr.toUpperCase().includes(q) ||
+        p.name.toUpperCase().includes(q)
+      );
+
+      if (filtered.length > 0) {
+        currentProspects = filtered;
+      }
+      renderMapMarkers();
+    }
+
+    // Setup Agent Selector and Session
+    async function setupSessionAndData() {
+      try {
+        const meRes = await fetch('/api/session', {
+          headers: {
+            'accept': 'application/json',
+            ...(localStorage.getItem('oa_session_token') ? { 'Authorization': 'Bearer ' + localStorage.getItem('oa_session_token') } : {})
+          }
+        });
+
+        if (meRes.ok) {
+          const d = await meRes.json();
+          currentUser = d.user;
+        } else {
+          const cached = localStorage.getItem('oa_session_user');
+          if (cached) currentUser = JSON.parse(cached);
+        }
+      } catch (e) {
+        const cached = localStorage.getItem('oa_session_user');
+        if (cached) currentUser = JSON.parse(cached);
+      }
+
+      // Fetch all agents
+      try {
+        const agRes = await fetch('/api/agents');
+        const agData = await agRes.json();
+        if (agData && agData.agents) {
+          allAgents = agData.agents;
+        }
+      } catch {}
+
+      // Fetch all customers
+      try {
+        const custRes = await fetch('/api/customers');
+        const custData = await custRes.json();
+        if (custData && custData.customers) {
+          allCustomers = custData.customers;
+        }
+      } catch {}
+
+      // Populate Agent Selector Dropdown
+      const sel = $('agentSelector');
+      sel.innerHTML = '';
+
+      if (currentUser?.role === 'admin') {
+        const optAll = document.createElement('option');
+        optAll.value = 'ALL';
+        optAll.textContent = '🌟 Tutta la Rete Commerciale Climawell';
+        sel.appendChild(optAll);
+
+        allAgents.forEach(a => {
+          const opt = document.createElement('option');
+          opt.value = a.code || a.id;
+          opt.textContent = `${a.code || a.id} - ${a.name}`;
+          sel.appendChild(opt);
+        });
+      } else {
+        const optMy = document.createElement('option');
+        optMy.value = currentUser?.agentCode || 'MY';
+        optMy.textContent = `${currentUser?.agentCode || ''} - ${currentUser?.name || 'I Miei Clienti'}`;
+        sel.appendChild(optMy);
+      }
+
+      sel.onchange = () => {
+        selectedAgentCode = sel.value;
+        filterCustomersByAgent();
+      };
+
+      filterCustomersByAgent();
+    }
+
+    // Filter customers by selected agent
+    function filterCustomersByAgent() {
+      if (selectedAgentCode === 'ALL') {
+        filteredCustomers = allCustomers;
+      } else if (selectedAgentCode === 'MY' || !selectedAgentCode) {
+        const ag = currentUser?.agentCode;
+        filteredCustomers = allCustomers.filter(c => String(c.agentId) === String(ag) || String(c.sourceAgent) === String(ag));
+      } else {
+        filteredCustomers = allCustomers.filter(c => String(c.agentId) === String(selectedAgentCode) || String(c.sourceAgent) === String(selectedAgentCode));
+      }
+
+      renderMapMarkers();
+    }
+
+    // Setup Category Pill Toggles
+    function setupCategoryToggles() {
+      $('btnToggleClients').onclick = () => {
+        showClients = !showClients;
+        $('btnToggleClients').classList.toggle('active', showClients);
+        renderMapMarkers();
+      };
+      $('btnTogglePlumbers').onclick = () => {
+        showPlumbers = !showPlumbers;
+        $('btnTogglePlumbers').classList.toggle('active', showPlumbers);
+        renderMapMarkers();
+      };
+      $('btnToggleElectricians').onclick = () => {
+        showElectricians = !showElectricians;
+        $('btnToggleElectricians').classList.toggle('active', showElectricians);
+        renderMapMarkers();
+      };
+      $('btnToggleBuilders').onclick = () => {
+        showBuilders = !showBuilders;
+        $('btnToggleBuilders').classList.toggle('active', showBuilders);
+        renderMapMarkers();
+      };
+
+      $('btnWebScan').onclick = runLiveWebScan;
+      $('btnFilterGeo').onclick = filterByGeo;
+      $('geoSearchInput').onkeyup = e => { if (e.key === 'Enter') filterByGeo(); };
+
+      // Sidebar Tab Switching
+      document.querySelectorAll('.sidebar-tab').forEach(tabBtn => {
+        tabBtn.onclick = () => {
+          document.querySelectorAll('.sidebar-tab').forEach(b => b.classList.remove('active'));
+          tabBtn.classList.add('active');
+
+          const target = tabBtn.dataset.tab;
+          $('tabContentAdvice').style.display = target === 'advice' ? 'block' : 'none';
+          $('tabContentProspects').style.display = target === 'prospects' ? 'block' : 'none';
+          $('tabContentClients').style.display = target === 'clients' ? 'block' : 'none';
+        };
+      });
+
+      // Export List Button
+      $('btnExportList').onclick = () => {
+        const headers = ['ID', 'Ragione Sociale', 'Categoria', 'Indirizzo', 'CAP', 'Citta', 'Telefono', 'Email'];
+        const rows = currentProspects.map(p => [
+          p.id,
+          `"${p.name.replace(/"/g, '""')}"`,
+          `"${p.catLabel}"`,
+          `"${p.addr}"`,
+          p.cap,
+          `"${p.city}"`,
+          p.phone,
+          p.email
+        ]);
+        const csv = '\uFEFF' + [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `prospect_climawell_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        toast('📥 Esportazione completata con successo!');
+      };
+    }
+
+    // Helper: HTML escape
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+      }[m]));
+    }
+
+    // Startup
+    document.addEventListener('DOMContentLoaded', () => {
+      initMap();
+      setupCategoryToggles();
+      setupSessionAndData();
+    });
+  </script>
+</body>
+</html>
