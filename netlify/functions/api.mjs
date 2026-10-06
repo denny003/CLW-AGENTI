@@ -15,14 +15,17 @@ const unb64 = v => Buffer.from(v, 'base64url').toString('utf8');
 const secret = () => process.env.SESSION_SECRET || 'secret-key-at-least-32-characters-long';
 const sign = v => crypto.createHmac('sha256', secret()).update(v).digest('base64url');
 
+let usersCache = { timestamp: 0, users: [] };
+
 function users() {
+  if (usersCache.users.length > 0) return usersCache.users;
   try {
     const list = JSON.parse(process.env.PILOT_USERS || '[]');
     if (list.length) return list;
   } catch {}
   return [
-    { username: 'agente01', password: 'cambiare-password', name: 'Tina Cucci', role: 'agent', agentCode: 'AG01' },
-    { username: 'amministrazione', password: 'cambiare-password', name: 'Amministrazione', role: 'admin', agentCode: 'AG01' }
+    { username: 'admin', password: 'clw2026!', name: 'Amministrazione Climawell', role: 'admin', agentCode: 'TUTTI' },
+    { username: 'f.pontrelli', password: 'clw2026!', name: 'Francesco Pontrelli', role: 'agent', agentCode: '217' }
   ];
 }
 
@@ -40,7 +43,7 @@ function createSessionToken(user) {
     username: user.username,
     name: user.name,
     role: user.role || 'agent',
-    agentCode: normalizeAgentId(user.agentCode || 'AG01'),
+    agentCode: normalizeAgentId(user.agentCode || (user.role === 'admin' ? 'TUTTI' : 'AG01')),
     exp: Date.now() + 12 * 60 * 60 * 1000
   });
   return `${payload}.${sign(payload)}`;
@@ -82,7 +85,7 @@ function sessionCookie(user) {
     username: user.username,
     name: user.name,
     role: user.role || 'agent',
-    agentCode: normalizeAgentId(user.agentCode || 'AG01'),
+    agentCode: normalizeAgentId(user.agentCode || (user.role === 'admin' ? 'TUTTI' : 'AG01')),
     exp: Date.now() + 12 * 60 * 60 * 1000
   });
   return `oa_session=${payload}.${sign(payload)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=43200`;
@@ -109,17 +112,17 @@ const OFFICIAL_SYSTEM_SPREADSHEETS = Object.freeze({
   },
   agents: {
     fileName: 'Anagrafica_Agenti',
-    spreadsheetId: '13HaTubf4_xVTtzkQUcYINkRtuSzLR2qGzJAiA-oAecU',
+    spreadsheetId: '1Aspw3CnD0bgAqqZW4PoN-OOSSZBBtNrurTa3fy_56Tk',
     tab: 'Agenti'
   },
   customers: {
     fileName: 'clienti',
-    spreadsheetId: '1rkFDBTCJD3JlrcvyOPGHjYTJDkjuMc24dJ7l6EqQ6I8',
+    spreadsheetId: '1Ui3W6-jVIww7QgTtnXaywJj2ZyQiiaHAd92Xl5KRrD8',
     tab: 'clienti'
   },
   products: {
     fileName: 'Articoli',
-    spreadsheetId: '17ErnowHZDqA3WDTN5auHkyTBPVn4MqkI8BFkiqkDhmE',
+    spreadsheetId: '1g6zrWK_zZJZ82kdoNgda9KuoemYlSs0XGRRfJvoOvUk',
     tab: 'q_listino_prezzi_catalogo'
   },
   repository: {
@@ -281,6 +284,95 @@ async function updateRow(id, range, values) {
     method: 'PUT',
     body: JSON.stringify({ values })
   });
+}
+
+async function getUsers() {
+  const now = Date.now();
+  if (usersCache.users.length > 0 && (now - usersCache.timestamp < 60000)) {
+    return usersCache.users;
+  }
+
+  const agentsId = cleanEnvId(runtimeConfig?.agents?.spreadsheetId) || OFFICIAL_SYSTEM_SPREADSHEETS.agents.spreadsheetId;
+  const tab = 'Utenti';
+
+  try {
+    const rows = await readRange(agentsId, `'${tab}'!A1:H200`);
+    if (rows && rows.length > 0) {
+      let headerIdx = -1;
+      for (let i = 0; i < rows.length; i++) {
+        const line = (rows[i] || []).map(c => String(c).toLowerCase().trim());
+        if (line.includes('username') || line.includes('utente')) {
+          headerIdx = i;
+          break;
+        }
+      }
+
+      if (headerIdx >= 0) {
+        const header = rows[headerIdx].map(c => String(c).toLowerCase().trim());
+        const col = name => header.findIndex(h => h.includes(name));
+        const userIdx = col('username') >= 0 ? col('username') : col('utente');
+        const passIdx = col('password') >= 0 ? col('password') : col('pwd');
+        const nameIdx = col('nome');
+        const roleIdx = col('ruolo') >= 0 ? col('ruolo') : col('role');
+        const codeIdx = col('codiceagente') >= 0 ? col('codiceagente') : (col('codice agente') >= 0 ? col('codice agente') : col('codice'));
+        const emailIdx = col('email');
+        const activeIdx = col('attivo');
+
+        const parsedUsers = [];
+        for (let i = headerIdx + 1; i < rows.length; i++) {
+          const r = rows[i] || [];
+          const username = userIdx >= 0 && r[userIdx] ? String(r[userIdx]).trim() : '';
+          const password = passIdx >= 0 && r[passIdx] ? String(r[passIdx]).trim() : '';
+          if (!username || !password) continue;
+
+          if (activeIdx >= 0 && r[activeIdx]) {
+            const act = String(r[activeIdx]).trim().toUpperCase();
+            if (act === 'NO' || act === 'FALSE' || act === '0' || act.includes('DISATTIV')) {
+              continue;
+            }
+          }
+
+          const rawRole = roleIdx >= 0 && r[roleIdx] ? String(r[roleIdx]).trim().toLowerCase() : 'agent';
+          const role = (rawRole.includes('admin') || rawRole.includes('amministra')) ? 'admin' : (rawRole.includes('area') ? 'area_head' : 'agent');
+          const codeVal = codeIdx >= 0 && r[codeIdx] ? String(r[codeIdx]).trim() : '';
+          const agentCode = codeVal || (role === 'admin' ? 'TUTTI' : 'AG01');
+          const name = nameIdx >= 0 && r[nameIdx] ? String(r[nameIdx]).trim() : username;
+          const email = emailIdx >= 0 && r[emailIdx] ? String(r[emailIdx]).trim() : '';
+
+          parsedUsers.push({
+            username,
+            password,
+            name,
+            role,
+            agentCode,
+            email
+          });
+        }
+
+        if (parsedUsers.length > 0) {
+          console.log(`[getUsers] Caricati ${parsedUsers.length} utenti da Google Fogli tab '${tab}'`);
+          usersCache = { timestamp: now, users: parsedUsers };
+          return parsedUsers;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn(`[getUsers] Impossibile leggere foglio '${tab}':`, err.message);
+  }
+
+  if (usersCache.users.length > 0) {
+    return usersCache.users;
+  }
+
+  try {
+    const list = JSON.parse(process.env.PILOT_USERS || '[]');
+    if (list.length) return list;
+  } catch {}
+
+  return [
+    { username: 'admin', password: 'clw2026!', name: 'Amministrazione Climawell', role: 'admin', agentCode: 'TUTTI' },
+    { username: 'f.pontrelli', password: 'clw2026!', name: 'Francesco Pontrelli', role: 'agent', agentCode: '217' }
+  ];
 }
 
 // -------------------------------------------------------------
@@ -676,7 +768,7 @@ async function fetchCustomersData(customId, customTab, user = null) {
   const id = cleanEnvId(customId) || runtimeConfig.customers.spreadsheetId || OFFICIAL_SYSTEM_SPREADSHEETS.customers.spreadsheetId;
   const tab = customTab || runtimeConfig.customers.tab || OFFICIAL_SYSTEM_SPREADSHEETS.customers.tab || 'clienti';
   try {
-    const rows = await readRange(id, `'${tab}'!A1:Z500`);
+    const rows = await readRange(id, `'${tab}'!A1:Z3000`);
     if (rows.length > 1) {
       const header = rows[0].map(c => String(c).toLowerCase().trim());
       const col = name => header.findIndex(h => h.includes(name));
@@ -684,7 +776,8 @@ async function fetchCustomersData(customId, customTab, user = null) {
       const nameIdx = col('ragione sociale') >= 0 ? col('ragione sociale') : col('cliente');
       const typeIdx = col('tipo');
       const actIdx = col('attivit');
-      const agentIdx = col('agente');
+      const agentCodeIdx = col('codiceagente') >= 0 ? col('codiceagente') : (col('codice agente') >= 0 ? col('codice agente') : -1);
+      const agentIdx = header.findIndex(h => h === 'agente' || (h.includes('agente') && !h.includes('codice')));
       const addressIdx = col('indirizzo');
       const capIdx = col('cap');
       const cityIdx = col('citt');
@@ -704,8 +797,9 @@ async function fetchCustomersData(customId, customTab, user = null) {
         const r = rows[i];
         if (!r || r[codeIdx] == null || String(r[codeIdx]).trim() === '') continue;
         const codeVal = String(r[codeIdx]).replace(/\.0$/, '').trim();
-        const agentVal = String(r[agentIdx] || '').trim();
+        const agentVal = agentCodeIdx >= 0 && r[agentCodeIdx] ? String(r[agentCodeIdx]).trim() : (agentIdx >= 0 ? String(r[agentIdx] || '').trim() : '');
         const agentId = agentVal ? normalizeAgentId(agentVal) : 'UNASSIGNED';
+        const agentName = agentIdx >= 0 ? String(r[agentIdx] || '').trim() : '';
 
         customers.push({
           id: codeVal,
@@ -714,7 +808,7 @@ async function fetchCustomersData(customId, customTab, user = null) {
           type: String(r[typeIdx] || '').trim(),
           activity: String(r[actIdx] || '').trim(),
           agentId,
-          sourceAgent: agentVal,
+          sourceAgent: agentName || agentVal,
           address: String(r[addressIdx] || '').trim(),
           postalCode: String(r[capIdx] || '').replace(/\.0$/, '').trim(),
           city: String(r[cityIdx] || '').trim(),
@@ -763,7 +857,7 @@ async function fetchProductsData(customId, customTab) {
   const id = cleanEnvId(customId) || runtimeConfig.products.spreadsheetId || OFFICIAL_SYSTEM_SPREADSHEETS.products.spreadsheetId;
   const tab = customTab || runtimeConfig.products.tab || OFFICIAL_SYSTEM_SPREADSHEETS.products.tab || 'q_listino_prezzi_catalogo';
   try {
-    const rows = await readRange(id, `'${tab}'!A1:AN500`);
+    const rows = await readRange(id, `'${tab}'!A1:AN2000`);
     if (rows.length > 1) {
       const header = rows[0].map(c => String(c).toLowerCase().trim());
       const col = name => header.findIndex(h => h.includes(name));
@@ -3306,9 +3400,15 @@ export default async (request, context) => {
     // Auth endpoints
     if (path === 'login' && request.method === 'POST') {
       const body = await request.json().catch(() => ({}));
-      const user = users().find(x => x.username === body.username && x.password === body.password);
+      const inputUser = String(body.username || '').trim().toLowerCase();
+      const inputPass = String(body.password || '').trim();
+      const allUsers = await getUsers();
+      const user = allUsers.find(x => 
+        String(x.username || '').trim().toLowerCase() === inputUser && 
+        String(x.password || '').trim() === inputPass
+      );
       if (!user) {
-        return json(401, { error: 'Credenziali non valide. Riprova con i dati forniti dall’amministrazione.' });
+        return json(401, { error: 'Credenziali non valide. Riprova con i dati forniti dall’amministrazione o controlla il foglio Utenti su Google Drive.' });
       }
       const token = createSessionToken(user);
       return json(200, { ok: true, user: { username: user.username, name: user.name, role: user.role, agentCode: user.agentCode }, token }, { 'set-cookie': sessionCookie(user) });
@@ -3316,6 +3416,25 @@ export default async (request, context) => {
 
     if (path === 'logout') {
       return json(200, { ok: true }, { 'set-cookie': 'oa_session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0' });
+    }
+
+    if (path === 'users' && request.method === 'GET') {
+      const u = session(request);
+      if (!u || u.role !== 'admin') {
+        return json(403, { error: 'Accesso riservato agli amministratori' });
+      }
+      if (url.searchParams.get('refresh') === '1') {
+        usersCache.timestamp = 0;
+      }
+      const allUsers = await getUsers();
+      const safeList = allUsers.map(x => ({
+        username: x.username,
+        name: x.name,
+        role: x.role,
+        agentCode: x.agentCode,
+        email: x.email
+      }));
+      return json(200, { ok: true, count: safeList.length, users: safeList });
     }
 
     // Diagnostics endpoint (accessible for admin check & configurazione)
