@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Informativa sulla Privacy & Cookie Policy — Pascal Cosmesi</title>
+  <title>Informativa sulla Privacy & Cookie Policy — Climawell</title>
   <link rel="icon" href="/favicon.svg">
   <link rel="stylesheet" href="/styles.css">
   <style>
@@ -140,6 +140,7 @@
       border-radius: 10px;
       padding: 18px 20px;
       margin-top: 20px;
+      line-height: 1.7;
     }
     .footer-note {
       text-align: center;
@@ -152,9 +153,9 @@
 <body>
   <header class="topbar-simple">
     <div class="topbar-inner">
-      <div class="topbar-brand">
-        Pascal Cosmesi International
-        <small>Sistema Gestionale Rete Vendite & Produzione</small>
+      <div class="topbar-brand" id="privacyBrand">
+        Climawell
+        <small>Sistema Gestionale Rete Vendite</small>
       </div>
       <div>
         <a href="/" class="btn-back">← Torna all'applicazione</a>
@@ -171,17 +172,19 @@
       </div>
 
       <div class="highlight-box">
-        <strong>Sintesi di trasparenza:</strong> La presente applicazione web è uno strumento gestionale operativo ad uso professionale (B2B) impiegato per la raccolta di offerte commerciali, ordini clienti, emissione di documenti di trasporto (DDT) e pianificazione delle scorte. Non contiene cookie di profilazione o tracciamento pubblicitario di terze parti.
+        <strong>Sintesi di trasparenza:</strong> La presente applicazione web è uno strumento gestionale operativo ad uso professionale (B2B) impiegato per la raccolta di offerte commerciali, ordini clienti, emissione di documenti di trasporto (DDT) e pianificazione logistica. Non contiene cookie di profilazione o tracciamento pubblicitario di terze parti.
       </div>
 
       <h2>1. Titolare del Trattamento</h2>
       <p>
         Il Titolare del trattamento dei dati personali raccolti ed elaborati attraverso questa piattaforma è:
       </p>
-      <div class="contact-card">
-        <strong>Pascal Milano / Pascal Cosmesi International</strong><br>
-        Sede Legale: Via F.lli Bandiera 24, 50100 Sovigliana (FI), Italia<br>
-        Email per l'esercizio dei diritti di protezione dei dati: <a href="mailto:info@pascalmilano.it" style="color:var(--blue);">info@pascalmilano.it</a>
+      <div class="contact-card" id="privacyContactCard">
+        <strong id="companyNameDisplay" style="font-size:1.05rem; color:var(--navy);">Climawell</strong><br>
+        <span id="companyAddressDisplay">Sede Legale: Via delle Tre Pietre 2/C, 50149 Firenze (FI), Italia</span><br>
+        <span id="companyVatDisplay">Partita IVA / Codice Fiscale: 04732490489</span><br>
+        <span id="companyPhoneDisplay">Telefono: 055-4289074</span><br>
+        Email per l'esercizio dei diritti di protezione dei dati: <a href="mailto:info@climawell.it" id="companyEmailDisplay" class="companyEmailLink" style="color:var(--blue); font-weight:600;">info@climawell.it</a>
       </div>
 
       <h2>2. Tipologia dei Dati Personali Trattati</h2>
@@ -193,7 +196,7 @@
         <li><strong>Dati fiscali e bancari:</strong> Codice Destinatario SDI e indirizzo PEC per la fatturazione elettronica, coordinate bancarie (IBAN e banca d'appoggio) per l'evasione dei pagamenti concordati (es. Ri.Ba. o bonifico).</li>
         <li><strong>Dati relativi alle transazioni commerciali:</strong> Storico preventivi, offerte, ordini inviati, prezzi applicati, sconti autorizzati, stati di avanzamento (approvazione, picking, fatturazione).</li>
         <li><strong>Dati di trasporto e logistica:</strong> Numero di DDT, dati del vettore incaricato, numero di tracciamento spedizione (tracking), data di consegna.</li>
-        <li><strong>Dati di produzione e lotti (GMP):</strong> Registrazione dei numeri di lotto abbinati ai prodotti cosmetici movimentati, in conformità agli standard GMP e al Regolamento (CE) n. 1223/2009.</li>
+        <li><strong>Dati relativi ad articoli e ordini:</strong> Registrazione di articoli di catalogo, codici articolo, quantità e listini applicati per la corretta evasione delle forniture.</li>
         <li><strong>Dati degli operatori e agenti:</strong> Nome, cognome, codice agente, credenziali di autenticazione e log tecnici di operatività a fini di sicurezza.</li>
       </ul>
 
@@ -207,10 +210,6 @@
         <li>
           <strong>Adempimento di obblighi legali e fiscali (art. 6, par. 1, lett. c GDPR):</strong>
           Emissione di documenti di trasporto (DDT), adempimenti tributari, fatturazione elettronica tramite SDI e tenuta delle scritture contabili obbligatorie ai sensi dell'art. 2220 del Codice Civile e del D.P.R. 633/1972.
-        </li>
-        <li>
-          <strong>Tracciabilità sanitaria e normativa cosmetica (art. 6, par. 1, lett. c GDPR):</strong>
-          Gestione e registrazione dei numeri di lotto dei prodotti cosmetici per consentire la rintracciabilità della catena di fornitura come imposto dal Regolamento CE n. 1223/2009.
         </li>
         <li>
           <strong>Legittimo interesse del Titolare alla sicurezza informatica (art. 6, par. 1, lett. f GDPR):</strong>
@@ -256,7 +255,7 @@
       </div>
       <p>Vengono impiegati unicamente:</p>
       <ul>
-        <li><strong>Cookie tecnici di sessione (`oa_session`):</strong> Indispensabili per consentire l'autenticazione sicura dell'operatore autorizzato e l'integrità delle chiamate API.</li>
+        <li><strong>Cookie tecnici di sessione (<code>oa_session</code>):</strong> Indispensabili per consentire l'autenticazione sicura dell'operatore autorizzato e l'integrità delle chiamate API.</li>
         <li><strong>Storage locale del browser (localStorage / IndexedDB):</strong> Utilizzato in modo puramente funzionale per memorizzare temporaneamente le bozze dei documenti, le impostazioni operative del gestionale e la cache per consentire il lavoro anche in assenza transitoria di connettività Internet (Service Worker PWA).</li>
       </ul>
       <p>
@@ -274,16 +273,72 @@
         <li><strong>Diritto di opposizione (art. 21 GDPR):</strong> Opporsi in qualsiasi momento, per motivi legittimi, al trattamento dei dati personali.</li>
       </ul>
       <p>
-        Per l'esercizio di uno qualsiasi dei diritti sopra elencati, l'interessato può inoltrare una richiesta scritta corredata da un valido recapito all'indirizzo email: <a href="mailto:info@pascalmilano.it" style="color:var(--blue); font-weight:600;">info@pascalmilano.it</a>. Il Titolare fornirà riscontro entro 30 giorni dalla ricezione della richiesta.
+        Per l'esercizio di uno qualsiasi dei diritti sopra elencati, l'interessato può inoltrare una richiesta scritta corredata da un valido recapito all'indirizzo email: <a href="mailto:info@climawell.it" class="companyEmailLink" style="color:var(--blue); font-weight:600;">info@climawell.it</a>. Il Titolare fornirà riscontro entro 30 giorni dalla ricezione della richiesta.
       </p>
       <p>
         Resta sempre salvo il diritto dell'interessato di proporre reclamo all'Autorità di Controllo competente: <strong>Garante per la Protezione dei Dati Personali</strong> (Piazza Venezia n. 11, 00187 Roma — Sito web: <a href="https://www.garanteprivacy.it" target="_blank" rel="noopener" style="color:var(--blue);">www.garanteprivacy.it</a> — Email: <a href="mailto:garante@gpdp.it" style="color:var(--blue);">garante@gpdp.it</a>).
       </p>
 
-      <div class="footer-note">
-        Ultimo aggiornamento informativa: Settembre 2026 · Pascal Cosmesi International
+      <div class="footer-note" id="privacyFooterNote">
+        Ultimo aggiornamento informativa: 2026 · Climawell
       </div>
     </article>
   </main>
+
+  <script>
+    async function loadCompanyData() {
+      try {
+        const res = await fetch('/api/company', { cache: 'no-store' });
+        const data = await res.json();
+        if (data && data.company) {
+          const c = data.company;
+          const name = c.displayName || c.companyName || 'Climawell';
+          const addr = [c.address, c.postalCode, (c.city || c.province)].filter(Boolean).join(', ') + (c.province ? ` (${c.province})` : '') + (c.country ? `, ${c.country}` : '');
+          const email = c.email || 'info@climawell.it';
+          const vat = c.vatNumber || c.taxCode || '';
+          const phone = c.phone || '';
+
+          document.title = `Informativa sulla Privacy & Cookie Policy — ${name}`;
+          const brand = document.getElementById('privacyBrand');
+          if (brand) brand.innerHTML = `${name} <small>Sistema Gestionale Rete Vendite</small>`;
+
+          const nameEl = document.getElementById('companyNameDisplay');
+          if (nameEl) nameEl.textContent = name;
+
+          const addrEl = document.getElementById('companyAddressDisplay');
+          if (addrEl && addr) addrEl.textContent = `Sede Legale: ${addr}`;
+
+          const vatEl = document.getElementById('companyVatDisplay');
+          if (vatEl) vatEl.textContent = vat ? `Partita IVA / Codice Fiscale: ${vat}` : '';
+
+          const phoneEl = document.getElementById('companyPhoneDisplay');
+          if (phoneEl) {
+            phoneEl.textContent = phone ? `Telefono: ${phone}` : '';
+            phoneEl.style.display = phone ? 'inline' : 'none';
+          }
+
+          const emailEl = document.getElementById('companyEmailDisplay');
+          if (emailEl) {
+            emailEl.textContent = email;
+            emailEl.href = `mailto:${email}`;
+          }
+
+          document.querySelectorAll('.companyEmailLink').forEach(a => {
+            a.textContent = email;
+            a.href = `mailto:${email}`;
+          });
+
+          const footerNote = document.getElementById('privacyFooterNote');
+          if (footerNote) {
+            const year = new Date().getFullYear();
+            footerNote.textContent = `Ultimo aggiornamento informativa: ${year} · ${name}`;
+          }
+        }
+      } catch (err) {
+        console.warn('Caricamento dinamico dati azienda:', err);
+      }
+    }
+    document.addEventListener('DOMContentLoaded', loadCompanyData);
+  </script>
 </body>
 </html>

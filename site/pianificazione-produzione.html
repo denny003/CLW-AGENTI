@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pianificazione Produzione & Scorte Intelligenti | Pascal Cosmesi</title>
+  <title>Pianificazione Produzione & Scorte Intelligenti | Climawell</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -793,9 +793,9 @@
   <!-- TOPBAR -->
   <header class="topbar">
     <div class="brand">
-      <span class="brand-mark">PC</span>
+      <span class="brand-mark">CW</span>
       <div>
-        <strong>Pascal Cosmesi International</strong>
+        <strong id="prodBrandTitle">Climawell</strong>
         <small style="display:block; color:var(--muted); font-size:.78rem;">Pianificazione Produzione, Scorte & Ubicazioni Magazzino</small>
       </div>
     </div>
@@ -990,7 +990,7 @@
   </main>
 
   <footer style="text-align: center; padding: 24px 16px 36px; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--line); margin-top: 36px;">
-    <div>© Pascal Milano / Pascal Cosmesi International — Reparto Produzione & Magazzino</div>
+    <div>© Climawell — Reparto Produzione & Magazzino</div>
     <div style="margin-top: 6px;">
       <a href="/privacy.html" style="color: var(--blue); text-decoration: none; font-weight: 500;">🔒 Informativa Privacy & Protezione Dati (GDPR Reg. UE 2016/679)</a>
     </div>
@@ -2383,7 +2383,7 @@
           <div style="display:flex; justify-content:space-between; border-bottom:2px solid #0f172a; padding-bottom:12px; margin-bottom:16px;">
             <div>
               <h1 style="margin:0; font-size:1.35rem; color:#0f172a;">🏭 VERBALE DI RILASCIO LOTTI E TRASFERIMENTO A MAGAZZINO</h1>
-              <div style="font-size:0.95rem; font-weight:700; color:#475569; margin-top:4px;">Pascal Cosmesi International - Consegna Interna Produzione ➔ Magazzino</div>
+              <div style="font-size:0.95rem; font-weight:700; color:#475569; margin-top:4px;">Climawell - Consegna Interna Produzione ➔ Magazzino</div>
               <div style="font-size:0.78rem; color:#059669; font-weight:600; margin-top:2px;">Conforme a: Reg. CE 1223/2009 art. 19 & Good Manufacturing Practices (ISO 22716)</div>
             </div>
             <div style="text-align:right; font-size:0.85rem;">
@@ -2535,7 +2535,7 @@
       const csv = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
       const link = document.createElement('a');
       link.href = encodeURI(csv);
-      link.download = `piano_produzione_pascal_${new Date().toISOString().slice(0, 10)}.csv`;
+      link.download = `piano_produzione_climawell_${new Date().toISOString().slice(0, 10)}.csv`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -2572,7 +2572,7 @@
           <div style="display:flex; justify-content:space-between; border-bottom:2px solid #0f172a; padding-bottom:12px; margin-bottom:16px;">
             <div>
               <h1 style="margin:0; font-size:1.4rem; color:#0f172a;">🏭 SCHEDA PIANIFICAZIONE PRODUZIONE & RIPRISTINO SCORTE</h1>
-              <div style="font-size:0.95rem; font-weight:700; color:#475569; margin-top:4px;">Pascal Cosmesi International - Dati Live Google Drive</div>
+              <div style="font-size:0.95rem; font-weight:700; color:#475569; margin-top:4px;">Climawell - Dati Live Google Drive</div>
             </div>
             <div style="text-align:right; font-size:0.85rem;">
               <div><strong>Data:</strong> ${dateStr}</div>

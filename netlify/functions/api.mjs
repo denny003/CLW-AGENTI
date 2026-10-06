@@ -107,7 +107,7 @@ function normalizeAgentId(code) {
 const OFFICIAL_SYSTEM_SPREADSHEETS = Object.freeze({
   company: {
     sheetName: 'Dati_Azienda_e_Mandanti',
-    spreadsheetId: '1-ntNPKA3gdjZaxYntGNkXtKC5Kt4JIXGSoQfESO169M',
+    spreadsheetId: '13OvGppFZm9WnA8SL_6gpNi7s_A2P0seWogN1DoVwZHA',
     tab: 'Dati azienda'
   },
   agents: {
@@ -643,10 +643,18 @@ async function loadSeed() {
   }
 }
 
+let companyCache = { timestamp: 0, company: null };
+
 // 1. Fetch Company
 async function fetchCompanyData(customId, customTab) {
   const id = cleanEnvId(customId) || runtimeConfig.company.spreadsheetId || OFFICIAL_SYSTEM_SPREADSHEETS.company.spreadsheetId;
   const tab = customTab || runtimeConfig.company.tab || OFFICIAL_SYSTEM_SPREADSHEETS.company.tab || 'Dati azienda';
+
+  const now = Date.now();
+  if (!customId && !customTab && companyCache.company && (now - companyCache.timestamp < 60000)) {
+    return { ok: true, source: 'google-sheets-cache', company: companyCache.company };
+  }
+
   try {
     const rows = await readRange(id, `'${tab}'!A1:D45`);
     const out = {};
@@ -656,10 +664,22 @@ async function fetchCompanyData(customId, customTab) {
       }
     }
     if (Object.keys(out).length > 0) {
+      if (!out.city && out.province) {
+        out.city = out.province;
+      }
+      if (!out.footerText) {
+        out.footerText = `© ${out.displayName || out.companyName || 'Climawell'} — Sistema Gestionale Rete Vendite`;
+      }
+      if (!customId && !customTab) {
+        companyCache = { timestamp: now, company: out };
+      }
       return { ok: true, source: 'google-sheets', company: out };
     }
   } catch (err) {
     console.warn('Google Sheets company read error:', err.message);
+  }
+  if (companyCache.company) {
+    return { ok: true, source: 'google-sheets-cache', company: companyCache.company };
   }
   const seed = await loadSeed();
   return { ok: true, source: 'offline-cache', company: seed.company || {} };
@@ -1022,7 +1042,7 @@ async function runDiagnostics(testCfg = {}) {
       status: 'warning',
       icon: '🟡',
       label: 'Copia locale attiva',
-      message: 'Uso dati locali di fallback (Pascal Milano 2)',
+      message: 'Uso dati locali di fallback (Climawell)',
       details: 'Connessione Google Sheets API non attiva'
     };
   }
@@ -2674,7 +2694,7 @@ async function setupWarehouseSpreadsheet(whId) {
       const nowStr = new Date().toLocaleDateString('it-IT') + ' ' + new Date().toLocaleTimeString('it-IT');
       const infoRows = [
         ['🏭 REGISTRO UFFICIALE MAGAZZINO, LOGISTICA E PRODUZIONE', '', ''],
-        ['Azienda:', 'Pascal Cosmesi International', ''],
+        ['Azienda:', 'Climawell', ''],
         ['Stato Sistema:', '🟢 Connesso e Sincronizzato in tempo reale con OrderSender', ''],
         ['Spreadsheet ID:', whId, ''],
         ['Data Inizializzazione:', nowStr, ''],

@@ -4,7 +4,7 @@
 const OFFICIAL_SYSTEM_SPREADSHEETS = Object.freeze({
   company: {
     sheetName: "Dati_Azienda_e_Mandanti",
-    spreadsheetId: "1-ntNPKA3gdjZaxYntGNkXtKC5Kt4JIXGSoQfESO169M",
+    spreadsheetId: "13OvGppFZm9WnA8SL_6gpNi7s_A2P0seWogN1DoVwZHA",
     tab: "Dati azienda"
   },
   agents: {

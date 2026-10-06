@@ -758,7 +758,7 @@
   </main>
 
   <footer style="text-align: center; padding: 24px 16px 36px; color: #64748b; font-size: 0.85rem; border-top: 1px solid #e2e8f0; margin-top: 36px;">
-    <div>© Pascal Milano / Pascal Cosmesi International — Gestione Ordini, Magazzino & DDT</div>
+    <div id="footerText">© Climawell — Gestione Ordini, Magazzino & DDT</div>
     <div style="margin-top: 6px;">
       <a href="/privacy.html" style="color: #0284c7; text-decoration: none; font-weight: 500;">🔒 Informativa Privacy & Protezione Dati (GDPR Reg. UE 2016/679)</a>
     </div>
@@ -1085,16 +1085,16 @@
     let allOffers = [];
     let allCustomers = [];
     let companyProfile = {
-      displayName: 'Pascal Cosmesi International',
-      companyName: 'Pascal Milano',
-      address: 'Via F.lli Bandiera 24',
-      postalCode: '50100',
-      city: 'Sovigliana',
+      displayName: 'Climawell',
+      companyName: 'Climawell',
+      address: 'Via delle Tre Pietre 2/C',
+      postalCode: '50149',
+      city: 'Firenze',
       province: 'FI',
       phone: '055/42.89.074',
-      vatNumber: '1234567890',
-      website: 'www.pascalmilano.it',
-      email: 'info@pascalmilano.it'
+      vatNumber: '04732490489',
+      website: 'www.climawell.it',
+      email: 'info@climawell.it'
     };
     let currentFilter = 'all';
 
@@ -1116,6 +1116,9 @@
         ]);
         if (compRes?.company && Object.keys(compRes.company).length > 0) {
           companyProfile = { ...companyProfile, ...compRes.company };
+          if ($('footerText')) {
+            $('footerText').textContent = compRes.company.footerText || `© ${compRes.company.displayName || compRes.company.companyName || 'Climawell'} — Gestione Ordini, Magazzino & DDT`;
+          }
         }
         if (custRes?.customers && Array.isArray(custRes.customers)) {
           allCustomers = custRes.customers;
@@ -1763,7 +1766,7 @@
       }
     }
 
-    // Print DDT / Bolla di Consegna (Conforme D.P.R. 472/1996 - Modello Pascal Cosmesi International)
+    // Print DDT / Bolla di Consegna (Conforme D.P.R. 472/1996 - Modello Climawell)
     function openPrintDdt(orderId) {
       try {
         const ord = allOrders.find(o => o.id === orderId || o.number === orderId);
@@ -1793,14 +1796,14 @@
           <div>${clientCityZip}</div>
         `;
 
-        // Company info (Pascal Cosmesi International)
-        const compName = companyProfile.displayName || companyProfile.companyName || 'Pascal Cosmesi International';
-        const compAddr = companyProfile.address || 'Via F.lli Bandiera 24';
-        const compCapCity = `${companyProfile.postalCode || '50100'} ${companyProfile.city || 'Sovigliana'} (${companyProfile.province || 'FI'})`;
+        // Company info (Climawell)
+        const compName = companyProfile.displayName || companyProfile.companyName || 'Climawell';
+        const compAddr = companyProfile.address || 'Via delle Tre Pietre 2/C';
+        const compCapCity = `${companyProfile.postalCode || '50149'} ${companyProfile.city || companyProfile.province || 'Firenze'} (${companyProfile.province || 'FI'})`;
         const compTel = companyProfile.phone || '055/42.89.074';
-        const compVat = companyProfile.vatNumber || '1234567890';
-        const compWeb = companyProfile.website || 'www.pascalmilano.it';
-        const compEmail = companyProfile.email || 'info@pascalmilano.it';
+        const compVat = companyProfile.vatNumber || companyProfile.taxCode || '04732490489';
+        const compWeb = companyProfile.website || 'www.climawell.it';
+        const compEmail = companyProfile.email || 'info@climawell.it';
 
         // DDT metadata
         const ddtNum = ord.ddt_number || `DDT-${new Date().getFullYear()}-${(ord.number || '').slice(-4)}`;
@@ -1883,11 +1886,11 @@
           <div class="ddt-sheet">
             <!-- TOP HEADER SECTION -->
             <div class="ddt-header-section">
-              <!-- SENDER PASCAL (LEFT) & CLIENT/DESTINATION (RIGHT) -->
+              <!-- SENDER CLIMAWELL (LEFT) & CLIENT/DESTINATION (RIGHT) -->
               <div class="ddt-top-row">
                 <div class="ddt-sender-box">
-                  <div class="ddt-brand-logo">PASCAL</div>
-                  <div class="ddt-brand-sub">COSMESI INTERNATIONAL</div>
+                  <div class="ddt-brand-logo">${escapeHtml(companyProfile.displayName || companyProfile.companyName || 'CLIMAWELL')}</div>
+                  <div class="ddt-brand-sub">SISTEMA GESTIONALE RETE VENDITE</div>
                   <div class="ddt-sender-info">
                     <strong>${compName}</strong><br>
                     ${compAddr}<br>
@@ -2090,7 +2093,7 @@
               <!-- LEGAL AND PRIVACY FOOTER (COMPLIANT CON REG. UE 2016/679 GDPR & ART. 2220 C.C.) -->
               <div class="ddt-footer-legal">
                 In caso di nostra consegna il materiale verra' scaricato al numero civico. Non si accettano reclami per merce rotta o mancante se non al momento dello scarico annotati sul documento.<br>
-                <strong>Informativa Privacy (artt. 13-14 Reg. UE 2016/679 - GDPR):</strong> I dati personali sono trattati dal Titolare per adempimenti fiscali, amministrativi e di consegna contrattuale (art. 6, par. 1, lett. b-c GDPR), con conservazione per i termini di legge (10 anni ex art. 2220 c.c.). Per l'esercizio dei diritti (artt. 15-22 GDPR: accesso, rettifica, cancellazione) o informativa completa: <em>info@pascalmilano.it</em> o consultare la policy su /privacy.html.
+                <strong>Informativa Privacy (artt. 13-14 Reg. UE 2016/679 - GDPR):</strong> I dati personali sono trattati dal Titolare per adempimenti fiscali, amministrativi e di consegna contrattuale (art. 6, par. 1, lett. b-c GDPR), con conservazione per i termini di legge (10 anni ex art. 2220 c.c.). Per l'esercizio dei diritti (artt. 15-22 GDPR: accesso, rettifica, cancellazione) o informativa completa: <em>${escapeHtml(compEmail)}</em> o consultare la policy su /privacy.html.
               </div>
             </div>
           </div>

@@ -722,7 +722,7 @@
   </main>
 
   <footer style="text-align: center; padding: 24px 16px 36px; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--line); margin-top: 36px;">
-    <div>© Pascal Milano / Pascal Cosmesi International — Sistema Gestionale Rete Vendite</div>
+    <div id="footerText">© Climawell — Sistema Gestionale Rete Vendite</div>
     <div style="margin-top: 6px;">
       <a href="/privacy.html" style="color: var(--blue); text-decoration: none; font-weight: 500;">🔒 Informativa Privacy & Cookie Policy (GDPR Reg. UE 2016/679)</a>
     </div>
@@ -1144,6 +1144,15 @@
         if ($('adminProdBtn')) $('adminProdBtn').classList.remove('hidden');
         if ($('adminProdTop')) $('adminProdTop').classList.remove('hidden');
       }
+
+      // Dynamic company branding from Google Sheets
+      api('company').then(res => {
+        if (res && res.company) {
+          const comp = res.company;
+          const text = comp.footerText || `© ${comp.displayName || comp.companyName || 'Climawell'} — Sistema Gestionale Rete Vendite`;
+          if ($('footerText')) $('footerText').textContent = text;
+        }
+      }).catch(() => {});
 
       // 2. Load practices from API or fallback to cached
       try {
