@@ -1009,6 +1009,17 @@
 
       <div class="modal-body">
         <div class="form-group">
+          <label for="recProdType">Tipo Movimento</label>
+          <select id="recProdType">
+            <option value="PRODUZIONE" selected>🏭 Produzione / Passaggio Finiti a Magazzino</option>
+            <option value="RIPORTO_INVENTARIO">📋 Riporto Inventariale / Giacenza Iniziale</option>
+            <option value="RETTIFICA">✏️ Rettifica Conteggio Scorte Fisiche</option>
+            <option value="CARICO">📦 Carico Merce / Ricevimento Fornitore</option>
+            <option value="RESO">↩️ Reso da Cliente</option>
+          </select>
+        </div>
+
+        <div class="form-group">
           <label for="recProdArticle">Seleziona Articolo</label>
           <select id="recProdArticle" required onchange="onArticleSelectedForProduction()">
             <option value="">-- Seleziona Articolo da Caricare --</option>
@@ -1086,6 +1097,15 @@
     <div class="modal-body" style="gap:14px; overflow-y:auto; max-height:calc(88vh - 130px);">
       <!-- REGOLE GLOBALI DI SESSIONE (COMPILATE UNA SOLA VOLTA) -->
       <div class="batch-session-card">
+        <div class="form-group">
+          <label for="batchMovementType">📋 Tipo Operazione</label>
+          <select id="batchMovementType">
+            <option value="PRODUZIONE" selected>⚡ Passaggio Produzione -> Magazzino</option>
+            <option value="RIPORTO_INVENTARIO">📋 Riporto Inventariale / Giacenza Iniziale</option>
+            <option value="RETTIFICA">✏️ Rettifica Conteggi Scorte</option>
+            <option value="CARICO">📦 Carico Ricevimento Merci</option>
+          </select>
+        </div>
         <div class="form-group">
           <label for="batchGlobalOperator">👤 Operatore / Reparto Responsabile *</label>
           <input type="text" id="batchGlobalOperator" placeholder="Es. Laboratorio Produzione / Tina Cucci">
@@ -1679,8 +1699,9 @@
         }
 
         const item = allProduction.find(x => x.code === code);
+        const movType = $('recProdType')?.value || 'PRODUZIONE';
         const payload = {
-          type: 'PRODUZIONE',
+          type: movType,
           code,
           description: item ? item.description : '',
           quantity: qty,
@@ -2245,8 +2266,9 @@
       const globalDate = $('batchGlobalDate').value ? new Date($('batchGlobalDate').value).toISOString() : new Date().toISOString();
       const globalNotes = $('batchGlobalNotes').value.trim();
 
+      const batchType = $('batchMovementType')?.value || 'PRODUZIONE';
       const payload = {
-        type: 'PRODUZIONE',
+        type: batchType,
         operator: globalOperator,
         date: globalDate,
         qcStatus: 'CONFORME_GMP',

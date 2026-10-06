@@ -177,9 +177,9 @@ async function loadData() {
       const def = window.OFFICIAL_SYSTEM_SPREADSHEETS || {
         company: { spreadsheetId: "1-ntNPKA3gdjZaxYntGNkXtKC5Kt4JIXGSoQfESO169M", tab: "Dati azienda" },
         agents: { spreadsheetId: "13HaTubf4_xVTtzkQUcYINkRtuSzLR2qGzJAiA-oAecU", tab: "Agenti" },
-        customers: { spreadsheetId: "1rkFDBTCJD3JlrcvyOPGHjYTJDkjuMc24dJ7l6EqQ6I8", tab: "clienti" },
+        customers: { spreadsheetId: "1Ui3W6-jVIww7QgTtnXaywJj2ZyQiiaHAd92Xl5KRrD8", tab: "clienti" },
         products: { spreadsheetId: "17ErnowHZDqA3WDTN5auHkyTBPVn4MqkI8BFkiqkDhmE", tab: "q_listino_prezzi_catalogo" },
-        repository: { spreadsheetId: "1Hi1Nppj4szI4UwfSeC632KkpF0dEQjqxnIVIenn-Fjc", tabOffers: "Offerte", tabOrders: "Ordini" }
+        repository: { spreadsheetId: "10hp34cPu6ZxzPwSbrlIFsr_WcQTaIwBmJUUQjFZc2nw", tabHeader: "DocTes", tabLines: "DocRig", tabOffers: "DocTes", tabOrders: "DocTes" }
       };
       const cfg = window.companyConfig || def;
       const getValidId = (id, fallback) => (!id || typeof id !== 'string' || id.length < 20 || id.includes('1mnW') || id.includes('1N6ZcGa')) ? fallback : id.trim();
@@ -770,7 +770,9 @@ function submissionPayload() {
       revisionOf: editingOriginOffer || undefined,
       lines: items.map(i => ({
         code: i.product.code,
+        caId: i.product.id || '',
         description: i.product.description,
+        um: i.product.um || 'PZ',
         quantity: i.qty,
         listPrice: i.product.price,
         discounts: i.discounts,
@@ -901,17 +903,19 @@ const pick = (row, ...keys) => {
 function normalizeArticles(rows) {
   return rows.map((r, index) => ({
     id: pick(r, 'CaId') || String(index + 1),
-    code: pick(r, 'Ca', 'Codice') || pick(r, 'CaId'),
-    description: pick(r, 'DesArt', 'Descrizione') || pick(r, 'Q_UBI_ART_DesTab'),
-    sector: pick(r, 'JSettore', 'Settore'),
-    macroFamily: pick(r, 'JMacroFamiglia', 'Macro famiglia'),
-    family: pick(r, 'JFamiglia', 'Famiglia'),
+    code: pick(r, 'CodiceArticolo', 'Ca', 'Codice') || pick(r, 'CaId'),
+    description: pick(r, 'Descrizione', 'DesArt') || pick(r, 'Q_UBI_ART_DesTab'),
+    sector: pick(r, 'Settore', 'JSettore'),
+    macroFamily: pick(r, 'Macrofamiglia', 'JMacroFamiglia', 'Macro famiglia'),
+    family: pick(r, 'Famiglia', 'JFamiglia'),
     brand: pick(r, 'Marca') || pick(r, 'Q_MARCHE_DesTab'),
-    group: pick(r, 'Q_UBI_ART_DesTab'),
-    price: toNumber(pick(r, 'QT_prezzo_Pz', 'Prezzo', 'Listino')),
-    stock: toNumber(pick(r, 'QtEsi', 'Disponibilita')),
-    imageRef: pick(r, 'Disegno'),
+    group: pick(r, 'Ubicazione', 'JUbiArt', 'Q_UBI_ART_DesTab'),
+    price: toNumber(pick(r, 'Prezzo', 'QT_prezzo_Pz', 'Listino')),
+    stock: toNumber(pick(r, 'Giacenza (QtEsi)', 'QtEsi', 'Giacenza', 'Disponibilita')),
+    imageRef: pick(r, 'URL-immagine', 'URL-immagine ', 'Disegno'),
     discountCode: pick(r, 'JScontoVen'),
+    unit: pick(r, 'Unita di Misura', 'Unità di Misura', 'Um') || 'NR',
+    status: pick(r, 'Jstato prodotto', 'JStato'),
     maxDiscount: Math.min(100, Math.max(0, toNumber(pick(r, 'ScReale', 'Sconto massimo')) || 100)),
     vat: toNumber(pick(r, 'IVA')) || 22
   })).filter(p => p.code && p.description);
@@ -937,7 +941,12 @@ function normalizeClients(rows) {
       province: pick(r, 'Pv', 'Provincia'),
       phone: pick(r, 'Telefono'),
       mobile: pick(r, 'Cellulare'),
-      email: pick(r, 'E-mail', 'Email')
+      email: pick(r, 'E-mail', 'Email'),
+      pec: pick(r, 'PEC', 'Pec'),
+      payment: pick(r, 'Pagamento', 'CondizionePagamento'),
+      priceList: pick(r, 'Listino', 'CodiceListino'),
+      vatNumber: pick(r, 'PartitaIva', 'PIva'),
+      fiscalCode: pick(r, 'CodiceFiscale', 'CodFisc')
     };
   }).filter(c => c.id && c.name);
 }

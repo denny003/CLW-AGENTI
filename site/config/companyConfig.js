@@ -14,20 +14,22 @@ const OFFICIAL_SYSTEM_SPREADSHEETS = Object.freeze({
   },
   customers: {
     fileName: "clienti",
-    spreadsheetId: "1rkFDBTCJD3JlrcvyOPGHjYTJDkjuMc24dJ7l6EqQ6I8",
+    spreadsheetId: "1Ui3W6-jVIww7QgTtnXaywJj2ZyQiiaHAd92Xl5KRrD8",
     tab: "clienti"
   },
   products: {
     fileName: "Articoli",
-    spreadsheetId: "17ErnowHZDqA3WDTN5auHkyTBPVn4MqkI8BFkiqkDhmE",
+    spreadsheetId: "1g6zrWK_zZJZ82kdoNgda9KuoemYlSs0XGRRfJvoOvUk",
     tab: "q_listino_prezzi_catalogo"
   },
   repository: {
     folder: "Repository",
-    fileName: "Registro offerte e ordini",
-    spreadsheetId: "1Hi1Nppj4szI4UwfSeC632KkpF0dEQjqxnIVIenn-Fjc",
-    tabOffers: "Offerte",
-    tabOrders: "Ordini"
+    fileName: "Registro_Offerte_e_Ordini_Plus2000",
+    spreadsheetId: "10hp34cPu6ZxzPwSbrlIFsr_WcQTaIwBmJUUQjFZc2nw",
+    tabHeader: "DocTes",
+    tabLines: "DocRig",
+    tabOffers: "DocTes",
+    tabOrders: "DocTes"
   },
   warehouse: {
     folder: "Repository",
@@ -37,8 +39,10 @@ const OFFICIAL_SYSTEM_SPREADSHEETS = Object.freeze({
     tabParameters: "Parametri_Produzione"
   },
   googleDrive: {
-    sourceFolderUrl: "https://drive.google.com/drive/folders/1lr8lThQr1SxP4LAx2n69_pDxwu36ifh9",
-    folderId: "1lr8lThQr1SxP4LAx2n69_pDxwu36ifh9"
+    sourceFolderUrl: "https://drive.google.com/drive/folders/1K4tkUVi_4w8FrpKanPGMDwMwqW8pfClq",
+    folderId: "1K4tkUVi_4w8FrpKanPGMDwMwqW8pfClq",
+    repositoryFolderUrl: "https://drive.google.com/drive/folders/1cxVlox1rdrAhPnDY3nToOs2XUZHWvFO_",
+    repositoryFolderId: "1cxVlox1rdrAhPnDY3nToOs2XUZHWvFO_"
   },
   lastUpdate: "",
   source: "Configurazione fissa di sistema (Google Drive)"

@@ -124,10 +124,12 @@ const OFFICIAL_SYSTEM_SPREADSHEETS = Object.freeze({
   },
   repository: {
     folder: 'Repository',
-    fileName: 'Registro offerte e ordini',
-    spreadsheetId: '1Hi1Nppj4szI4UwfSeC632KkpF0dEQjqxnIVIenn-Fjc',
-    tabOffers: 'Offerte',
-    tabOrders: 'Ordini'
+    fileName: 'Registro_Offerte_e_Ordini_Plus2000',
+    spreadsheetId: '10hp34cPu6ZxzPwSbrlIFsr_WcQTaIwBmJUUQjFZc2nw',
+    tabHeader: 'DocTes',
+    tabLines: 'DocRig',
+    tabOffers: 'DocTes',
+    tabOrders: 'DocTes'
   },
   warehouse: {
     folder: 'Repository',
@@ -137,8 +139,10 @@ const OFFICIAL_SYSTEM_SPREADSHEETS = Object.freeze({
     tabParameters: 'Parametri_Produzione'
   },
   googleDrive: {
-    sourceFolderUrl: 'https://drive.google.com/drive/folders/1lr8lThQr1SxP4LAx2n69_pDxwu36ifh9',
-    folderId: '1lr8lThQr1SxP4LAx2n69_pDxwu36ifh9'
+    sourceFolderUrl: 'https://drive.google.com/drive/folders/1K4tkUVi_4w8FrpKanPGMDwMwqW8pfClq',
+    folderId: '1K4tkUVi_4w8FrpKanPGMDwMwqW8pfClq',
+    repositoryFolderUrl: 'https://drive.google.com/drive/folders/1cxVlox1rdrAhPnDY3nToOs2XUZHWvFO_',
+    repositoryFolderId: '1cxVlox1rdrAhPnDY3nToOs2XUZHWvFO_'
   }
 });
 
@@ -1143,6 +1147,130 @@ async function ensureHeader(tab, headers, customRegId) {
 async function listDocs(tab, user, customId) {
   const regId = cleanEnvId(customId) || runtimeConfig.repository.spreadsheetId || OFFICIAL_SYSTEM_SPREADSHEETS.repository.spreadsheetId;
   try {
+    // Verifica se il foglio ha la nuova struttura Plus 2000 (DocTes e DocRig)
+    let isDocTesStructure = false;
+    let tesRows = [];
+    try {
+      tesRows = await readRange(regId, "'DocTes'!A1:R1000");
+      if (tesRows && tesRows.length > 0) {
+        const topRow = (tesRows[0] || []).map(c => String(c || '').toLowerCase().trim());
+        if (topRow.includes('id_documento') || topRow.includes('tpdoc')) {
+          isDocTesStructure = true;
+        }
+      }
+    } catch {}
+
+    if (isDocTesStructure) {
+      // Legge anche le righe da DocRig
+      let rigRows = [];
+      try {
+        rigRows = await readRange(regId, "'DocRig'!A1:P2000");
+      } catch {}
+      const linesByDoc = new Map();
+      if (rigRows && rigRows.length > 1) {
+        for (let i = 1; i < rigRows.length; i++) {
+          const r = rigRows[i];
+          if (!r || !r[0]) continue;
+          const docId = String(r[0]).trim();
+          if (!linesByDoc.has(docId)) linesByDoc.set(docId, []);
+          linesByDoc.get(docId).push({
+            code: cleanCell(r[3]),
+            caId: cleanCell(r[4]),
+            description: cleanCell(r[5]),
+            um: cleanCell(r[6]) || 'PZ',
+            quantity: Number(cleanCell(r[7])) || 1,
+            listPrice: Number(cleanCell(r[8])) || 0,
+            discounts: [Number(cleanCell(r[9])) || 0, Number(cleanCell(r[10])) || 0],
+            net: Number(cleanCell(r[11])) || 0,
+            total: Number(cleanCell(r[12])) || 0,
+            vat: cleanCell(r[13]) || '22',
+            deliveryDate: cleanCell(r[14]),
+            notes: cleanCell(r[15])
+          });
+        }
+      }
+
+      const targetTpDoc = (tab === 'Ordini' || tab === 'OCL') ? 'OCL' : (tab === 'Offerte' || tab === 'OFC') ? 'OFC' : null;
+      const userRole = user?.role || 'agent';
+      const userAgentCode = normalizeAgentId(user?.agentCode || '');
+      const allowedAgents = new Set();
+      if (userRole !== 'admin') {
+        if (userAgentCode) allowedAgents.add(userAgentCode);
+        const seed = await loadSeed();
+        const hier = seed.hierarchy || { AG01: ['AG02'], AG03: ['AG04', 'AG05', 'AG06', 'AG07', 'AG08', 'AG09', 'AG10', 'AG11'] };
+        if (hier[userAgentCode]) {
+          for (const sub of hier[userAgentCode]) allowedAgents.add(normalizeAgentId(sub));
+        }
+      }
+
+      const docs = [];
+      for (let i = 1; i < tesRows.length; i++) {
+        const r = tesRows[i];
+        if (!r || !r.some(cell => String(cell || '').trim())) continue;
+        const id = cleanCell(r[0]);
+        const tpDoc = String(cleanCell(r[1])).toUpperCase();
+        if (targetTpDoc && tpDoc !== targetTpDoc) continue;
+
+        const agCode = normalizeAgentId(cleanCell(r[3]));
+        if (userRole !== 'admin' && allowedAgents.size > 0 && agCode && !allowedAgents.has(agCode)) {
+          continue;
+        }
+
+        const dateDoc = cleanCell(r[2]);
+        const agName = cleanCell(r[4]);
+        const custId = cleanCell(r[5]);
+        const custName = cleanCell(r[6]);
+        const payment = cleanCell(r[7]);
+        const listino = cleanCell(r[8]);
+        const total = Number(cleanCell(r[10])) || Number(cleanCell(r[9])) || 0;
+        const ref = cleanCell(r[11]);
+        const notes = cleanCell(r[12]);
+        const statoSync = cleanCell(r[13]) || 'DA_SINCRONIZZARE';
+        const dataSync = cleanCell(r[14]);
+        const docIdPlus = cleanCell(r[15]);
+        const numDocPlus = cleanCell(r[16]);
+        const logErrore = cleanCell(r[17]);
+
+        const lines = linesByDoc.get(id) || [];
+        docs.push({
+          id,
+          number: id,
+          offer_number: tpDoc === 'OFC' ? id : undefined,
+          order_number: tpDoc === 'OCL' ? id : undefined,
+          offerNumber: tpDoc === 'OFC' ? id : undefined,
+          orderNumber: tpDoc === 'OCL' ? id : undefined,
+          submitted_at: dateDoc,
+          updated_at: dataSync || dateDoc,
+          agent_code: agCode,
+          agent_name: agName,
+          customer_id: custId,
+          customer_name: custName,
+          customerName: custName,
+          total,
+          currency: 'EUR',
+          status: statoSync === 'SINCRONIZZATO' ? 'approved' : statoSync === 'ERRORE' ? 'rejected' : 'submitted',
+          raw_status: statoSync,
+          outcome: statoSync === 'SINCRONIZZATO' ? `Plus N.${numDocPlus}` : statoSync,
+          notes,
+          sync: {
+            stato: statoSync,
+            data: dataSync,
+            docIdPlus,
+            numeroDocPlus: numDocPlus,
+            logErrore
+          },
+          payload: {
+            payment,
+            listino,
+            customerRef: ref,
+            notes,
+            lines
+          }
+        });
+      }
+      return docs;
+    }
+
     const rawRows = await readRange(regId, `'${tab}'!A1:Z1000`);
     if (!rawRows || !rawRows.length) return [];
 
@@ -1370,6 +1498,72 @@ async function createDoc(tab, body, user, customId) {
   const payloadStr = JSON.stringify(body.payload || {});
 
   try {
+    // Verifica se il foglio ha la nuova struttura Plus 2000 (DocTes e DocRig)
+    let isDocTesStructure = false;
+    try {
+      const tesProbe = await readRange(regId, "'DocTes'!A1:D3");
+      if (tesProbe && tesProbe.length > 0) {
+        const topRow = (tesProbe[0] || []).map(c => String(c || '').toLowerCase().trim());
+        if (topRow.includes('id_documento') || topRow.includes('tpdoc')) {
+          isDocTesStructure = true;
+        }
+      }
+    } catch {}
+
+    if (isDocTesStructure) {
+      const tpDoc = (tab === 'Ordini' || body.orderNumber || body.documentType === 'order') ? 'OCL' : 'OFC';
+      const nowDate = now.slice(0, 10);
+      const lines = body.payload?.lines || [];
+      const imponibile = lines.reduce((acc, l) => acc + (Number(l.quantity || 1) * Number(l.net || 0)), 0) || total;
+
+      const tesRow = [
+        number,                             // ID_Documento
+        tpDoc,                              // TpDoc ('OCL' / 'OFC')
+        nowDate,                            // DataDoc
+        agentCode,                          // CodiceAgente
+        agentName,                          // NomeAgente
+        customerId,                         // CodiceCliente (JConto)
+        customerName,                       // RagioneSociale
+        body.payload?.payment || '',        // CondizionePagamento
+        body.payload?.listino || '01',      // CodiceListino
+        imponibile,                         // TotaleImponibile
+        total,                              // TotaleDocumento
+        body.payload?.customerRef || body.originOfferId || '', // RiferimentoCliente
+        body.payload?.notes || '',          // Note
+        'DA_SINCRONIZZARE',                 // StatoSync
+        '',                                 // DataSync
+        '',                                 // DocId_Plus
+        '',                                 // NumeroDoc_Plus
+        ''                                  // LogErrore
+      ];
+
+      await append(regId, "'DocTes'!A:R", [tesRow]);
+
+      if (lines.length > 0) {
+        const rigRows = lines.map((l, idx) => [
+          number,                                      // ID_Documento
+          idx + 1,                                     // Riga
+          tpDoc,                                       // TpDoc
+          l.code || '',                                // CodiceArticolo (Ca)
+          l.caId || l.id || '',                        // CaId
+          l.description || '',                         // DescrizioneArticolo (DesArt)
+          l.um || 'PZ',                                // Um
+          Number(l.quantity || 1),                     // Quantita (Qt)
+          Number(l.listPrice || 0),                    // PrezzoLordo (PzLordo)
+          Number(l.discounts?.[0] || l.discount || 0), // Sconto1
+          Number(l.discounts?.[1] || 0),                // Sconto2
+          Number(l.net || 0),                          // PrezzoNetto (PzNetto)
+          Number((l.quantity || 1) * (l.net || 0)),    // TotaleRiga (ATotale)
+          String(l.vat || '22'),                       // CodiceIva (JIva)
+          l.deliveryDate || '',                        // DataConsegna
+          l.notes || ''                                // NoteRiga
+        ]);
+        await append(regId, "'DocRig'!A:P", rigRows);
+      }
+
+      return json(201, { ok: true, id, number, tpDoc, linesCount: lines.length, timestamp: now });
+    }
+
     const rawRows = await readRange(regId, `'${tab}'!A1:Z10`);
     let headerIdx = -1;
     for (let i = 0; i < Math.min(rawRows.length, 10); i++) {
@@ -2735,9 +2929,11 @@ async function calculateProductionIntelligence(user, customProductsId, customRep
     }
     const stm = articleMovements[code];
     stm.movementsCount++;
-    if (m.type === 'PRODUZIONE' || m.type === 'CARICO' || m.type === 'RESO') {
+    const posTypes = ['PRODUZIONE', 'CARICO', 'CARICO_REPARTO', 'RESO', 'INVENTARIO', 'RIPORTO_INVENTARIO', 'INVENTARIO_INIZIALE', 'RETTIFICA', 'RETTIFICA_POSITIVA'];
+    const negTypes = ['SCARTO', 'RETTIFICA_NEGATIVA', 'SCARICO', 'RESO_FORNITORE'];
+    if (posTypes.includes(m.type)) {
       stm.producedQty += m.quantity;
-    } else if (m.type === 'SCARTO' || m.type === 'RETTIFICA_NEGATIVA') {
+    } else if (negTypes.includes(m.type)) {
       stm.producedQty -= m.quantity;
     }
     if (!stm.lastLot && m.lotNumber) stm.lastLot = m.lotNumber;
