@@ -202,10 +202,23 @@ let tokenCache = { token: '', expires: 0 };
 
 async function googleToken() {
   if (tokenCache.expires > Date.now() + 60000) return tokenCache.token;
-  const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-  const key = (process.env.GOOGLE_PRIVATE_KEY || '').replace(/\\n/g, '\n');
+  let email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+  let key = process.env.GOOGLE_PRIVATE_KEY;
+  const fullJson = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+
+  if (fullJson) {
+    try {
+      const parsed = JSON.parse(fullJson);
+      if (parsed.client_email) email = email || parsed.client_email;
+      if (parsed.private_key) key = key || parsed.private_key;
+    } catch {
+      if (!key) key = fullJson;
+    }
+  }
+
+  key = (key || '').replace(/\\n/g, '\n');
   if (!email || !key) {
-    throw new Error('Collegamento Google non configurato (mancano GOOGLE_SERVICE_ACCOUNT_EMAIL o GOOGLE_PRIVATE_KEY)');
+    throw new Error('Collegamento Google non configurato (impostare GOOGLE_SERVICE_ACCOUNT_KEY oppure GOOGLE_SERVICE_ACCOUNT_EMAIL e GOOGLE_PRIVATE_KEY nelle variabili Netlify)');
   }
   const now = Math.floor(Date.now() / 1000);
   const head = b64({ alg: 'RS256', typ: 'JWT' });
