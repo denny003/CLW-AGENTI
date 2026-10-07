@@ -32,12 +32,12 @@
       --blue: #2563eb;
     }
 
-    /* Custom Leaflet Cluster for Clients */
-    .marker-cluster-clients {
-      background: rgba(16, 185, 129, 0.25);
+    /* Custom Leaflet Cluster for Clients (Companies & Individuals) */
+    .marker-cluster-companies {
+      background: rgba(5, 150, 105, 0.25);
       border-radius: 50%;
     }
-    .marker-cluster-clients div {
+    .marker-cluster-companies div {
       width: 36px;
       height: 36px;
       margin-left: 4px;
@@ -46,7 +46,7 @@
       border-radius: 50%;
       font-weight: 800;
       font-size: 13px;
-      background: #10b981;
+      background: #059669;
       color: #ffffff;
       border: 2px solid #ffffff;
       box-shadow: 0 4px 10px rgba(0,0,0,0.25);
@@ -55,8 +55,37 @@
       justify-content: center;
       line-height: 1;
     }
-    .marker-cluster-clients.cluster-large div {
-      background: #059669;
+    .marker-cluster-companies.cluster-large div {
+      background: #047857;
+      width: 44px;
+      height: 44px;
+      font-size: 14px;
+    }
+
+    .marker-cluster-individuals {
+      background: rgba(2, 132, 199, 0.25);
+      border-radius: 50%;
+    }
+    .marker-cluster-individuals div {
+      width: 36px;
+      height: 36px;
+      margin-left: 4px;
+      margin-top: 4px;
+      text-align: center;
+      border-radius: 50%;
+      font-weight: 800;
+      font-size: 13px;
+      background: #0284c7;
+      color: #ffffff;
+      border: 2px solid #ffffff;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .marker-cluster-individuals.cluster-large div {
+      background: #0369a1;
       width: 44px;
       height: 44px;
       font-size: 14px;
@@ -255,10 +284,24 @@
       transition: all 0.15s;
     }
     .cat-btn:hover { background: #f1f5f9; }
+    .cat-btn.active.cat-companies { background: #dcfce7; border-color: #86efac; color: #15803d; }
+    .cat-btn.active.cat-individuals { background: #e0f2fe; border-color: #7dd3fc; color: #0284c7; }
     .cat-btn.active.cat-active-clients { background: #dcfce7; border-color: #86efac; color: #15803d; }
     .cat-btn.active.cat-plumbers { background: #e0f2fe; border-color: #7dd3fc; color: #0369a1; }
     .cat-btn.active.cat-electricians { background: #fef3c7; border-color: #fcd34d; color: #b45309; }
     .cat-btn.active.cat-builders { background: #f3e8ff; border-color: #d8b4fe; color: #7e22ce; }
+
+    .select-promo-filter {
+      padding: 6px 10px;
+      border: 1px solid #c084fc;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      background: #faf5ff;
+      color: #7e22ce;
+      outline: none;
+      cursor: pointer;
+    }
 
     .btn-web-search {
       background: linear-gradient(135deg, #0284c7, #2563eb);
@@ -464,9 +507,16 @@
       z-index: 9999 !important;
     }
     .marker-client { background: #10b981; }
+    .marker-company { background: #059669; }
+    .marker-individual { background: #0284c7; }
     .marker-plumber { background: #0284c7; }
     .marker-electrician { background: #f59e0b; }
     .marker-builder { background: #8b5cf6; }
+
+    .badge-company { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    .badge-individual { background: #e0f2fe; color: #075985; border: 1px solid #7dd3fc; }
+    .badge-promo-tag { background: #fdf4ff; color: #86198f; border: 1px solid #f0abfc; font-weight: 700; font-size: 0.72rem; padding: 2px 6px; border-radius: 4px; display: inline-block; }
+    .promo-tip-bubble { background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 6px 8px; font-size: 0.73rem; color: #92400e; margin-top: 5px; line-height: 1.35; }
 
     /* POPUP STYLING */
     .leaflet-popup-content-wrapper {
@@ -574,11 +624,19 @@
 
   <!-- KPI STRIP -->
   <section class="kpi-strip">
-    <div class="kpi-item">
-      <span class="kpi-icon">🟢</span>
+    <div class="kpi-item" style="border-left: 3px solid #059669;">
+      <span class="kpi-icon">🏢</span>
       <div class="kpi-content">
-        <strong id="kpiActiveClients">0</strong>
-        <small>Clienti Attivi Portafoglio</small>
+        <strong id="kpiCompanies" style="color:#059669;">0</strong>
+        <small>Aziende & P.IVA (B2B)</small>
+      </div>
+    </div>
+
+    <div class="kpi-item" style="border-left: 3px solid #0284c7;">
+      <span class="kpi-icon">👤</span>
+      <div class="kpi-content">
+        <strong id="kpiIndividuals" style="color:#0284c7;">0</strong>
+        <small>Privati & Occasionali (B2C)</small>
       </div>
     </div>
 
@@ -638,8 +696,11 @@
     </div>
 
     <div class="category-pills">
-      <button type="button" class="cat-btn cat-active-clients active" id="btnToggleClients">
-        <span>🟢</span> Clienti Attivi (<span id="countClientsPill">0</span>)
+      <button type="button" class="cat-btn cat-companies active" id="btnToggleCompanies">
+        <span>🏢</span> Aziende P.IVA (<span id="countCompaniesPill">0</span>)
+      </button>
+      <button type="button" class="cat-btn cat-individuals active" id="btnToggleIndividuals">
+        <span>👤</span> Privati (<span id="countIndividualsPill">0</span>)
       </button>
       <button type="button" class="cat-btn cat-plumbers active" id="btnTogglePlumbers">
         <span>🔧</span> Idraulici (<span id="countPlumbersPill">0</span>)
@@ -650,6 +711,15 @@
       <button type="button" class="cat-btn cat-builders active" id="btnToggleBuilders">
         <span>🏗️</span> Imprese Edili (<span id="countBuildersPill">0</span>)
       </button>
+
+      <select id="selectPromoCampaign" class="select-promo-filter" title="Filtra clienti per tipologia di campagna promozionale">
+        <option value="ALL">🎯 Tutte le Campagne Promo</option>
+        <option value="idraulica_clima">🔧 Campagna: Termoidraulica & Clima B2B</option>
+        <option value="elettrico_rinnovabili">⚡ Campagna: Elettrico & Rinnovabili</option>
+        <option value="edile_cantieri">🏗️ Campagna: Capitolati & Cantieri Edili</option>
+        <option value="residenziale_privati">🛋️ Campagna: Clima Residenziale Privati</option>
+        <option value="b2b_aziende">🏢 Campagna: Forniture Aziende & Industria</option>
+      </select>
     </div>
 
     <div>
@@ -707,6 +777,10 @@
 
         <!-- Tab 3: Active Clients List -->
         <div id="tabContentClients" style="display:none;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <strong style="font-size:0.85rem; color:var(--navy);">Clienti Segmentati</strong>
+            <button type="button" id="btnExportClientsPromo" style="font-size:0.75rem; padding:3px 8px; border:1px solid #c084fc; border-radius:4px; background:#faf5ff; color:#7e22ce; font-weight:700; cursor:pointer;">📥 Esporta Target Promo</button>
+          </div>
           <div id="allClientsList">
             <!-- Populated dynamically -->
           </div>
@@ -738,15 +812,79 @@
     let allCustomers = [];
     let filteredCustomers = [];
     let map = null;
-    let clientsClusterGroup = null;
+    let companiesClusterGroup = null;
+    let individualsClusterGroup = null;
     let prospectsLayer = null;
     let clientMarkersMap = {};
 
     // Filter toggles
-    let showClients = true;
+    let showCompanies = true;
+    let showIndividuals = true;
+    let selectedPromoCampaign = 'ALL';
     let showPlumbers = true;
     let showElectricians = true;
     let showBuilders = true;
+
+    // Client-side classification helper (fallback / enricher)
+    function classifyCustomer(c) {
+      if (typeof c.isCompany === 'boolean' && c.category && c.promoCluster) {
+        return c;
+      }
+      const vat = String(c.vatNumber || c.vat || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+      const cf = String(c.taxCode || c.cf || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+      const nm = String(c.name || '').toUpperCase();
+      const act = String(c.activity || '').toUpperCase();
+      const tp = String(c.type || '').toUpperCase();
+
+      const hasValidVat = (vat.length === 11 && /^\d{11}$/.test(vat)) || 
+                          (vat.startsWith('IT') && vat.length === 13 && /^\d{11}$/.test(vat.slice(2))) || 
+                          (vat.length >= 8 && /^[A-Z0-9]+$/.test(vat) && !cf.includes(vat));
+      const isNumericCfCompany = cf.length === 11 && /^\d{11}$/.test(cf);
+      const isPersonCf = cf.length === 16 && /^[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]$/.test(cf);
+      const companyRegex = /\b(S\.?R\.?L\.?|S\.?P\.?A\.?|S\.?N\.?C\.?|S\.?A\.?S\.?|S\.?S\.?|COOP|COOPERATIVA|SOC\.?|SOCIETA|DITTA|IMPRESA|STUDIO|OFFICINA|IMPIANTI|IDRAULICA|TERMOIDRAULICA|CLIMA|CONDIZIONAMENTO|EDIL|EDILIZIA|COSTRUZIONI|INSTALLAZIONI|SERVICE|COMMERCIO|COMMERCIALE|GROUP|SRLS)\b/i;
+      const hasCompanyKeyword = companyRegex.test(nm) || companyRegex.test(act);
+
+      let isCompany = false;
+      if (hasValidVat || isNumericCfCompany || hasCompanyKeyword) {
+        isCompany = true;
+      } else if (isPersonCf && !hasValidVat) {
+        isCompany = false;
+      } else if (!vat && !cf) {
+        isCompany = hasCompanyKeyword;
+      } else {
+        isCompany = Boolean(vat && vat.length >= 8);
+      }
+
+      const category = isCompany ? 'azienda' : 'privato';
+      const categoryLabel = isCompany ? 'Azienda / P.IVA' : 'Privato / Occasionale';
+
+      let promoCluster = 'b2b_aziende';
+      let promoClusterLabel = 'Forniture Aziende & Industria';
+      const combined = `${nm} ${act} ${tp}`.toUpperCase();
+
+      if (category === 'privato') {
+        promoCluster = 'residenziale_privati';
+        promoClusterLabel = 'Clima & Caldaie Residenziale';
+      } else if (combined.includes('IDRAULIC') || combined.includes('TERMO') || combined.includes('CLIMA') || combined.includes('CALDAI') || combined.includes('SANITAR') || combined.includes('POMP')) {
+        promoCluster = 'idraulica_clima';
+        promoClusterLabel = 'Termoidraulica & Clima B2B';
+      } else if (combined.includes('ELETT') || combined.includes('FOTOVOLT') || combined.includes('ENERG') || combined.includes('DOMOTIC') || combined.includes('LUCE') || combined.includes('QUADRI')) {
+        promoCluster = 'elettrico_rinnovabili';
+        promoClusterLabel = 'Elettrico & Energie Rinnovabili';
+      } else if (combined.includes('EDIL') || combined.includes('COSTRUZ') || combined.includes('CANTIERE') || combined.includes('RESTAURO') || combined.includes('PAVIMENT') || combined.includes('INTONACO')) {
+        promoCluster = 'edile_cantieri';
+        promoClusterLabel = 'Capitolati & Cantieri Edili';
+      }
+
+      return {
+        ...c,
+        isCompany,
+        category,
+        categoryLabel,
+        promoCluster,
+        promoClusterLabel
+      };
+    }
 
     // Geocoded Known City Centers (Toscana & Italia centro)
     const GEO_CENTERS = {
@@ -969,23 +1107,41 @@
         'Stradario OSM': osmFr
       }, null, { position: 'topright' }).addTo(map);
 
-      // MarkerCluster group for active clients
-      clientsClusterGroup = L.markerClusterGroup({
+      // MarkerCluster group for company clients (Aziende P.IVA)
+      companiesClusterGroup = L.markerClusterGroup({
         chunkedLoading: true,
         maxClusterRadius: 45,
         spiderfyOnMaxZoom: true,
         showCoverageOnHover: false,
         iconCreateFunction: function(cluster) {
           const count = cluster.getChildCount();
-          const isLarge = count > 100;
+          const isLarge = count > 50;
           return L.divIcon({
             html: `<div><span>${count}</span></div>`,
-            className: `marker-cluster-clients ${isLarge ? 'cluster-large' : ''}`,
+            className: `marker-cluster-companies ${isLarge ? 'cluster-large' : ''}`,
             iconSize: L.point(40, 40)
           });
         }
       });
-      map.addLayer(clientsClusterGroup);
+      map.addLayer(companiesClusterGroup);
+
+      // MarkerCluster group for private / individual clients (Privati Occasionali)
+      individualsClusterGroup = L.markerClusterGroup({
+        chunkedLoading: true,
+        maxClusterRadius: 45,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
+        iconCreateFunction: function(cluster) {
+          const count = cluster.getChildCount();
+          const isLarge = count > 50;
+          return L.divIcon({
+            html: `<div><span>${count}</span></div>`,
+            className: `marker-cluster-individuals ${isLarge ? 'cluster-large' : ''}`,
+            iconSize: L.point(40, 40)
+          });
+        }
+      });
+      map.addLayer(individualsClusterGroup);
 
       // Prospects layer
       prospectsLayer = L.layerGroup().addTo(map);
@@ -993,7 +1149,9 @@
 
     // Create SVG marker icon
     function createMarkerIcon(type, iconSymbol) {
-      let bgClass = 'marker-client';
+      let bgClass = 'marker-company';
+      if (type === 'individual') bgClass = 'marker-individual';
+      if (type === 'client') bgClass = 'marker-client';
       if (type === 'idraulico') bgClass = 'marker-plumber';
       if (type === 'elettricista') bgClass = 'marker-electrician';
       if (type === 'edile') bgClass = 'marker-builder';
@@ -1081,55 +1239,100 @@
 
     // Render Markers on Map
     function renderMapMarkers() {
-      if (!map || !clientsClusterGroup || !prospectsLayer) return;
+      if (!map || !companiesClusterGroup || !individualsClusterGroup || !prospectsLayer) return;
 
-      clientsClusterGroup.clearLayers();
+      companiesClusterGroup.clearLayers();
+      individualsClusterGroup.clearLayers();
       prospectsLayer.clearLayers();
       clientMarkersMap = {};
 
       const bounds = [];
+      const classifiedCustomers = filteredCustomers.map(classifyCustomer);
 
-      // 1. Render Active Clients inside cluster
-      if (showClients) {
-        if (!map.hasLayer(clientsClusterGroup)) {
-          map.addLayer(clientsClusterGroup);
+      // 1. Render Active Clients inside respective clusters (Aziende P.IVA vs Privati)
+      const companyMarkers = [];
+      const individualMarkers = [];
+
+      classifiedCustomers.forEach(c => {
+        const isComp = Boolean(c.isCompany);
+
+        // Check Category Toggle
+        if (isComp && !showCompanies) return;
+        if (!isComp && !showIndividuals) return;
+
+        // Check Promotional Campaign filter
+        if (selectedPromoCampaign !== 'ALL' && c.promoCluster !== selectedPromoCampaign) {
+          return;
         }
-        const clientMarkers = [];
-        filteredCustomers.forEach(c => {
-          const coords = getCustomerCoords(c);
-          bounds.push(coords);
 
-          const icon = createMarkerIcon('client', '🏢');
-          const marker = L.marker(coords, { icon });
-          clientMarkersMap[c.code] = marker;
+        const coords = getCustomerCoords(c);
+        bounds.push(coords);
 
-          const phoneHtml = c.phone || c.mobile ? `<a href="tel:${c.phone || c.mobile}" class="map-popup-btn">📞 ${c.phone || c.mobile}</a>` : '';
-          const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.name + ' ' + (c.address || '') + ' ' + (c.city || ''))}`;
+        const iconSymbol = isComp ? '🏢' : '👤';
+        const markerType = isComp ? 'company' : 'individual';
+        const icon = createMarkerIcon(markerType, iconSymbol);
+        const marker = L.marker(coords, { icon });
+        clientMarkersMap[c.code] = marker;
 
-          const popupHtml = `
-            <div class="map-popup-card">
-              <div class="map-popup-header">
-                <span class="opp-badge badge-client">🟢 Cliente Attivo Climawell</span>
-                <span style="font-size:0.75rem; font-weight:700; color:#15803d;">Cod: ${c.code}</span>
-              </div>
-              <div class="map-popup-title">${escapeHtml(c.name)}</div>
-              <div class="map-popup-addr">📍 ${escapeHtml(c.address || '')} · ${escapeHtml(c.city || '')} (${escapeHtml(c.province || '')})</div>
-              ${c.payment ? `<div style="font-size:0.75rem; color:#475569; margin-bottom:4px;">Pagamento: <strong>${escapeHtml(c.payment)}</strong></div>` : ''}
-              <div class="map-popup-btns">
-                <a href="${gmapsUrl}" target="_blank" class="map-popup-btn">🗺️ Indicazioni</a>
-                ${phoneHtml}
-                <a href="/offerta?new=1&type=order&clientId=${encodeURIComponent(c.code)}&clientName=${encodeURIComponent(c.name)}" class="map-popup-btn primary" style="grid-column:1/-1;">📦 Nuovo Ordine</a>
-              </div>
+        const phoneHtml = (c.phone || c.mobile) ? `<a href="tel:${c.phone || c.mobile}" class="map-popup-btn">📞 ${c.phone || c.mobile}</a>` : '';
+        const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.name + ' ' + (c.address || '') + ' ' + (c.city || ''))}`;
+
+        let promoTipText = '';
+        if (c.promoCluster === 'residenziale_privati') {
+          promoTipText = '🛋️ Promo Consigliata: Clima Monosplit/Dualsplit & Detrazioni Casa Ecobonus';
+        } else if (c.promoCluster === 'idraulica_clima') {
+          promoTipText = '🔧 Promo Consigliata: Listino B2B Raccorderia, Pompe di Calore & Caldaie';
+        } else if (c.promoCluster === 'elettrico_rinnovabili') {
+          promoTipText = '⚡ Promo Consigliata: Inverter, Fotovoltaico, Sistemi Ibridi & Cronotermostati Smart';
+        } else if (c.promoCluster === 'edile_cantieri') {
+          promoTipText = '🏗️ Promo Consigliata: Capitolati Cantiere, VMC Centralizzata & Pannelli Radianti';
+        } else {
+          promoTipText = '🏢 Promo Consigliata: Climatizzazione Canalizzata, Uffici & Barriere d\'Aria Commerciali';
+        }
+
+        const fiscalHtml = c.vatNumber 
+          ? `P.IVA: <strong>${escapeHtml(c.vatNumber)}</strong>`
+          : (c.taxCode ? `CF: <strong>${escapeHtml(c.taxCode)}</strong>` : '');
+
+        const popupHtml = `
+          <div class="map-popup-card">
+            <div class="map-popup-header">
+              <span class="opp-badge ${isComp ? 'badge-company' : 'badge-individual'}">${isComp ? '🏢 Azienda / P.IVA' : '👤 Privato / Occasionale'}</span>
+              <span style="font-size:0.75rem; font-weight:700; color:#15803d;">Cod: ${escapeHtml(c.code)}</span>
             </div>
-          `;
-          marker.bindPopup(popupHtml);
-          clientMarkers.push(marker);
-        });
-        clientsClusterGroup.addLayers(clientMarkers);
-      } else {
-        if (map.hasLayer(clientsClusterGroup)) {
-          map.removeLayer(clientsClusterGroup);
+            <div class="map-popup-title">${escapeHtml(c.name)}</div>
+            <div class="map-popup-addr">📍 ${escapeHtml(c.address || '')} · ${escapeHtml(c.city || '')} (${escapeHtml(c.province || '')})</div>
+            ${fiscalHtml ? `<div style="font-size:0.74rem; color:#475569; margin-bottom:4px;">${fiscalHtml}</div>` : ''}
+            <div style="margin-bottom:4px;"><span class="badge-promo-tag">🎯 ${escapeHtml(c.promoClusterLabel || '')}</span></div>
+            <div class="promo-tip-bubble">${promoTipText}</div>
+            <div class="map-popup-btns">
+              <a href="${gmapsUrl}" target="_blank" class="map-popup-btn">🗺️ Indicazioni</a>
+              ${phoneHtml}
+              <a href="/offerta?new=1&type=order&clientId=${encodeURIComponent(c.code)}&clientName=${encodeURIComponent(c.name)}" class="map-popup-btn primary" style="grid-column:1/-1;">📦 Nuovo Ordine / Offerta</a>
+            </div>
+          </div>
+        `;
+        marker.bindPopup(popupHtml);
+
+        if (isComp) {
+          companyMarkers.push(marker);
+        } else {
+          individualMarkers.push(marker);
         }
+      });
+
+      if (showCompanies) {
+        if (!map.hasLayer(companiesClusterGroup)) map.addLayer(companiesClusterGroup);
+        companiesClusterGroup.addLayers(companyMarkers);
+      } else {
+        if (map.hasLayer(companiesClusterGroup)) map.removeLayer(companiesClusterGroup);
+      }
+
+      if (showIndividuals) {
+        if (!map.hasLayer(individualsClusterGroup)) map.addLayer(individualsClusterGroup);
+        individualsClusterGroup.addLayers(individualMarkers);
+      } else {
+        if (map.hasLayer(individualsClusterGroup)) map.removeLayer(individualsClusterGroup);
       }
 
       // 2. Render Prospects
@@ -1192,18 +1395,27 @@
 
     // Update KPIs & Sidebar content
     function updateKpisAndSidebar() {
-      const activeCount = filteredCustomers.length;
+      const classifiedCustomers = filteredCustomers.map(classifyCustomer);
+      const companies = classifiedCustomers.filter(c => c.isCompany);
+      const individuals = classifiedCustomers.filter(c => !c.isCompany);
+
+      const companiesCount = companies.length;
+      const individualsCount = individuals.length;
+      const activeCount = classifiedCustomers.length;
+
       const plumbersCount = currentProspects.filter(p => p.cat === 'idraulico').length;
       const electriciansCount = currentProspects.filter(p => p.cat === 'elettricista').length;
       const buildersCount = currentProspects.filter(p => p.cat === 'edile').length;
       const totalProspects = plumbersCount + electriciansCount + buildersCount;
 
-      $('kpiActiveClients').textContent = activeCount;
+      $('kpiCompanies').textContent = companiesCount;
+      $('kpiIndividuals').textContent = individualsCount;
       $('kpiPlumbers').textContent = plumbersCount;
       $('kpiElectricians').textContent = electriciansCount;
       $('kpiBuilders').textContent = buildersCount;
 
-      $('countClientsPill').textContent = activeCount;
+      $('countCompaniesPill').textContent = companiesCount;
+      $('countIndividualsPill').textContent = individualsCount;
       $('countPlumbersPill').textContent = plumbersCount;
       $('countElectriciansPill').textContent = electriciansCount;
       $('countBuildersPill').textContent = buildersCount;
@@ -1216,8 +1428,8 @@
       const pen = totalMarket > 0 ? Math.round((activeCount / totalMarket) * 100) : 0;
       $('kpiPenetration').textContent = `${pen}%`;
 
-      // Estimated Potential revenue (€ 12.000 / year avg per active installer customer)
-      const potentialEuros = totalProspects * 12000;
+      // Estimated Potential revenue
+      const potentialEuros = (totalProspects * 12000) + (companiesCount * 3000);
       $('kpiPotentialRevenue').textContent = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(potentialEuros);
 
       // Render Opportunities List in Sidebar
@@ -1278,18 +1490,35 @@
         </div>
       `).join('');
 
-      // Render full clients tab
-      $('allClientsList').innerHTML = filteredCustomers.map(c => `
-        <div class="opp-card" onclick="centerMapOnClient('${c.code}')">
-          <span class="opp-badge badge-client">🟢 Cliente Attivo (Cod: ${c.code})</span>
-          <div class="opp-title">${escapeHtml(c.name)}</div>
-          <div class="opp-addr">📍 ${escapeHtml(c.address || '')}, ${escapeHtml(c.city || '')} (${escapeHtml(c.province || '')})</div>
-          <div class="opp-actions">
-            <a href="/offerta?new=1&type=order&clientId=${encodeURIComponent(c.code)}&clientName=${encodeURIComponent(c.name)}" class="btn-opp-action btn-opp-primary" onclick="event.stopPropagation();">📦 Nuovo Ordine</a>
-            ${c.phone || c.mobile ? `<a href="tel:${c.phone || c.mobile}" class="btn-opp-action" onclick="event.stopPropagation();">📞 Chiama</a>` : ''}
+      // Render full clients tab with category & promo campaign badges
+      const classifiedCustomers = filteredCustomers.map(classifyCustomer);
+      const filteredForDisplay = classifiedCustomers.filter(c => {
+        if (c.isCompany && !showCompanies) return false;
+        if (!c.isCompany && !showIndividuals) return false;
+        if (selectedPromoCampaign !== 'ALL' && c.promoCluster !== selectedPromoCampaign) return false;
+        return true;
+      });
+
+      $('allClientsList').innerHTML = filteredForDisplay.map(c => {
+        const isComp = Boolean(c.isCompany);
+        const fiscalLine = c.vatNumber ? `P.IVA: ${escapeHtml(c.vatNumber)}` : (c.taxCode ? `CF: ${escapeHtml(c.taxCode)}` : '');
+        return `
+          <div class="opp-card" onclick="centerMapOnClient('${c.code}')">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <span class="opp-badge ${isComp ? 'badge-company' : 'badge-individual'}">${isComp ? '🏢 Azienda P.IVA' : '👤 Privato Occasionale'}</span>
+              <span style="font-size:0.75rem; font-weight:700; color:#64748b;">Cod: ${escapeHtml(c.code)}</span>
+            </div>
+            <div class="opp-title">${escapeHtml(c.name)}</div>
+            <div class="opp-addr">📍 ${escapeHtml(c.address || '')}, ${escapeHtml(c.city || '')} (${escapeHtml(c.province || '')})</div>
+            ${fiscalLine ? `<div style="font-size:0.74rem; color:#475569; margin-bottom:4px;">${fiscalLine}</div>` : ''}
+            <div style="margin-bottom:6px;"><span class="badge-promo-tag">🎯 ${escapeHtml(c.promoClusterLabel || '')}</span></div>
+            <div class="opp-actions">
+              <a href="/offerta?new=1&type=order&clientId=${encodeURIComponent(c.code)}&clientName=${encodeURIComponent(c.name)}" class="btn-opp-action btn-opp-primary" onclick="event.stopPropagation();">📦 Nuovo Ordine</a>
+              ${(c.phone || c.mobile) ? `<a href="tel:${c.phone || c.mobile}" class="btn-opp-action" onclick="event.stopPropagation();">📞 Chiama</a>` : ''}
+            </div>
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     // Center Map on Prospect
@@ -1301,10 +1530,18 @@
     // Center Map on Client
     window.centerMapOnClient = function(code) {
       const marker = clientMarkersMap[code];
-      if (marker && clientsClusterGroup && map) {
-        clientsClusterGroup.zoomToShowLayer(marker, () => {
+      if (marker && map) {
+        const group = (companiesClusterGroup && companiesClusterGroup.hasLayer(marker)) 
+          ? companiesClusterGroup 
+          : ((individualsClusterGroup && individualsClusterGroup.hasLayer(marker)) ? individualsClusterGroup : null);
+
+        if (group) {
+          group.zoomToShowLayer(marker, () => {
+            marker.openPopup();
+          });
+        } else {
           marker.openPopup();
-        });
+        }
       } else {
         const c = filteredCustomers.find(x => x.code === code);
         if (c && map) map.setView(getCustomerCoords(c), 15, { animate: true });
@@ -1585,30 +1822,52 @@
 
     // Setup Category Pill Toggles
     function setupCategoryToggles() {
-      $('btnToggleClients').onclick = () => {
-        showClients = !showClients;
-        $('btnToggleClients').classList.toggle('active', showClients);
-        renderMapMarkers();
-      };
-      $('btnTogglePlumbers').onclick = () => {
-        showPlumbers = !showPlumbers;
-        $('btnTogglePlumbers').classList.toggle('active', showPlumbers);
-        renderMapMarkers();
-      };
-      $('btnToggleElectricians').onclick = () => {
-        showElectricians = !showElectricians;
-        $('btnToggleElectricians').classList.toggle('active', showElectricians);
-        renderMapMarkers();
-      };
-      $('btnToggleBuilders').onclick = () => {
-        showBuilders = !showBuilders;
-        $('btnToggleBuilders').classList.toggle('active', showBuilders);
-        renderMapMarkers();
-      };
+      if ($('btnToggleCompanies')) {
+        $('btnToggleCompanies').onclick = () => {
+          showCompanies = !showCompanies;
+          $('btnToggleCompanies').classList.toggle('active', showCompanies);
+          renderMapMarkers();
+        };
+      }
+      if ($('btnToggleIndividuals')) {
+        $('btnToggleIndividuals').onclick = () => {
+          showIndividuals = !showIndividuals;
+          $('btnToggleIndividuals').classList.toggle('active', showIndividuals);
+          renderMapMarkers();
+        };
+      }
+      if ($('btnTogglePlumbers')) {
+        $('btnTogglePlumbers').onclick = () => {
+          showPlumbers = !showPlumbers;
+          $('btnTogglePlumbers').classList.toggle('active', showPlumbers);
+          renderMapMarkers();
+        };
+      }
+      if ($('btnToggleElectricians')) {
+        $('btnToggleElectricians').onclick = () => {
+          showElectricians = !showElectricians;
+          $('btnToggleElectricians').classList.toggle('active', showElectricians);
+          renderMapMarkers();
+        };
+      }
+      if ($('btnToggleBuilders')) {
+        $('btnToggleBuilders').onclick = () => {
+          showBuilders = !showBuilders;
+          $('btnToggleBuilders').classList.toggle('active', showBuilders);
+          renderMapMarkers();
+        };
+      }
 
-      $('btnWebScan').onclick = runLiveWebScan;
-      $('btnFilterGeo').onclick = filterByGeo;
-      $('geoSearchInput').onkeyup = e => { if (e.key === 'Enter') filterByGeo(); };
+      if ($('selectPromoCampaign')) {
+        $('selectPromoCampaign').onchange = () => {
+          selectedPromoCampaign = $('selectPromoCampaign').value;
+          renderMapMarkers();
+        };
+      }
+
+      if ($('btnWebScan')) $('btnWebScan').onclick = runLiveWebScan;
+      if ($('btnFilterGeo')) $('btnFilterGeo').onclick = filterByGeo;
+      if ($('geoSearchInput')) $('geoSearchInput').onkeyup = e => { if (e.key === 'Enter') filterByGeo(); };
 
       // Sidebar Tab Switching
       document.querySelectorAll('.sidebar-tab').forEach(tabBtn => {
@@ -1623,29 +1882,70 @@
         };
       });
 
-      // Export List Button
-      $('btnExportList').onclick = () => {
-        const headers = ['ID', 'Ragione Sociale', 'Categoria', 'Indirizzo', 'CAP', 'Citta', 'Telefono', 'Email'];
-        const rows = currentProspects.map(p => [
-          p.id,
-          `"${p.name.replace(/"/g, '""')}"`,
-          `"${p.catLabel}"`,
-          `"${p.addr}"`,
-          p.cap,
-          `"${p.city}"`,
-          p.phone,
-          p.email
-        ]);
-        const csv = '\uFEFF' + [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `prospect_climawell_${new Date().toISOString().slice(0, 10)}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        toast('📥 Esportazione completata con successo!');
-      };
+      // Export Prospects Button
+      if ($('btnExportList')) {
+        $('btnExportList').onclick = () => {
+          const headers = ['ID', 'Ragione Sociale', 'Categoria', 'Indirizzo', 'CAP', 'Citta', 'Telefono', 'Email'];
+          const rows = currentProspects.map(p => [
+            p.id,
+            `"${(p.name || '').replace(/"/g, '""')}"`,
+            `"${p.catLabel || ''}"`,
+            `"${(p.addr || '').replace(/"/g, '""')}"`,
+            p.cap || '',
+            `"${(p.city || '').replace(/"/g, '""')}"`,
+            p.phone || '',
+            p.email || ''
+          ]);
+          const csv = '\uFEFF' + [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
+          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = `prospect_climawell_${new Date().toISOString().slice(0, 10)}.csv`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          toast('📥 Esportazione prospect completata!');
+        };
+      }
+
+      // Export Segmented / Promotional Clients Button
+      if ($('btnExportClientsPromo')) {
+        $('btnExportClientsPromo').onclick = () => {
+          const classified = filteredCustomers.map(classifyCustomer).filter(c => {
+            if (c.isCompany && !showCompanies) return false;
+            if (!c.isCompany && !showIndividuals) return false;
+            if (selectedPromoCampaign !== 'ALL' && c.promoCluster !== selectedPromoCampaign) return false;
+            return true;
+          });
+
+          const headers = ['Codice', 'Ragione Sociale', 'Segmento', 'Campagna Promo Consigliata', 'Partita IVA', 'Codice Fiscale', 'Indirizzo', 'Citta', 'Provincia', 'Telefono', 'Cellulare', 'Email'];
+          const rows = classified.map(c => [
+            c.code || '',
+            `"${(c.name || '').replace(/"/g, '""')}"`,
+            c.isCompany ? 'Azienda P.IVA' : 'Privato Occasionale',
+            `"${c.promoClusterLabel || ''}"`,
+            `"${c.vatNumber || ''}"`,
+            `"${c.taxCode || ''}"`,
+            `"${(c.address || '').replace(/"/g, '""')}"`,
+            `"${(c.city || '').replace(/"/g, '""')}"`,
+            `"${c.province || ''}"`,
+            `"${c.phone || ''}"`,
+            `"${c.mobile || ''}"`,
+            `"${c.email || ''}"`
+          ]);
+
+          const csv = '\uFEFF' + [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
+          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          const campSuffix = selectedPromoCampaign !== 'ALL' ? `_${selectedPromoCampaign}` : '_tutti';
+          a.download = `clienti_campagna${campSuffix}_${new Date().toISOString().slice(0, 10)}.csv`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          toast(`📥 Esportati ${classified.length} clienti target per campagna promozionale!`);
+        };
+      }
     }
 
     // Helper: HTML escape

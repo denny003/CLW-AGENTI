@@ -793,6 +793,69 @@ async function fetchAgentsData(customId, customTab) {
   }
 }
 
+// Helper per classificazione automatica Aziende (P.IVA/B2B) vs Privati (Occasionali/B2C) e Target Promozionale
+function classifyCustomerRecord({ name = '', activity = '', vatNumber = '', taxCode = '', sdi = '', type = '' } = {}) {
+  const vat = String(vatNumber || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+  const cf = String(taxCode || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+  const nm = String(name || '').toUpperCase();
+  const act = String(activity || '').toUpperCase();
+  const tp = String(type || '').toUpperCase();
+
+  // 1. Partita IVA italiana (11 cifre o IT + 11 cifre) o estera valida
+  const hasValidVat = (vat.length === 11 && /^\d{11}$/.test(vat)) || (vat.startsWith('IT') && vat.length === 13 && /^\d{11}$/.test(vat.slice(2))) || (vat.length >= 8 && /^[A-Z0-9]+$/.test(vat) && !cf.includes(vat));
+
+  // 2. Codice Fiscale numerico di 11 cifre (tipico di società ed enti giuridici)
+  const isNumericCfCompany = cf.length === 11 && /^\d{11}$/.test(cf);
+
+  // 3. Codice Fiscale di persona fisica (16 caratteri alfanumerici)
+  const isPersonCf = cf.length === 16 && /^[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]$/.test(cf);
+
+  // 4. Indicatori di ragione sociale aziendale / ditta / studio
+  const companyRegex = /\b(S\.?R\.?L\.?|S\.?P\.?A\.?|S\.?N\.?C\.?|S\.?A\.?S\.?|S\.?S\.?|COOP|COOPERATIVA|SOC\.?|SOCIETA|DITTA|IMPRESA|STUDIO|OFFICINA|IMPIANTI|IDRAULICA|TERMOIDRAULICA|CLIMA|CONDIZIONAMENTO|EDIL|EDILIZIA|COSTRUZIONI|INSTALLAZIONI|SERVICE|COMMERCIO|COMMERCIALE|GROUP|SRLS)\b/i;
+  const hasCompanyKeyword = companyRegex.test(nm) || companyRegex.test(act);
+
+  let isCompany = false;
+  if (hasValidVat || isNumericCfCompany || hasCompanyKeyword) {
+    isCompany = true;
+  } else if (isPersonCf && !hasValidVat) {
+    isCompany = false;
+  } else if (!vat && !cf) {
+    isCompany = hasCompanyKeyword;
+  } else {
+    isCompany = Boolean(vat && vat.length >= 8);
+  }
+
+  const category = isCompany ? 'azienda' : 'privato';
+  const categoryLabel = isCompany ? 'Azienda / P.IVA' : 'Privato / Occasionale';
+
+  // 5. Cluster Promozionale & Settore Campagna
+  let promoCluster = 'b2b_aziende';
+  let promoClusterLabel = 'Forniture Aziendali & Industria';
+  const combined = `${nm} ${act} ${tp}`.toUpperCase();
+
+  if (category === 'privato') {
+    promoCluster = 'residenziale_privati';
+    promoClusterLabel = 'Clima & Caldaie Residenziale';
+  } else if (combined.includes('IDRAULIC') || combined.includes('TERMO') || combined.includes('CLIMA') || combined.includes('CALDAI') || combined.includes('SANITAR') || combined.includes('POMP')) {
+    promoCluster = 'idraulica_clima';
+    promoClusterLabel = 'Termoidraulica & Climatizzazione B2B';
+  } else if (combined.includes('ELETT') || combined.includes('FOTOVOLT') || combined.includes('ENERG') || combined.includes('DOMOTIC') || combined.includes('LUCE') || combined.includes('QUADRI')) {
+    promoCluster = 'elettrico_rinnovabili';
+    promoClusterLabel = 'Elettrico & Energie Rinnovabili';
+  } else if (combined.includes('EDIL') || combined.includes('COSTRUZ') || combined.includes('CANTIERE') || combined.includes('RESTAURO') || combined.includes('PAVIMENT') || combined.includes('INTONACO')) {
+    promoCluster = 'edile_cantieri';
+    promoClusterLabel = 'Imprese Edili & Cantieri';
+  }
+
+  return {
+    isCompany,
+    category,
+    categoryLabel,
+    promoCluster,
+    promoClusterLabel
+  };
+}
+
 // 3. Fetch Customers
 async function fetchCustomersData(customId, customTab, user = null) {
   const id = cleanEnvId(customId) || runtimeConfig.customers.spreadsheetId || OFFICIAL_SYSTEM_SPREADSHEETS.customers.spreadsheetId;
@@ -831,12 +894,28 @@ async function fetchCustomersData(customId, customTab, user = null) {
         const agentId = agentVal ? normalizeAgentId(agentVal) : 'UNASSIGNED';
         const agentName = agentIdx >= 0 ? String(r[agentIdx] || '').trim() : '';
 
+        const nameVal = String(r[nameIdx] || '').trim();
+        const actVal = String(r[actIdx] || '').trim();
+        const typeVal = String(r[typeIdx] || '').trim();
+        const vatVal = vatIdx >= 0 ? String(r[vatIdx] || '').trim() : '';
+        const taxVal = taxIdx >= 0 ? String(r[taxIdx] || '').trim() : '';
+        const sdiVal = sdiIdx >= 0 ? String(r[sdiIdx] || '').trim() : '';
+
+        const classification = classifyCustomerRecord({
+          name: nameVal,
+          activity: actVal,
+          type: typeVal,
+          vatNumber: vatVal,
+          taxCode: taxVal,
+          sdi: sdiVal
+        });
+
         customers.push({
           id: codeVal,
           code: codeVal,
-          name: String(r[nameIdx] || '').trim(),
-          type: String(r[typeIdx] || '').trim(),
-          activity: String(r[actIdx] || '').trim(),
+          name: nameVal,
+          type: typeVal,
+          activity: actVal,
           agentId,
           sourceAgent: agentName || agentVal,
           address: String(r[addressIdx] || '').trim(),
@@ -846,12 +925,17 @@ async function fetchCustomersData(customId, customTab, user = null) {
           phone: String(r[phoneIdx] || '').trim(),
           mobile: String(r[mobileIdx] || '').trim(),
           email: String(r[emailIdx] || '').trim(),
-          sdi: sdiIdx >= 0 ? String(r[sdiIdx] || '').trim() : '',
+          sdi: sdiVal,
           iban: ibanIdx >= 0 ? String(r[ibanIdx] || '').trim() : '',
           bank: bankIdx >= 0 ? String(r[bankIdx] || '').trim() : '',
-          vatNumber: vatIdx >= 0 ? String(r[vatIdx] || '').trim() : '',
-          taxCode: taxIdx >= 0 ? String(r[taxIdx] || '').trim() : '',
-          payment: payIdx >= 0 ? String(r[payIdx] || '').trim() : ''
+          vatNumber: vatVal,
+          taxCode: taxVal,
+          payment: payIdx >= 0 ? String(r[payIdx] || '').trim() : '',
+          isCompany: classification.isCompany,
+          category: classification.category,
+          categoryLabel: classification.categoryLabel,
+          promoCluster: classification.promoCluster,
+          promoClusterLabel: classification.promoClusterLabel
         });
       }
 
