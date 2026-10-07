@@ -169,8 +169,7 @@
 ├── clienti (Google Sheet)
 ├── Articoli (Google Sheet)
 └── Repository
-      ├── Registro offerte e ordini (Google Sheet - Vendite & Agenti)
-      └── Registro Magazzino e Produzione (Google Sheet - Logistica & Fabbrica)</pre>
+      └── Registro Offerte e Ordini Plus 2000 (Google Sheet: DocTes & DocRig)</pre>
       </div>
       <div>
         <a class="btn secondary" href="https://drive.google.com/drive/folders/1lr8lThQr1SxP4LAx2n69_pDxwu36ifh9" target="_blank" rel="noopener">Apri cartella Google Drive ↗</a>
@@ -197,7 +196,7 @@
         </div>
         <div class="field" style="grid-column: span 2;">
           <label for="companySpreadsheetId">Spreadsheet ID</label>
-          <input id="companySpreadsheetId" placeholder="1-ntNPKA3gdjZaxYntGNkXtKC5Kt4JIXGSoQfESO169M">
+          <input id="companySpreadsheetId" placeholder="13OvGppFZm9WnA8SL_6gpNi7s_A2P0seWogN1DoVwZHA">
         </div>
         <div class="field">
           <label for="companyTab">Nome tab</label>
@@ -217,7 +216,7 @@
         </div>
         <div class="field" style="grid-column: span 2;">
           <label for="agentsSpreadsheetId">Spreadsheet ID</label>
-          <input id="agentsSpreadsheetId" placeholder="13HaTubf4_xVTtzkQUcYINkRtuSzLR2qGzJAiA-oAecU">
+          <input id="agentsSpreadsheetId" placeholder="1Aspw3CnD0bgAqqZW4PoN-OOSSZBBtNrurTa3fy_56Tk">
         </div>
         <div class="field">
           <label for="agentsTab">Tab</label>
@@ -237,7 +236,7 @@
         </div>
         <div class="field" style="grid-column: span 2;">
           <label for="customersSpreadsheetId">Spreadsheet ID</label>
-          <input id="customersSpreadsheetId" placeholder="1rkFDBTCJD3JlrcvyOPGHjYTJDkjuMc24dJ7l6EqQ6I8">
+          <input id="customersSpreadsheetId" placeholder="1Ui3W6-jVIww7QgTtnXaywJj2ZyQiiaHAd92Xl5KRrD8">
         </div>
         <div class="field">
           <label for="customersTab">Tab</label>
@@ -257,7 +256,7 @@
         </div>
         <div class="field" style="grid-column: span 2;">
           <label for="productsSpreadsheetId">Spreadsheet ID</label>
-          <input id="productsSpreadsheetId" placeholder="17ErnowHZDqA3WDTN5auHkyTBPVn4MqkI8BFkiqkDhmE">
+          <input id="productsSpreadsheetId" placeholder="1g6zrWK_zZJZ82kdoNgda9KuoemYlSs0XGRRfJvoOvUk">
         </div>
         <div class="field">
           <label for="productsTab">Tab</label>
@@ -268,8 +267,8 @@
 
     <!-- SEZIONE REPOSITORY -->
     <section class="section-card">
-      <h3>📑 Repository (Offerte e Ordini)</h3>
-      <p>Cartella e foglio centrale di registrazione in cui vengono archiviate tutte le offerte e gli ordini inviati dagli agenti.</p>
+      <h3>📑 Repository Plus 2000 (Testata & Righe Documenti)</h3>
+      <p>Foglio centrale di registrazione e interscambio con il gestionale Plus 2000, strutturato nelle schede relazionali di testata e righe documento.</p>
       <div class="fields-row">
         <div class="field">
           <label for="repositoryFolder">Cartella Repository</label>
@@ -277,47 +276,19 @@
         </div>
         <div class="field">
           <label for="registerFileName">Nome file</label>
-          <input id="registerFileName" class="text-val" placeholder="Registro offerte e ordini">
+          <input id="registerFileName" class="text-val" placeholder="Registro_Offerte_e_Ordini_Plus2000">
         </div>
         <div class="field" style="grid-column: span 2;">
-          <label for="registerSpreadsheetId">Spreadsheet ID "Registro offerte e ordini"</label>
-          <input id="registerSpreadsheetId" placeholder="1Hi1Nppj4szI4UwfSeC632KkpF0dEQjqxnIVIenn-Fjc">
+          <label for="registerSpreadsheetId">Spreadsheet ID "Registro Offerte e Ordini"</label>
+          <input id="registerSpreadsheetId" placeholder="10hp34cPu6ZxzPwSbrlIFsr_WcQTaIwBmJUUQjFZc2nw">
         </div>
         <div class="field">
-          <label for="registerTabOffers">Tab Offerte</label>
-          <input id="registerTabOffers" class="text-val" placeholder="Offerte">
+          <label for="registerTabOffers">Tab Testata Documenti (DocTes)</label>
+          <input id="registerTabOffers" class="text-val" placeholder="DocTes">
         </div>
         <div class="field">
-          <label for="registerTabOrders">Tab Ordini</label>
-          <input id="registerTabOrders" class="text-val" placeholder="Ordini">
-        </div>
-      </div>
-    </section>
-
-    <!-- SEZIONE MAGAZZINO E PRODUZIONE -->
-    <section class="section-card">
-      <h3>🏭 Magazzino e Produzione</h3>
-      <p>Foglio dedicato alla pianificazione produzione, scorte intelligenti, fabbisogni e movimenti di prelievo/carico (separato dagli ordini degli 11 agenti per zero blocchi di concorrenza).</p>
-      <div class="fields-row">
-        <div class="field">
-          <label for="warehouseFileName">Nome file</label>
-          <input id="warehouseFileName" class="text-val" placeholder="Registro Magazzino e Produzione">
-        </div>
-        <div class="field" style="grid-column: span 2;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-            <label for="warehouseSpreadsheetId" style="margin-bottom:0;">Spreadsheet ID o Link Google Sheet "Registro Magazzino e Produzione"</label>
-            <button type="button" id="btnFormatWarehouse" class="btn secondary" style="font-size:0.75rem; padding:4px 10px;">🎨 Formatta & Pre-popola Foglio</button>
-          </div>
-          <input id="warehouseSpreadsheetId" placeholder="1PY897bYrzckl9P3ADr6LjhCPik-9wQefEkkkn9SWCig">
-          <small style="font-size:0.75rem; color:#64748b; margin-top:4px; display:block;">Puoi incollare l'intero link o ID del foglio Google Drive. Clicca su "Formatta & Pre-popola Foglio" per creare intestazioni e stile.</small>
-        </div>
-        <div class="field">
-          <label for="warehouseTabMovements">Tab Movimenti Magazzino</label>
-          <input id="warehouseTabMovements" class="text-val" placeholder="Movimenti_Magazzino">
-        </div>
-        <div class="field">
-          <label for="warehouseTabParameters">Tab Parametri & Produzione</label>
-          <input id="warehouseTabParameters" class="text-val" placeholder="Parametri_Produzione">
+          <label for="registerTabOrders">Tab Righe Documenti (DocRig)</label>
+          <input id="registerTabOrders" class="text-val" placeholder="DocRig">
         </div>
       </div>
     </section>
@@ -349,15 +320,26 @@
 
     function getCanonicalDefaults() {
       return (window.OFFICIAL_SYSTEM_SPREADSHEETS && window.OFFICIAL_SYSTEM_SPREADSHEETS.company) ? window.OFFICIAL_SYSTEM_SPREADSHEETS : {
-        company: { sheetName: "Dati_Azienda_e_Mandanti", spreadsheetId: "1-ntNPKA3gdjZaxYntGNkXtKC5Kt4JIXGSoQfESO169M", tab: "Dati azienda" },
-        agents: { fileName: "Anagrafica_Agenti", spreadsheetId: "13HaTubf4_xVTtzkQUcYINkRtuSzLR2qGzJAiA-oAecU", tab: "Agenti" },
+        company: { sheetName: "Dati_Azienda_e_Mandanti", spreadsheetId: "13OvGppFZm9WnA8SL_6gpNi7s_A2P0seWogN1DoVwZHA", tab: "Dati azienda" },
+        agents: { fileName: "Anagrafica_Agenti", spreadsheetId: "1Aspw3CnD0bgAqqZW4PoN-OOSSZBBtNrurTa3fy_56Tk", tab: "Agenti" },
         customers: { fileName: "clienti", spreadsheetId: "1Ui3W6-jVIww7QgTtnXaywJj2ZyQiiaHAd92Xl5KRrD8", tab: "clienti" },
-        products: { fileName: "Articoli", spreadsheetId: "17ErnowHZDqA3WDTN5auHkyTBPVn4MqkI8BFkiqkDhmE", tab: "q_listino_prezzi_catalogo" },
-        repository: { folder: "Repository", fileName: "Registro_Offerte_e_Ordini_Plus2000", spreadsheetId: "10hp34cPu6ZxzPwSbrlIFsr_WcQTaIwBmJUUQjFZc2nw", tabHeader: "DocTes", tabLines: "DocRig", tabOffers: "DocTes", tabOrders: "DocTes" },
-        warehouse: { folder: "Repository", fileName: "Registro Magazzino e Produzione", spreadsheetId: "1PY897bYrzckl9P3ADr6LjhCPik-9wQefEkkkn9SWCig", tabMovements: "Movimenti_Magazzino", tabParameters: "Parametri_Produzione" },
+        products: { fileName: "Articoli", spreadsheetId: "1g6zrWK_zZJZ82kdoNgda9KuoemYlSs0XGRRfJvoOvUk", tab: "q_listino_prezzi_catalogo" },
+        repository: { folder: "Repository", fileName: "Registro_Offerte_e_Ordini_Plus2000", spreadsheetId: "10hp34cPu6ZxzPwSbrlIFsr_WcQTaIwBmJUUQjFZc2nw", tabHeader: "DocTes", tabLines: "DocRig", tabOffers: "DocTes", tabOrders: "DocRig" },
         googleDrive: { sourceFolderUrl: "https://drive.google.com/drive/folders/1lr8lThQr1SxP4LAx2n69_pDxwu36ifh9", folderId: "1lr8lThQr1SxP4LAx2n69_pDxwu36ifh9" }
       };
     }
+
+    // Auto-clean stale or typo IDs in localStorage
+    try {
+      const stored = JSON.parse(localStorage.getItem('companyConfig') || '{}');
+      if (stored.repository?.spreadsheetId && (stored.repository.spreadsheetId.includes('1Ohp') || stored.repository.spreadsheetId.includes('10hp34cPu6Zxc'))) {
+        stored.repository.spreadsheetId = '10hp34cPu6ZxzPwSbrlIFsr_WcQTaIwBmJUUQjFZc2nw';
+        stored.repository.tabOffers = 'DocTes';
+        stored.repository.tabOrders = 'DocRig';
+        stored.repository.fileName = 'Registro_Offerte_e_Ordini_Plus2000';
+        localStorage.setItem('companyConfig', JSON.stringify(stored));
+      }
+    } catch {}
 
     function populateForm(cfg) {
       const def = getCanonicalDefaults();
@@ -366,7 +348,10 @@
         const el = $(id);
         if (!el) return;
         if (el === activeEl) return;
-        const finalVal = (val && String(val).trim() && String(val).trim().length >= 20 && !String(val).includes('1mnW') && !String(val).includes('1N6ZcGa')) ? String(val).trim() : fallback;
+        let finalVal = (val && String(val).trim() && String(val).trim().length >= 20 && !String(val).includes('1mnW') && !String(val).includes('1N6ZcGa')) ? String(val).trim() : fallback;
+        if (finalVal.includes('1Ohp') || finalVal.includes('10hp34cPu6Zxc')) {
+          finalVal = '10hp34cPu6ZxzPwSbrlIFsr_WcQTaIwBmJUUQjFZc2nw';
+        }
         el.value = finalVal;
       };
 
@@ -390,26 +375,22 @@
       setVal('productsSpreadsheetId', cfg?.products?.spreadsheetId, def.products.spreadsheetId);
       if ($('productsTab') && $('productsTab') !== activeEl) $('productsTab').value = cfg?.products?.tab || def.products.tab;
 
-      // Repository
+      // Repository Plus 2000
       if ($('repositoryFolder') && $('repositoryFolder') !== activeEl) $('repositoryFolder').value = cfg?.repository?.folder || def.repository.folder;
       if ($('registerFileName') && $('registerFileName') !== activeEl) $('registerFileName').value = cfg?.repository?.fileName || def.repository.fileName;
       setVal('registerSpreadsheetId', cfg?.repository?.spreadsheetId, def.repository.spreadsheetId);
-      if ($('registerTabOffers') && $('registerTabOffers') !== activeEl) $('registerTabOffers').value = cfg?.repository?.tabOffers || def.repository.tabOffers;
-      if ($('registerTabOrders') && $('registerTabOrders') !== activeEl) $('registerTabOrders').value = cfg?.repository?.tabOrders || def.repository.tabOrders;
-
-      // Magazzino e Produzione
-      if ($('warehouseFileName') && $('warehouseFileName') !== activeEl) $('warehouseFileName').value = cfg?.warehouse?.fileName || def.warehouse?.fileName || 'Registro Magazzino e Produzione';
-      const whVal = cfg?.warehouse?.spreadsheetId || def.warehouse?.spreadsheetId || '';
-      if ($('warehouseSpreadsheetId') && $('warehouseSpreadsheetId') !== activeEl) $('warehouseSpreadsheetId').value = whVal;
-      if ($('warehouseTabMovements') && $('warehouseTabMovements') !== activeEl) $('warehouseTabMovements').value = cfg?.warehouse?.tabMovements || def.warehouse?.tabMovements || 'Movimenti_Magazzino';
-      if ($('warehouseTabParameters') && $('warehouseTabParameters') !== activeEl) $('warehouseTabParameters').value = cfg?.warehouse?.tabParameters || def.warehouse?.tabParameters || 'Parametri_Produzione';
+      if ($('registerTabOffers') && $('registerTabOffers') !== activeEl) $('registerTabOffers').value = cfg?.repository?.tabOffers || def.repository.tabOffers || 'DocTes';
+      if ($('registerTabOrders') && $('registerTabOrders') !== activeEl) $('registerTabOrders').value = cfg?.repository?.tabOrders || def.repository.tabOrders || 'DocRig';
     }
 
     function cleanInputId(val) {
       if (!val) return '';
-      const s = String(val).trim();
+      let s = String(val).trim();
       const m = s.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-      if (m) return m[1];
+      if (m) s = m[1];
+      if (s.includes('1Ohp') || s.includes('10hp34cPu6Zxc')) {
+        return '10hp34cPu6ZxzPwSbrlIFsr_WcQTaIwBmJUUQjFZc2nw';
+      }
       return s;
     }
 
@@ -448,15 +429,10 @@
           folder: ($('repositoryFolder')?.value || '').trim() || def.repository.folder,
           fileName: ($('registerFileName')?.value || '').trim() || def.repository.fileName,
           spreadsheetId: valOrDef('registerSpreadsheetId', def.repository.spreadsheetId),
-          tabOffers: ($('registerTabOffers')?.value || '').trim() || def.repository.tabOffers,
-          tabOrders: ($('registerTabOrders')?.value || '').trim() || def.repository.tabOrders
-        },
-        warehouse: {
-          folder: "Repository",
-          fileName: ($('warehouseFileName')?.value || '').trim() || 'Registro Magazzino e Produzione',
-          spreadsheetId: cleanInputId($('warehouseSpreadsheetId')?.value),
-          tabMovements: ($('warehouseTabMovements')?.value || '').trim() || 'Movimenti_Magazzino',
-          tabParameters: ($('warehouseTabParameters')?.value || '').trim() || 'Parametri_Produzione'
+          tabHeader: ($('registerTabOffers')?.value || '').trim() || 'DocTes',
+          tabLines: ($('registerTabOrders')?.value || '').trim() || 'DocRig',
+          tabOffers: ($('registerTabOffers')?.value || '').trim() || 'DocTes',
+          tabOrders: ($('registerTabOrders')?.value || '').trim() || 'DocRig'
         },
         googleDrive: {
           sourceFolderUrl: def.googleDrive.sourceFolderUrl,

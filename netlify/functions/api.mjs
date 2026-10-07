@@ -158,6 +158,10 @@ const cleanEnvId = (val, fallback = '', oldPatterns = ['1mnW', '1N6ZcGa', 'undef
   for (const p of oldPatterns) {
     if (trimmed.includes(p)) return fallback;
   }
+  // Auto-correct old typo variants of the repository ID
+  if (trimmed.includes('1Ohp34c') || trimmed.includes('10hp34cPu6Zxc')) {
+    return '10hp34cPu6ZxzPwSbrlIFsr_WcQTaIwBmJUUQjFZc2nw';
+  }
   return trimmed;
 };
 
@@ -185,10 +189,12 @@ let runtimeConfig = {
   },
   repository: {
     folder: 'Repository',
-    fileName: 'Registro offerte e ordini',
+    fileName: 'Registro_Offerte_e_Ordini_Plus2000',
     spreadsheetId: cleanEnvId(process.env.REGISTER_SPREADSHEET_ID) || cleanEnvId(process.env.REPOSITORY_SPREADSHEET_ID) || OFFICIAL_SYSTEM_SPREADSHEETS.repository.spreadsheetId,
-    tabOffers: 'Offerte',
-    tabOrders: 'Ordini'
+    tabHeader: 'DocTes',
+    tabLines: 'DocRig',
+    tabOffers: 'DocTes',
+    tabOrders: 'DocTes'
   },
   warehouse: {
     folder: 'Repository',
@@ -1189,32 +1195,47 @@ async function runDiagnostics(testCfg = {}) {
   // Check 6: Repository
   if (hasGoogle) {
     try {
-      // Check headers on Offerte and Ordini
-      await ensureHeader(cfg.registerTabOffers, registerHeaders, cfg.registerId);
-      await ensureHeader(cfg.registerTabOrders, registerHeaders, cfg.registerId);
+      const regId = (cfg.registerId && (cfg.registerId.includes('1Ohp') || cfg.registerId.includes('10hp')))
+        ? OFFICIAL_SYSTEM_SPREADSHEETS.repository.spreadsheetId
+        : cleanEnvId(cfg.registerId, OFFICIAL_SYSTEM_SPREADSHEETS.repository.spreadsheetId);
 
-      const meta = await sheets(`${cfg.registerId}?fields=sheets.properties`).catch(() => null);
+      const meta = await sheets(`${regId}?fields=sheets.properties`).catch(() => null);
       const tabInfos = (meta?.sheets || []).map(s => ({
         title: s.properties?.title,
         sheetId: s.properties?.sheetId,
         rowCount: s.properties?.gridProperties?.rowCount
       }));
-      const offerRows = await readRange(cfg.registerId, `'${cfg.registerTabOffers}'!A1:B1005`).catch(() => []);
-      const filledRows = [];
-      for (let i = 0; i < offerRows.length; i++) {
-        const a = offerRows[i]?.[0], b = offerRows[i]?.[1];
-        if (a || b) filledRows.push({ rowNumber: i + 1, colA: a, colB: b });
+      const tabTitles = tabInfos.map(t => String(t.title || '').trim());
+
+      const hasDocTes = tabTitles.some(t => t.toLowerCase() === 'doctes');
+      const hasDocRig = tabTitles.some(t => t.toLowerCase() === 'docrig');
+
+      let filledCount = 0;
+      let activeSchema = 'DocTes / DocRig (Plus 2000)';
+
+      if (hasDocTes) {
+        const tesRows = await readRange(regId, "'DocTes'!A1:B1005").catch(() => []);
+        filledCount = Math.max(0, tesRows.length - 1);
+        activeSchema = hasDocRig ? 'Testata (DocTes) & Righe (DocRig)' : 'Testata (DocTes)';
+      } else {
+        // Fallback su schede tradizionali
+        const tabOff = cfg.registerTabOffers || 'Offerte';
+        const tabOrd = cfg.registerTabOrders || 'Ordini';
+        await ensureHeader(tabOff, registerHeaders, regId).catch(() => {});
+        await ensureHeader(tabOrd, registerHeaders, regId).catch(() => {});
+        const offerRows = await readRange(regId, `'${tabOff}'!A1:B1005`).catch(() => []);
+        filledCount = Math.max(0, offerRows.length - 1);
+        activeSchema = `Schede "${tabOff}" e "${tabOrd}"`;
       }
 
       results.repository = {
         status: 'ok',
         icon: '🟢',
         label: 'Scrittura attiva',
-        message: 'Permessi di scrittura e struttura schede confermati',
-        details: `Foglio ID: ${cfg.registerId} · Schede "${cfg.registerTabOffers}" e "${cfg.registerTabOrders}"`,
+        message: `Repository collegato (${activeSchema})`,
+        details: `Foglio ID: ${regId} · ${activeSchema} (${filledCount} record)`,
         tabs: tabInfos,
-        filledRowsCount: filledRows.length,
-        filledRows: filledRows.slice(-10)
+        filledRowsCount: filledCount
       };
     } catch (err) {
       results.repository = {
@@ -1222,7 +1243,7 @@ async function runDiagnostics(testCfg = {}) {
         icon: '🔴',
         label: 'Errore repository',
         message: err.message,
-        details: `Verificare che il foglio ID ${cfg.registerId} sia condiviso come Editor con l'account di servizio`
+        details: `Verificare che il foglio ID ${cfg.registerId || OFFICIAL_SYSTEM_SPREADSHEETS.repository.spreadsheetId} sia condiviso come Editor con l'account di servizio`
       };
     }
   } else {

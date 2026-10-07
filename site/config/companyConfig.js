@@ -29,7 +29,7 @@ const OFFICIAL_SYSTEM_SPREADSHEETS = Object.freeze({
     tabHeader: "DocTes",
     tabLines: "DocRig",
     tabOffers: "DocTes",
-    tabOrders: "DocTes"
+    tabOrders: "DocRig"
   },
   warehouse: {
     folder: "Repository",
@@ -54,7 +54,7 @@ function isInvalidSpreadsheetId(id) {
   if (!id || typeof id !== 'string') return true;
   const s = id.trim();
   if (s.length < 20) return true;
-  if (s.includes('1mnW') || s.includes('1N6ZcGa') || s.includes('undefined') || s.includes('null')) return true;
+  if (s.includes('1mnW') || s.includes('1N6ZcGa') || s.includes('undefined') || s.includes('null') || s.includes('1Ohp34c') || s.includes('10hp34cPu6Zxc')) return true;
   return false;
 }
 
