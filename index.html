@@ -981,10 +981,25 @@
         $('rows').innerHTML = '<div style="text-align:center; padding: 24px; color: var(--muted);">Sincronizzazione registro Google Sheets…</div>';
         const [a, b] = await Promise.all([api('offers'), api('orders')]);
         
-        allPractices = [
-          ...(a.offers || []).map(x => ({ ...x, type: 'Offerta', number: x.offer_number || x.offerNumber || x.number })),
-          ...(b.orders || []).map(x => ({ ...x, type: 'Ordine', number: x.order_number || x.orderNumber || x.number }))
-        ].sort((x, y) => String(y.updated_at || y.submitted_at || '').localeCompare(String(x.updated_at || x.submitted_at || '')));
+        // Mappa univoca per evitare duplicati da ID_Documento condiviso tra offerte e ordini
+        const practiceMap = new Map();
+        (a.offers || []).forEach(x => {
+          const num = x.number || x.offer_number || x.offerNumber || x.id;
+          practiceMap.set(num, { ...x, type: x.type || 'Offerta', number: num });
+        });
+        (b.orders || []).forEach(x => {
+          const num = x.number || x.order_number || x.orderNumber || x.id;
+          if (!practiceMap.has(num)) {
+            practiceMap.set(num, { ...x, type: x.type || 'Ordine', number: num });
+          } else {
+            const isOrder = x.tpDoc === 'OCL' || x.tpDoc === 'ORC' || x.tpDoc === 'ORD' || (x.type === 'Ordine');
+            if (isOrder) {
+              practiceMap.set(num, { ...x, type: 'Ordine', number: num });
+            }
+          }
+        });
+        allPractices = Array.from(practiceMap.values())
+          .sort((x, y) => String(y.updated_at || y.submitted_at || '').localeCompare(String(x.updated_at || x.submitted_at || '')));
 
         localStorage.setItem('oa_cached_practices', JSON.stringify(allPractices));
         $('statusDot').style.background = '#34d399';

@@ -1380,9 +1380,15 @@ async function ensureHeader(tab, headers, customRegId) {
   }
 }
 
-async function listDocs(tab, user, customId) {
+async function listDocs(tab, user, customId, docKind = null) {
   const regId = cleanEnvId(customId) || runtimeConfig.repository.spreadsheetId || OFFICIAL_SYSTEM_SPREADSHEETS.repository.spreadsheetId;
   try {
+    let filterKind = docKind;
+    if (!filterKind) {
+      if (tab === 'Offerte' || tab === 'OFC' || tab === 'offers') filterKind = 'offer';
+      else if (tab === 'Ordini' || tab === 'OCL' || tab === 'orders') filterKind = 'order';
+    }
+
     // Verifica se il foglio ha la nuova struttura Plus 2000 (DocTes e DocRig)
     let isDocTesStructure = false;
     let tesRows = [];
@@ -1426,7 +1432,6 @@ async function listDocs(tab, user, customId) {
         }
       }
 
-      const targetTpDoc = (tab === 'Ordini' || tab === 'OCL') ? 'OCL' : (tab === 'Offerte' || tab === 'OFC') ? 'OFC' : null;
       const userRole = user?.role || 'agent';
       const userAgentCode = normalizeAgentId(user?.agentCode || '');
       const allowedAgents = new Set();
@@ -1444,8 +1449,14 @@ async function listDocs(tab, user, customId) {
         const r = tesRows[i];
         if (!r || !r.some(cell => String(cell || '').trim())) continue;
         const id = cleanCell(r[0]);
+        if (!id) continue;
         const tpDoc = String(cleanCell(r[1])).toUpperCase();
-        if (targetTpDoc && tpDoc !== targetTpDoc) continue;
+
+        const isOfferDoc = tpDoc === 'OFC' || tpDoc.startsWith('OF') || tpDoc.includes('OFF');
+        const isOrderDoc = tpDoc === 'OCL' || tpDoc === 'ORC' || tpDoc === 'ORD' || tpDoc.startsWith('OC') || tpDoc.startsWith('OR') || tpDoc.includes('ORD');
+
+        if (filterKind === 'offer' && !isOfferDoc) continue;
+        if (filterKind === 'order' && !isOrderDoc) continue;
 
         const agCode = normalizeAgentId(cleanCell(r[3]));
         if (userRole !== 'admin' && allowedAgents.size > 0 && agCode && !allowedAgents.has(agCode)) {
@@ -1468,13 +1479,18 @@ async function listDocs(tab, user, customId) {
         const logErrore = cleanCell(r[17]);
 
         const lines = linesByDoc.get(id) || [];
+        const docType = isOfferDoc ? 'Offerta' : 'Ordine';
+
         docs.push({
           id,
           number: id,
-          offer_number: tpDoc === 'OFC' ? id : undefined,
-          order_number: tpDoc === 'OCL' ? id : undefined,
-          offerNumber: tpDoc === 'OFC' ? id : undefined,
-          orderNumber: tpDoc === 'OCL' ? id : undefined,
+          type: docType,
+          docType,
+          tpDoc,
+          offer_number: isOfferDoc ? id : undefined,
+          order_number: isOrderDoc ? id : undefined,
+          offerNumber: isOfferDoc ? id : undefined,
+          orderNumber: isOrderDoc ? id : undefined,
           submitted_at: dateDoc,
           updated_at: dataSync || dateDoc,
           agent_code: agCode,
@@ -3672,13 +3688,13 @@ export default async (request, context) => {
     if (path === 'offers' && request.method === 'GET') {
       if (!user) return json(401, { error: 'Accesso non autorizzato' });
       const customId = url.searchParams.get('id') || undefined;
-      return json(200, { offers: await listDocs(runtimeConfig.repository.tabOffers || 'Offerte', user, customId), user });
+      return json(200, { offers: await listDocs(runtimeConfig.repository.tabOffers || 'Offerte', user, customId, 'offer'), user });
     }
 
     if (path === 'orders' && request.method === 'GET') {
       if (!user) return json(401, { error: 'Accesso non autorizzato' });
       const customId = url.searchParams.get('id') || undefined;
-      return json(200, { orders: await listDocs(runtimeConfig.repository.tabOrders || 'Ordini', user, customId), user });
+      return json(200, { orders: await listDocs(runtimeConfig.repository.tabOrders || 'Ordini', user, customId, 'order'), user });
     }
 
     if (path === 'offers' && request.method === 'POST') {
