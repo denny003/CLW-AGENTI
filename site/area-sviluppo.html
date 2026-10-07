@@ -10,6 +10,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <!-- Leaflet Map CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <!-- Leaflet MarkerCluster CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
   <link rel="stylesheet" href="/styles.css">
   <style>
     :root {
@@ -27,6 +30,36 @@
       --danger: #ef4444;
       --purple: #8b5cf6;
       --blue: #2563eb;
+    }
+
+    /* Custom Leaflet Cluster for Clients */
+    .marker-cluster-clients {
+      background: rgba(16, 185, 129, 0.25);
+      border-radius: 50%;
+    }
+    .marker-cluster-clients div {
+      width: 36px;
+      height: 36px;
+      margin-left: 4px;
+      margin-top: 4px;
+      text-align: center;
+      border-radius: 50%;
+      font-weight: 800;
+      font-size: 13px;
+      background: #10b981;
+      color: #ffffff;
+      border: 2px solid #ffffff;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .marker-cluster-clients.cluster-large div {
+      background: #059669;
+      width: 44px;
+      height: 44px;
+      font-size: 14px;
     }
 
     * { box-sizing: border-box; }
@@ -686,6 +719,8 @@
 
   <!-- Leaflet Map JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <!-- Leaflet MarkerCluster JS -->
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
   <script>
     const $ = id => document.getElementById(id);
@@ -703,7 +738,9 @@
     let allCustomers = [];
     let filteredCustomers = [];
     let map = null;
-    let markersLayer = null;
+    let clientsClusterGroup = null;
+    let prospectsLayer = null;
+    let clientMarkersMap = {};
 
     // Filter toggles
     let showClients = true;
@@ -713,30 +750,155 @@
 
     // Geocoded Known City Centers (Toscana & Italia centro)
     const GEO_CENTERS = {
+      // Province toscane (sigle e nomi)
       'FIRENZE': [43.7711, 11.2486],
+      'FI': [43.7711, 11.2486],
+      'PRATO': [43.8777, 11.1022],
+      'PO': [43.8777, 11.1022],
+      'PISTOIA': [43.9333, 10.9167],
+      'PT': [43.9333, 10.9167],
+      'AREZZO': [43.4633, 11.8797],
+      'AR': [43.4633, 11.8797],
+      'SIENA': [43.3188, 11.3308],
+      'SI': [43.3188, 11.3308],
+      'LUCCA': [43.8429, 10.5027],
+      'LU': [43.8429, 10.5027],
+      'PISA': [43.7228, 10.4017],
+      'PI': [43.7228, 10.4017],
+      'LIVORNO': [43.5485, 10.3106],
+      'LI': [43.5485, 10.3106],
+      'GROSSETO': [42.7635, 11.1128],
+      'GR': [42.7635, 11.1128],
+      'MASSA': [44.0378, 10.1417],
+      'CARRARA': [44.0792, 10.1008],
+      'MS': [44.0378, 10.1417],
+
+      // Comuni Firenze & Circondario
       'SCANDICCI': [43.7544, 11.1894],
       'SESTO FIORENTINO': [43.8328, 11.1975],
       'CAMPI BISENZIO': [43.8247, 11.1342],
-      'EMPOLI': [43.7175, 10.9458],
+      'CALENZANO': [43.8560, 11.1640],
+      'SIGNA': [43.7820, 11.0960],
+      'LASTRA A SIGNA': [43.7710, 11.1040],
       'BAGNO A RIPOLI': [43.7511, 11.3197],
+      'FIESOLE': [43.8066, 11.2926],
       'PONTASSIEVE': [43.7739, 11.4286],
-      'FIGLINE E INCISA VALDARNO': [43.6192, 11.4725],
-      'FIGLINE VALDARNO': [43.6192, 11.4725],
+      'PELAGO': [43.7730, 11.5030],
+      'RUFINA': [43.8230, 11.4870],
+      'RIGNANO SULL ARNO': [43.6730, 11.4500],
       'REGGELLO': [43.6842, 11.5306],
+      'FIGLINE VALDARNO': [43.6192, 11.4725],
+      'FIGLINE E INCISA VALDARNO': [43.6192, 11.4725],
+      'INCISA VALDARNO': [43.6550, 11.4520],
+      'GREVE IN CHIANTI': [43.5830, 11.3170],
+      'IMPRUNETA': [43.6870, 11.2560],
       'SAN CASCIANO IN VAL DI PESA': [43.6575, 11.1858],
+      'TAVARNELLE VAL DI PESA': [43.5610, 11.1710],
+      'BARBERINO TAVARNELLE': [43.5410, 11.1710],
+      'BARBERINO DI MUGELLO': [43.9980, 11.2340],
       'BORGO SAN LORENZO': [43.9578, 11.3867],
-      'PRATO': [43.8777, 11.1022],
-      'PISTOIA': [43.9333, 10.9167],
+      'SCARPERIA': [43.9920, 11.3550],
+      'SCARPERIA E SAN PIERO': [43.9920, 11.3550],
+      'VICCHIO': [43.9320, 11.5010],
+      'DICOMANO': [43.8930, 11.5230],
+
+      // Empolese - Valdelsa
+      'EMPOLI': [43.7175, 10.9458],
+      'MONTELUPO FIORENTINO': [43.7310, 11.0210],
+      'CAPRAIA E LIMITE': [43.7430, 10.9780],
+      'VINCI': [43.7820, 10.9260],
+      'CERRETO GUIDI': [43.7600, 10.8780],
+      'FUCECCHIO': [43.7290, 10.8090],
+      'CASTELFIORENTINO': [43.6080, 10.9690],
+      'CERTALDO': [43.5480, 11.0420],
+      'MONTESPERTOLI': [43.6470, 11.0690],
+      'GAMBASSI TERME': [43.5390, 10.9570],
+      'MONTAIONE': [43.5530, 10.9120],
+
+      // Prato & Circondario
+      'MONTEMURLO': [43.9270, 11.0410],
+      'CARMIGNANO': [43.8110, 11.0150],
+      'POGGIO A CAIANO': [43.8150, 11.0500],
+      'VAIANO': [43.9660, 11.1240],
+      'VERNIO': [44.0450, 11.1500],
+      'CANTAGALLO': [44.0200, 11.0800],
+
+      // Pistoia & Valdinievole
+      'QUARRATA': [43.8470, 10.9850],
+      'AGLIANA': [43.9040, 11.0040],
+      'MONTALE': [43.9370, 11.0170],
+      'SERRAVALLE PISTOIESE': [43.9060, 10.8350],
+      'MONSUMMANO TERME': [43.8700, 10.8490],
       'MONTECATINI TERME': [43.8825, 10.7725],
-      'LUCCA': [43.8429, 10.5027],
-      'PISA': [43.7228, 10.4017],
-      'LIVORNO': [43.5485, 10.3106],
-      'SIENA': [43.3188, 11.3308],
-      'AREZZO': [43.4633, 11.8797],
+      'PESCIA': [43.9030, 10.6890],
+      'PONTE BUGGIANESE': [43.8430, 10.7490],
+      'LARCIANO': [43.8290, 10.8890],
+      'LAMPORECCHIO': [43.8120, 10.8980],
+
+      // Valdarno Superiore & Arezzo
       'SAN GIOVANNI VALDARNO': [43.5647, 11.5306],
       'MONTEVARCHI': [43.5233, 11.5678],
+      'TERRANUOVA BRACCIOLINI': [43.5530, 11.5890],
       'CASTELFRANCO PIANDISCO': [43.6214, 11.5386],
-      'TOSCANA': [43.7711, 11.2486]
+      'BUCINE': [43.4790, 11.6160],
+      'CAVRIGLIA': [43.5210, 11.4880],
+      'CORTONA': [43.2750, 11.9870],
+      'CASTIGLION FIORENTINO': [43.3430, 11.9190],
+      'FOIANO DELLA CHIANA': [43.2560, 11.8170],
+      'BIBBIENA': [43.6960, 11.8150],
+      'POPPI': [43.7220, 11.7690],
+      'SANSEPOLCRO': [43.5710, 12.1410],
+
+      // Siena & Val d'Elsa Senese
+      'POGGIBONSI': [43.4690, 11.1460],
+      'COLLE DI VAL D ELSA': [43.4220, 11.1270],
+      'SAN GIMIGNANO': [43.4670, 11.0430],
+      'MONTERIGGIONI': [43.3890, 11.2240],
+      'SOVICILLE': [43.2780, 11.2310],
+      'CASTELNUOVO BERARDENGA': [43.3470, 11.5030],
+      'SINALUNGA': [43.2130, 11.7370],
+      'MONTEPULCIANO': [43.0930, 11.7860],
+      'CHIUSI': [43.0160, 11.9480],
+
+      // Pisa & Comprensorio del Cuoio
+      'SAN MINIATO': [43.6800, 10.8520],
+      'SANTA CROCE SULL ARNO': [43.7170, 10.7740],
+      'CASTELFRANCO DI SOTTO': [43.7020, 10.7480],
+      'MONTOPOLI IN VAL D ARNO': [43.6730, 10.7510],
+      'PONTEDERA': [43.6630, 10.6350],
+      'CASCINA': [43.6800, 10.5010],
+      'SAN GIULIANO TERME': [43.7620, 10.4420],
+      'CALCINAIA': [43.6840, 10.6170],
+      'PONSACCO': [43.6210, 10.6300],
+      'VOLTERRA': [43.4020, 10.8600],
+
+      // Lucca & Versilia
+      'CAPANNORI': [43.8750, 10.5730],
+      'ALTOPASCIO': [43.8160, 10.6740],
+      'PORCARI': [43.8420, 10.6170],
+      'VIAREGGIO': [43.8667, 10.2333],
+      'CAMAIORE': [43.9370, 10.3060],
+      'PIETRASANTA': [43.9570, 10.2320],
+      'FORTE DEI MARMI': [43.9580, 10.1740],
+
+      // Livorno & Costa
+      'COLLESALVETTI': [43.5890, 10.4760],
+      'CECINA': [43.3140, 10.5180],
+      'ROSIGNANO MARITTIMO': [43.4080, 10.4740],
+      'PIOMBINO': [42.9250, 10.5280],
+
+      // Regioni / Grandi città limitrofe
+      'TOSCANA': [43.7711, 11.2486],
+      'BOLOGNA': [44.4949, 11.3426],
+      'BO': [44.4949, 11.3426],
+      'MODENA': [44.6471, 10.9252],
+      'MO': [44.6471, 10.9252],
+      'PERUGIA': [43.1107, 12.3908],
+      'PG': [43.1107, 12.3908],
+      'ROMA': [41.9028, 12.4964],
+      'RM': [41.9028, 12.4964],
+      'MILANO': [45.4642, 9.1900],
+      'MI': [45.4642, 9.1900]
     };
 
     // Curated high-density database of real installers & craftspeople in Climawell's territory
@@ -775,21 +937,58 @@
 
     let currentProspects = [...PROSPECT_DATABASE];
 
-    // Initialize Map
+    // Initialize Map with CartoDB Voyager tiles (NO 403 block)
     function initMap() {
-      // Centered on Florence / Tuscany by default
       map = L.map('map', {
         zoomControl: true,
         attributionControl: true
-      }).setView([43.7711, 11.2486], 11);
+      }).setView([43.7711, 11.2486], 10);
 
-      // Clean OpenStreetMap tiles
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '© OpenStreetMap contributors | Climawell'
-      }).addTo(map);
+      // CartoDB Voyager Tile Layer (clean, high performance, commercial friendly)
+      const cartoVoyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 20,
+        subdomains: 'abcd',
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a> | Climawell'
+      });
+      cartoVoyager.addTo(map);
 
-      markersLayer = L.layerGroup().addTo(map);
+      // Alternative styles
+      const cartoPositron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 20,
+        subdomains: 'abcd',
+        attribution: '&copy; CARTO'
+      });
+      const osmFr = L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
+        maxZoom: 20,
+        attribution: '&copy; OpenStreetMap France'
+      });
+
+      L.control.layers({
+        'Mappa Voyager': cartoVoyager,
+        'Mappa Chiara (Positron)': cartoPositron,
+        'Stradario OSM': osmFr
+      }, null, { position: 'topright' }).addTo(map);
+
+      // MarkerCluster group for active clients
+      clientsClusterGroup = L.markerClusterGroup({
+        chunkedLoading: true,
+        maxClusterRadius: 45,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
+        iconCreateFunction: function(cluster) {
+          const count = cluster.getChildCount();
+          const isLarge = count > 100;
+          return L.divIcon({
+            html: `<div><span>${count}</span></div>`,
+            className: `marker-cluster-clients ${isLarge ? 'cluster-large' : ''}`,
+            iconSize: L.point(40, 40)
+          });
+        }
+      });
+      map.addLayer(clientsClusterGroup);
+
+      // Prospects layer
+      prospectsLayer = L.layerGroup().addTo(map);
     }
 
     // Create SVG marker icon
@@ -808,22 +1007,48 @@
       });
     }
 
-    // Geocode a customer based on City and CAP
+    // Geocode a customer based on City, Province and CAP
     function getCustomerCoords(c) {
-      const city = String(c.city || c.province || '').toUpperCase().trim();
-      const cap = String(c.postalCode || c.cap || '').trim();
+      let city = String(c.city || '').toUpperCase().trim();
+      let prov = String(c.province || c.prov || '').toUpperCase().trim();
 
+      // Clean city string
+      city = city.replace(/['’\-\.\,\/]/g, ' ').replace(/\s+/g, ' ').trim();
+
+      // Deterministic hash based on customer attributes
+      const seedStr = String(c.code || '') + String(c.address || '') + String(c.name || '');
+      let hash = 0;
+      for (let i = 0; i < seedStr.length; i++) {
+        hash = ((hash << 5) - hash) + seedStr.charCodeAt(i);
+        hash |= 0;
+      }
+      hash = Math.abs(hash);
+
+      // Jitter within ~500m
+      const jitterLat = (((hash % 20) - 10) / 20) * 0.007;
+      const jitterLng = ((((Math.floor(hash / 20)) % 20) - 10) / 20) * 0.007;
+
+      // 1. Exact match on city
       if (GEO_CENTERS[city]) {
-        // Add subtle deterministic jitter based on customer code to avoid exact overlap
-        const hash = (parseInt(String(c.code).replace(/\D/g, ''), 10) || 123) % 100;
-        const jitterLat = ((hash % 10) - 5) * 0.0035;
-        const jitterLng = ((Math.floor(hash / 10)) - 5) * 0.0035;
         return [GEO_CENTERS[city][0] + jitterLat, GEO_CENTERS[city][1] + jitterLng];
       }
 
-      // Default fallback in Florence region with hash jitter
-      const hash = (parseInt(String(c.code).replace(/\D/g, ''), 10) || 456) % 100;
-      return [43.7711 + ((hash % 10) - 5) * 0.005, 11.2486 + ((Math.floor(hash / 10)) - 5) * 0.005];
+      // 2. Partial match on city
+      for (const k of Object.keys(GEO_CENTERS)) {
+        if (k.length > 2 && city.includes(k)) {
+          return [GEO_CENTERS[k][0] + jitterLat, GEO_CENTERS[k][1] + jitterLng];
+        }
+      }
+
+      // 3. Match on province
+      if (GEO_CENTERS[prov]) {
+        const provJitterLat = (((hash % 50) - 25) / 50) * 0.035;
+        const provJitterLng = ((((Math.floor(hash / 50)) % 50) - 25) / 50) * 0.035;
+        return [GEO_CENTERS[prov][0] + provJitterLat, GEO_CENTERS[prov][1] + provJitterLng];
+      }
+
+      // 4. Default Florence region with hash jitter
+      return [43.7711 + jitterLat, 11.2486 + jitterLng];
     }
 
     // Calculate approximate distance in KM (Haversine formula)
@@ -856,19 +1081,27 @@
 
     // Render Markers on Map
     function renderMapMarkers() {
-      if (!markersLayer) return;
-      markersLayer.clearLayers();
+      if (!map || !clientsClusterGroup || !prospectsLayer) return;
+
+      clientsClusterGroup.clearLayers();
+      prospectsLayer.clearLayers();
+      clientMarkersMap = {};
 
       const bounds = [];
 
-      // 1. Render Active Clients
+      // 1. Render Active Clients inside cluster
       if (showClients) {
+        if (!map.hasLayer(clientsClusterGroup)) {
+          map.addLayer(clientsClusterGroup);
+        }
+        const clientMarkers = [];
         filteredCustomers.forEach(c => {
           const coords = getCustomerCoords(c);
           bounds.push(coords);
 
           const icon = createMarkerIcon('client', '🏢');
           const marker = L.marker(coords, { icon });
+          clientMarkersMap[c.code] = marker;
 
           const phoneHtml = c.phone || c.mobile ? `<a href="tel:${c.phone || c.mobile}" class="map-popup-btn">📞 ${c.phone || c.mobile}</a>` : '';
           const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.name + ' ' + (c.address || '') + ' ' + (c.city || ''))}`;
@@ -890,8 +1123,13 @@
             </div>
           `;
           marker.bindPopup(popupHtml);
-          markersLayer.addLayer(marker);
+          clientMarkers.push(marker);
         });
+        clientsClusterGroup.addLayers(clientMarkers);
+      } else {
+        if (map.hasLayer(clientsClusterGroup)) {
+          map.removeLayer(clientsClusterGroup);
+        }
       }
 
       // 2. Render Prospects
@@ -940,12 +1178,13 @@
           </div>
         `;
         marker.bindPopup(popupHtml);
-        markersLayer.addLayer(marker);
+        prospectsLayer.addLayer(marker);
       });
 
-      // Fit bounds if markers exist
-      if (bounds.length > 0) {
-        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+      // Fit bounds initially if needed
+      if (bounds.length > 0 && !window._mapBoundsInitialized) {
+        window._mapBoundsInitialized = true;
+        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 12 });
       }
 
       updateKpisAndSidebar();
@@ -1061,10 +1300,15 @@
 
     // Center Map on Client
     window.centerMapOnClient = function(code) {
-      const c = filteredCustomers.find(x => x.code === code);
-      if (!c || !map) return;
-      const coords = getCustomerCoords(c);
-      map.setView(coords, 15, { animate: true });
+      const marker = clientMarkersMap[code];
+      if (marker && clientsClusterGroup && map) {
+        clientsClusterGroup.zoomToShowLayer(marker, () => {
+          marker.openPopup();
+        });
+      } else {
+        const c = filteredCustomers.find(x => x.code === code);
+        if (c && map) map.setView(getCustomerCoords(c), 15, { animate: true });
+      }
     };
 
     // Save Prospect to Google Drive tab 'Contatti_Prospect'
