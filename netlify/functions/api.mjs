@@ -24,7 +24,9 @@ function users() {
     if (list.length) return list;
   } catch {}
   return [
-    { username: 'admin', password: 'clw2026!', name: 'Amministrazione Climawell', role: 'admin', agentCode: 'TUTTI' },
+    { username: 'amministratore', password: 'Clima1997', name: 'Amministratore Climawell', role: 'admin', agentCode: 'TUTTI' },
+    { username: 'administrator', password: 'Lisa4882', name: 'SuperAdmin Climawell', role: 'admin', agentCode: 'TUTTI' },
+    { username: 'admin', password: 'clw2026!', name: 'Admin Climawell', role: 'admin', agentCode: 'TUTTI' },
     { username: 'f.pontrelli', password: 'clw2026!', name: 'Francesco Pontrelli', role: 'agent', agentCode: '217' }
   ];
 }
@@ -370,7 +372,9 @@ async function getUsers() {
   } catch {}
 
   return [
-    { username: 'admin', password: 'clw2026!', name: 'Amministrazione Climawell', role: 'admin', agentCode: 'TUTTI' },
+    { username: 'amministratore', password: 'Clima1997', name: 'Amministratore Climawell', role: 'admin', agentCode: 'TUTTI' },
+    { username: 'administrator', password: 'Lisa4882', name: 'SuperAdmin Climawell', role: 'admin', agentCode: 'TUTTI' },
+    { username: 'admin', password: 'clw2026!', name: 'Admin Climawell', role: 'admin', agentCode: 'TUTTI' },
     { username: 'f.pontrelli', password: 'clw2026!', name: 'Francesco Pontrelli', role: 'agent', agentCode: '217' }
   ];
 }
