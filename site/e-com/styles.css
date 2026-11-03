@@ -1328,3 +1328,875 @@ body {
     padding: 0 !important;
   }
 }
+
+
+/* ========================================================
+   VETRINA TOP 10, FILTRI AVANZATI & SISTEMA SEO 2026
+   ======================================================== */
+.btn-topbar-curate {
+  background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-topbar-curate:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.promo-banner-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.seo-score-card {
+  background: rgba(15, 23, 42, 0.72);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 12px;
+  padding: 14px 18px;
+  min-width: 250px;
+  backdrop-filter: blur(8px);
+}
+
+.seo-score-title {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #93c5fd;
+  font-weight: 700;
+}
+
+.seo-score-value {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #34d399;
+  margin: 4px 0 2px 0;
+}
+
+.seo-score-sub {
+  font-size: 0.74rem;
+  color: #cbd5e1;
+  margin-bottom: 10px;
+}
+
+.btn-seo-preview {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-seo-preview:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.pill-count {
+  background: rgba(255, 255, 255, 0.22);
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  margin-left: 4px;
+}
+
+.advanced-filters-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-select {
+  padding: 7px 10px;
+  border: 1px solid var(--slate-300);
+  border-radius: 8px;
+  background: var(--slate-50);
+  color: var(--navy);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+}
+
+.filter-select:focus {
+  border-color: var(--primary);
+}
+
+/* BARRA AVVISO SELEZIONE GUIDATA TOP 10 */
+.curated-notice-bar {
+  background: #eff6ff;
+  border-bottom: 1px solid #bfdbfe;
+  padding: 8px 16px;
+  font-size: 0.82rem;
+  color: #1e3a8a;
+}
+
+.curated-notice-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-inline-link {
+  background: none;
+  border: none;
+  color: #0284c7;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* BADGE VETRINA E DETTAGLI SCHEDA PRODOTTO */
+.curated-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: 20px;
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.3);
+}
+
+.discount-pill {
+  display: inline-block;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+}
+
+.card-seo-desc {
+  font-size: 0.78rem;
+  color: var(--slate-600);
+  margin-bottom: 10px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-highlights-list {
+  list-style: none;
+  margin: 0 0 12px 0;
+  padding: 8px 10px;
+  background: var(--slate-50);
+  border: 1px solid var(--slate-200);
+  border-radius: 6px;
+  font-size: 0.73rem;
+  color: var(--slate-800);
+}
+
+.card-highlights-list li {
+  margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.card-highlights-list li:last-child {
+  margin-bottom: 0;
+}
+
+.card-actions-row {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-card-share {
+  background: var(--slate-100);
+  border: 1px solid var(--slate-300);
+  color: var(--slate-700);
+  border-radius: 6px;
+  padding: 0 10px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-card-share:hover {
+  background: var(--slate-200);
+  color: var(--navy);
+}
+
+/* SEZIONE CONTENUTO SEO & FAQ */
+.seo-content-section {
+  margin-top: 56px;
+  padding-top: 40px;
+  border-top: 2px solid var(--slate-200);
+}
+
+.seo-content-header {
+  max-width: 860px;
+  margin-bottom: 24px;
+}
+
+.seo-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: 0.6px;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.seo-content-header h2 {
+  font-size: 1.4rem;
+  color: var(--navy);
+  margin-bottom: 8px;
+}
+
+.seo-content-header p {
+  font-size: 0.9rem;
+  color: var(--slate-600);
+}
+
+.seo-pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.seo-pillar-card {
+  background: #ffffff;
+  border: 1px solid var(--slate-200);
+  border-radius: 10px;
+  padding: 18px;
+  box-shadow: var(--shadow-sm);
+}
+
+.seo-pillar-card h3 {
+  font-size: 0.98rem;
+  color: var(--navy);
+  margin-bottom: 6px;
+}
+
+.seo-pillar-card p {
+  font-size: 0.82rem;
+  color: var(--slate-600);
+}
+
+.seo-faq-box {
+  background: #ffffff;
+  border: 1px solid var(--slate-200);
+  border-radius: 12px;
+  padding: 22px;
+}
+
+.seo-faq-box h3 {
+  font-size: 1.1rem;
+  color: var(--navy);
+  margin-bottom: 14px;
+}
+
+.faq-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 12px;
+}
+
+.faq-item {
+  background: var(--slate-50);
+  border: 1px solid var(--slate-200);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.faq-item summary {
+  font-weight: 700;
+  font-size: 0.86rem;
+  color: var(--navy);
+  cursor: pointer;
+}
+
+.faq-item p {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--slate-600);
+}
+
+/* FOOTER */
+.ecom-footer {
+  background: var(--navy);
+  color: #94a3b8;
+  padding: 24px 16px;
+  font-size: 0.8rem;
+}
+
+.footer-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.footer-container strong {
+  color: #ffffff;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.footer-links {
+  display: flex;
+  gap: 16px;
+}
+
+.footer-links a {
+  color: #38bdf8;
+  text-decoration: none;
+}
+
+/* MODAL CONFIGURATORE VETRINA TOP 10 & SEO */
+.vetrina-modal-wide {
+  max-width: 920px;
+}
+
+.manager-info-banner {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+  font-size: 0.82rem;
+  color: #0c4a6e;
+}
+
+.manager-add-bar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  background: var(--slate-50);
+  border: 1px solid var(--slate-200);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.btn-manager-add {
+  background: var(--primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.manager-counter-badge {
+  background: var(--navy);
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 8px 14px;
+  text-align: center;
+}
+
+.manager-counter-badge span {
+  display: block;
+  font-size: 0.68rem;
+  color: #94a3b8;
+}
+
+.manager-counter-badge strong {
+  font-size: 1.05rem;
+  color: #38bdf8;
+}
+
+.manager-top10-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.manager-item-card {
+  display: grid;
+  grid-template-columns: 72px 1fr auto;
+  gap: 12px;
+  align-items: start;
+  background: #ffffff;
+  border: 1px solid var(--slate-300);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.manager-item-thumb {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  background: var(--slate-50);
+  border: 1px solid var(--slate-200);
+  border-radius: 6px;
+  padding: 4px;
+}
+
+.manager-item-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.manager-item-fields .full {
+  grid-column: 1 / -1;
+}
+
+.manager-item-fields label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--slate-600);
+  display: block;
+  margin-bottom: 2px;
+}
+
+.manager-item-fields input {
+  width: 100%;
+  padding: 5px 8px;
+  font-size: 0.78rem;
+  border: 1px solid var(--slate-300);
+  border-radius: 5px;
+}
+
+.btn-remove-top10 {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.manager-footer-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--slate-200);
+}
+
+.btn-reset-top10 {
+  background: var(--slate-100);
+  color: var(--slate-700);
+  border: 1px solid var(--slate-300);
+  border-radius: 6px;
+  padding: 9px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-save-top10 {
+  background: #059669;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 18px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+
+/* ========================================================
+   CARRELLO MULTI-PRODOTTO, PAGAMENTI B2B/PRIVATI & SOCIAL STUDIO
+   ======================================================== */
+.btn-topbar-payments {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-topbar-payments:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.btn-header-cart {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--navy);
+  color: #ffffff;
+  border: 1px solid var(--primary);
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.btn-header-cart:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.cart-count-pill {
+  background: #10b981;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.btn-card-add-cart {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #10b981;
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.btn-card-add-cart:hover {
+  background: #10b981;
+  color: #ffffff;
+}
+
+/* BARRA CARRELLO FLOTTANTE IN BASSO */
+.floating-cart-bar {
+  position: fixed;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 960px;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #ffffff;
+  border: 2px solid #38bdf8;
+  border-radius: 14px;
+  padding: 12px 18px;
+  z-index: 90;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.45);
+}
+
+.floating-cart-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.floating-cart-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.floating-cart-badge {
+  background: #0284c7;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.85rem;
+  padding: 6px 12px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.floating-cart-info strong {
+  display: block;
+  font-size: 0.95rem;
+  color: #ffffff;
+}
+
+.floating-cart-info small {
+  display: block;
+  font-size: 0.76rem;
+  color: #34d399;
+  font-weight: 700;
+}
+
+.floating-cart-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-clear-cart-mini {
+  background: rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-floating-checkout {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+}
+
+/* LISTA ARTICOLI NEL CHECKOUT CARRELLO */
+.checkout-cart-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.checkout-cart-item {
+  display: grid;
+  grid-template-columns: 48px 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  background: var(--slate-50);
+  border: 1px solid var(--slate-200);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.checkout-cart-thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  background: #ffffff;
+  border: 1px solid var(--slate-200);
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.checkout-cart-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--navy);
+  line-height: 1.25;
+}
+
+.checkout-cart-sub {
+  font-size: 0.72rem;
+  color: var(--slate-600);
+}
+
+.checkout-cart-qty-box {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-cart-qty-step {
+  width: 26px;
+  height: 26px;
+  border-radius: 5px;
+  border: 1px solid var(--slate-300);
+  background: #ffffff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.btn-cart-remove-item {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: none;
+  border-radius: 5px;
+  width: 26px;
+  height: 26px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* SELETTORE PROFILO PRIVATO B2C vs AZIENDA B2B */
+.buyer-type-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.buyer-type-btn {
+  background: #ffffff;
+  border: 2px solid var(--slate-300);
+  border-radius: 8px;
+  padding: 8px 10px;
+  text-align: left;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--slate-700);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.buyer-type-btn small {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--slate-500);
+  margin-top: 2px;
+}
+
+.buyer-type-btn.active {
+  border-color: var(--primary);
+  background: #f0f9ff;
+  color: var(--navy);
+}
+
+.buyer-type-btn.active small {
+  color: #0369a1;
+}
+
+/* TABS PAGAMENTO A 3 COLONNE & BADGE SCONTO EXTRA */
+.payment-choice-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  font-size: 0.85rem;
+}
+
+.payment-rule-pill {
+  background: #dcfce7;
+  color: #166534;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 12px;
+}
+
+.checkout-method-tabs.three-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.tab-badge-discount {
+  display: inline-block;
+  background: #10b981;
+  color: #ffffff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 900;
+  margin-top: 3px;
+}
+
+.extra-discount-row {
+  background: #ecfdf5;
+  border: 1px dashed #10b981;
+  border-radius: 6px;
+  padding: 6px 8px;
+  margin: 4px 0;
+  color: #065f46 !important;
+  font-weight: 700;
+}
+
+.b2b-locked-box {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  font-size: 0.82rem;
+}
+
+.upsell-card-discount-banner {
+  background: #ecfdf5;
+  border: 1px solid #6ee7b7;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.78rem;
+  color: #065f46;
+}
+
+.btn-switch-to-card {
+  background: #059669;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.cfg-check-row {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: #ffffff;
+  border: 1px solid var(--slate-200);
+  border-radius: 6px;
+  margin-bottom: 6px;
+  font-size: 0.78rem !important;
+  cursor: pointer;
+}
+
+.cfg-check-row input[type="checkbox"] {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+@media (max-width: 640px) {
+  .buyer-type-selector,
+  .checkout-method-tabs.three-tabs {
+    grid-template-columns: 1fr;
+  }
+}

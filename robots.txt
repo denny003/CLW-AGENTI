@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /e-com/
+Allow: /shop/
+Allow: /index.html
+Allow: /sitemap.xml
+Disallow: /netlify/
+
+Sitemap: https://clw-agenti.netlify.app/sitemap.xml

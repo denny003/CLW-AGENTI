@@ -61,6 +61,14 @@
     .shipping-box a { color: var(--blue); text-decoration: none; font-weight: 700; }
     .shipping-box a:hover { text-decoration: underline; }
 
+    /* Order Items Preview Box inside Card */
+    .card-items-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; margin: 10px 0; }
+    .card-items-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: .8rem; font-weight: 750; color: #334155; text-transform: uppercase; letter-spacing: .03em; flex-wrap: wrap; gap: 8px; }
+    .card-items-table { width: 100%; border-collapse: collapse; font-size: .84rem; background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; }
+    .card-items-table th { background: #f1f5f9; color: #475569; font-weight: 750; font-size: .74rem; text-transform: uppercase; padding: 6px 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+    .card-items-table td { padding: 7px 10px; border-bottom: 1px solid #f1f5f9; color: #1e293b; vertical-align: middle; }
+    .card-items-table tr:last-child td { border-bottom: 0; }
+
     /* Card Actions */
     .order-actions { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 14px; margin-top: 12px; flex-wrap: wrap; gap: 10px; }
     .order-total { font-size: 1.25rem; font-weight: 800; color: var(--navy); }
@@ -1213,6 +1221,36 @@
         <!-- populated dynamically -->
       </div>
 
+      <!-- BOX ASSOCIAZIONE / MODIFICA RAPIDA RIGHE ARTICOLO SU SUPABASE -->
+      <div id="detailAddLineBox" style="margin-top:14px; background:#f8fafc; border:1px dashed #94a3b8; border-radius:10px; padding:12px 14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+          <strong style="font-size:.84rem; color:var(--navy);">➕ Aggiungi / Associa Articolo all'Ordine (Supabase)</strong>
+          <small style="color:var(--muted); font-size:.76rem;">Cerca dal catalogo per aggiungere o integrare le righe da preparare in magazzino</small>
+        </div>
+        <div style="display:grid; grid-template-columns: 2fr 75px 95px 80px auto; gap:8px; align-items:end;">
+          <div>
+            <label style="display:block; font-size:.72rem; font-weight:700; color:#475569; margin-bottom:3px;">Codice o Descrizione Articolo</label>
+            <input type="text" id="addLineProductInput" list="catalogDatalist" placeholder="Digita codice o nome articolo..." style="width:100%; padding:7px 10px; border:1px solid #cbd5e1; border-radius:7px; font-size:.84rem;">
+            <datalist id="catalogDatalist"></datalist>
+          </div>
+          <div>
+            <label style="display:block; font-size:.72rem; font-weight:700; color:#475569; margin-bottom:3px;">Q.tà</label>
+            <input type="number" id="addLineQtyInput" min="1" value="1" style="width:100%; padding:7px 8px; border:1px solid #cbd5e1; border-radius:7px; font-size:.84rem;">
+          </div>
+          <div>
+            <label style="display:block; font-size:.72rem; font-weight:700; color:#475569; margin-bottom:3px;">Prezzo (€)</label>
+            <input type="number" id="addLinePriceInput" step="0.01" min="0" placeholder="Auto" style="width:100%; padding:7px 8px; border:1px solid #cbd5e1; border-radius:7px; font-size:.84rem;">
+          </div>
+          <div>
+            <label style="display:block; font-size:.72rem; font-weight:700; color:#475569; margin-bottom:3px;">Sconto %</label>
+            <input type="number" id="addLineDiscInput" step="0.1" min="0" max="100" value="0" style="width:100%; padding:7px 8px; border:1px solid #cbd5e1; border-radius:7px; font-size:.84rem;">
+          </div>
+          <div>
+            <button type="button" id="btnAddOrderLine" class="btn primary btn-sm" style="padding:8px 12px; white-space:nowrap;">💾 Aggiungi Riga</button>
+          </div>
+        </div>
+      </div>
+
       <div id="detailNotesBox" style="margin-top:12px; font-size:.84rem; color:#475569; background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px; display:none;">
         <strong>💡 Note & Istruzioni dell'ordine:</strong> <span id="detailNotesText"></span>
       </div>
@@ -1277,6 +1315,66 @@
       return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
     }
 
+    function normalizeOrderLine(l) {
+      if (!l) return null;
+      const code = String(l.product_code || l.code || l.product?.code || l.codice || '').trim();
+      const catProd = (window.catalogProductsMap && code && window.catalogProductsMap[code]) || {};
+      const desc = l.description || l.product?.description || l.descrizione || catProd.description || 'Articolo';
+      const qty = Number(l.quantity ?? l.qty ?? l.qta ?? 1) || 1;
+      const listPrice = Number(l.list_price ?? l.listPrice ?? l.price ?? l.product?.price ?? catProd.price ?? 0) || 0;
+
+      let discounts = [];
+      if (Array.isArray(l.discounts)) {
+        discounts = l.discounts.map(d => Number(d) || 0).filter(d => d > 0);
+      } else {
+        const d1 = Number(l.discount_1 ?? l.discount ?? 0) || 0;
+        const d2 = Number(l.discount_2 ?? 0) || 0;
+        const d3 = Number(l.discount_3 ?? 0) || 0;
+        const d4 = Number(l.discount_4 ?? 0) || 0;
+        discounts = [d1, d2, d3, d4].filter(d => d > 0);
+      }
+      const extraDiscount = Number(l.discount_extra ?? l.extra_discount ?? l.extraDiscount ?? 0) || 0;
+      const markup = Number(l.markup ?? l.ricarico ?? 0) || 0;
+      const discMult = discounts.reduce((m, d) => m * (1 - d / 100), 1) * (1 - extraDiscount / 100);
+      const markupMult = 1 + (markup / 100);
+      const netPrice = Number(l.net_price ?? (listPrice > 0 ? listPrice * discMult * markupMult : 0)) || 0;
+      const total = Number(l.total ?? l.net ?? (netPrice * qty)) || 0;
+      const vat = Number(l.vat ?? l.product?.vat ?? catProd.vat ?? 22) || 22;
+      const location = l.location || l.product?.location || catProd.location || catProd.primary_location || 'Magazzino';
+      const brand = l.brand || l.product?.brand || catProd.brand || '';
+      const um = l.um || l.product?.um || catProd.um || 'PZ';
+
+      return {
+        id: l.id,
+        line_number: l.line_number,
+        code: code || 'ART',
+        product_code: code || 'ART',
+        description: desc,
+        brand,
+        location,
+        um,
+        quantity: qty,
+        qty,
+        listPrice,
+        list_price: listPrice,
+        price: listPrice,
+        discounts,
+        discount_1: discounts[0] || 0,
+        discount_2: discounts[1] || 0,
+        discount_3: discounts[2] || 0,
+        discount_4: discounts[3] || 0,
+        extraDiscount,
+        discount_extra: extraDiscount,
+        markup,
+        net_price: netPrice,
+        net: total,
+        total,
+        vat,
+        picked_qty: Number(l.picked_qty || 0),
+        is_completed: Boolean(l.is_completed)
+      };
+    }
+
     async function loadAuxiliaryData() {
       try {
         if (window.ClwData && window.ClwData.isConfigured()) {
@@ -1292,11 +1390,68 @@
             }
           }
           if (custs && custs.length > 0) allCustomers = custs;
-          if (prods && prods.length > 0) window.catalogProductsMap = Object.fromEntries(prods.map(p => [p.code, p]));
+          if (prods && prods.length > 0) {
+            window.catalogProductsList = prods;
+            window.catalogProductsMap = Object.fromEntries(prods.map(p => [p.code, p]));
+            const dl = $('catalogDatalist');
+            if (dl) {
+              dl.innerHTML = prods.slice(0, 1500).map(p => `<option value="${escapeHtml(p.code)}">${escapeHtml(p.description)} (${euro(p.price)})</option>`).join('');
+            }
+            if (allOrders.length > 0) {
+              // Riarricchisce ubicazioni e descrizioni sugli ordini già caricati
+              for (const ord of allOrders) {
+                if (Array.isArray(ord.lines) && ord.lines.length > 0) {
+                  ord.lines = ord.lines.map(normalizeOrderLine);
+                  ord.payload = { ...(ord.payload || {}), lines: ord.lines };
+                }
+              }
+              renderOrders();
+            }
+          }
           return;
         }
       } catch (e) {
         console.warn('Caricamento dati ausiliari non bloccante:', e);
+      }
+    }
+
+    async function backfillOrderLinesToSupabase(orderNumber, lines) {
+      if (!orderNumber || !Array.isArray(lines) || !lines.length) return;
+      try {
+        const client = window.clwSupabase || (window.supabase && window.ClwData && window.supabase.createClient(window.ClwData.getConfig().url, window.ClwData.getConfig().key));
+        if (!client) return;
+        const rows = lines.map((l, idx) => {
+          const nl = normalizeOrderLine(l);
+          return {
+            document_number: orderNumber,
+            line_number: idx + 1,
+            product_code: nl.code,
+            description: nl.description,
+            brand: nl.brand || '',
+            location: nl.location || '',
+            um: nl.um || 'PZ',
+            quantity: nl.quantity,
+            list_price: nl.listPrice,
+            discount_1: nl.discount_1 || 0,
+            discount_2: nl.discount_2 || 0,
+            discount_3: nl.discount_3 || 0,
+            discount_4: nl.discount_4 || 0,
+            discount_extra: nl.extraDiscount || 0,
+            net_price: Math.round((nl.net_price || 0) * 10000) / 10000,
+            vat: nl.vat || 22,
+            total: Math.round((nl.total || 0) * 100) / 100
+          };
+        });
+        try {
+          localStorage.setItem(`clw_doc_lines_${orderNumber}`, JSON.stringify(rows));
+        } catch {}
+        let { error } = await client.from('document_lines').insert(rows);
+        if (error) {
+          const safeRows = rows.map(({ discount_extra, um, vat, ...rest }) => rest);
+          await client.from('document_lines').insert(safeRows);
+        }
+      } catch (e) {
+        console.warn('Backfill document_lines non bloccante:', e);
       }
     }
 
@@ -1309,33 +1464,161 @@
           try {
             const client = window.clwSupabase || (window.supabase && window.supabase.createClient(window.ClwData.getConfig().url, window.ClwData.getConfig().key));
             if (client) {
-              const { data: supOrders, error: supErr } = await client
-                .from('documents')
-                .select('*')
-                .eq('document_type', 'OCL')
-                .order('created_at', { ascending: false });
+              const [ordersRes, offersRes, linesRes] = await Promise.all([
+                client.from('documents').select('*').eq('document_type', 'OCL').order('created_at', { ascending: false }),
+                client.from('documents').select('*').eq('document_type', 'OFC').order('created_at', { ascending: false }),
+                client.from('document_lines').select('*').order('line_number', { ascending: true })
+              ]);
 
-              if (!supErr && Array.isArray(supOrders)) {
-                allOrders = supOrders.map(d => ({
-                  id: d.number,
-                  number: d.number,
-                  customer_name: d.customer_name,
-                  customer_code: d.customer_code,
-                  agent_name: d.agent_name,
-                  agent_code: d.agent_code,
-                  total: Number(d.total) || 0,
-                  subtotal: Number(d.subtotal) || 0,
-                  workflow_status: (d.status === 'In Preparazione' ? 'magazzino' : (d.status === 'Spedito' ? 'spedito' : (d.status === 'Approvato' ? 'approvato' : 'ricevuto'))),
-                  submitted_at: d.created_at || d.document_date,
-                  notes: d.notes || '',
-                  shipping_date: d.shipping_date || '',
-                  carrier: d.carrier || '',
-                  ddt_number: d.ddt_number || '',
-                  tracking_number: d.tracking_number || ''
-                }));
+              const supOrders = ordersRes.data;
+              const supOffers = offersRes.data || [];
+              const supLines = linesRes.data || [];
+
+              if (!ordersRes.error && Array.isArray(supOrders)) {
+                const linesByDoc = new Map();
+                for (const l of supLines) {
+                  const docKey = String(l.document_number || '').trim();
+                  if (!docKey) continue;
+                  if (!linesByDoc.has(docKey)) linesByDoc.set(docKey, []);
+                  linesByDoc.get(docKey).push(l);
+                }
+
+                allOffers = supOffers.map(o => {
+                  const oLines = (linesByDoc.get(String(o.number || '').trim()) || []).map(normalizeOrderLine).filter(Boolean);
+                  return {
+                    ...o,
+                    id: o.number,
+                    lines: oLines,
+                    payload: { lines: oLines }
+                  };
+                });
+
+                allOrders = supOrders.map(d => {
+                  const num = String(d.number || '').trim();
+                  let rawLines = linesByDoc.get(num) || [];
+                  let recoveredFromFallback = false;
+                  let originOfferId = '';
+
+                  // Estrai eventuale riferimento offerta dalle note ("Convertito da Offerta OFF-...")
+                  if (d.notes) {
+                    const m = String(d.notes).match(/Offerta\s+([A-Z0-9_-]+)/i);
+                    if (m && m[1]) originOfferId = m[1].trim();
+                  }
+
+                  // Fallback 1: numero ordine convertito da OFF-... o OFC-...
+                  if (!rawLines.length && /^ORD-/i.test(num)) {
+                    const altOff = num.replace(/^ORD-/i, 'OFF-');
+                    const altOfc = num.replace(/^ORD-/i, 'OFC-');
+                    rawLines = linesByDoc.get(altOff) || linesByDoc.get(altOfc) || [];
+                    if (rawLines.length) {
+                      recoveredFromFallback = true;
+                      if (!originOfferId) originOfferId = linesByDoc.has(altOff) ? altOff : altOfc;
+                    }
+                  } else if (!rawLines.length && /^OCL-/i.test(num)) {
+                    const altOfc = num.replace(/^OCL-/i, 'OFC-');
+                    const altOff = num.replace(/^OCL-/i, 'OFF-');
+                    rawLines = linesByDoc.get(altOfc) || linesByDoc.get(altOff) || [];
+                    if (rawLines.length) {
+                      recoveredFromFallback = true;
+                      if (!originOfferId) originOfferId = linesByDoc.has(altOfc) ? altOfc : altOff;
+                    }
+                  }
+
+                  // Fallback 2: originOfferId estratto dalle note
+                  if (!rawLines.length && originOfferId && linesByDoc.has(originOfferId)) {
+                    rawLines = linesByDoc.get(originOfferId) || [];
+                    if (rawLines.length) recoveredFromFallback = true;
+                  }
+
+                  // Fallback 3: cerca un'offerta (OFC) dello stesso cliente con lo stesso importo totale che abbia righe
+                  if (!rawLines.length && supOffers.length > 0) {
+                    const ordTot = Number(d.total) || 0;
+                    const custName = String(d.customer_name || '').trim().toLowerCase();
+                    const custCode = String(d.customer_code || '').trim();
+                    const matchedOff = supOffers.find(o => {
+                      const oNum = String(o.number || '').trim();
+                      if (!linesByDoc.has(oNum)) return false;
+                      const sameCust = (custCode && String(o.customer_code || '').trim() === custCode) ||
+                                       (custName && String(o.customer_name || '').trim().toLowerCase() === custName);
+                      const sameTot = ordTot > 0 && Math.abs((Number(o.total) || 0) - ordTot) <= 0.05;
+                      return sameCust && sameTot;
+                    });
+                    if (matchedOff) {
+                      const oNum = String(matchedOff.number || '').trim();
+                      rawLines = linesByDoc.get(oNum) || [];
+                      if (rawLines.length) {
+                        recoveredFromFallback = true;
+                        if (!originOfferId) originOfferId = oNum;
+                      }
+                    }
+                  }
+
+                  // Fallback 4: cache locale localStorage
+                  if (!rawLines.length) {
+                    try {
+                      const loc = JSON.parse(localStorage.getItem(`clw_doc_lines_${num}`) || 'null');
+                      if (Array.isArray(loc) && loc.length) rawLines = loc;
+                      if (!rawLines.length) {
+                        const sub = JSON.parse(localStorage.getItem(`submission-${num}`) || 'null');
+                        if (Array.isArray(sub?.payload?.lines) && sub.payload.lines.length) {
+                          rawLines = sub.payload.lines;
+                          recoveredFromFallback = true;
+                        }
+                      }
+                    } catch {}
+                  }
+
+                  const normalizedLines = rawLines.map(normalizeOrderLine).filter(Boolean);
+                  if (recoveredFromFallback && normalizedLines.length > 0) {
+                    backfillOrderLinesToSupabase(num, normalizedLines);
+                  }
+
+                  const stRaw = String(d.status || '').trim();
+                  const wfStatus = stRaw === 'In Preparazione' ? 'magazzino'
+                    : stRaw === 'Spedito' ? 'spedito'
+                    : stRaw === 'Approvato' ? 'approvato'
+                    : stRaw === 'Fatturato' ? 'fatturato'
+                    : stRaw === 'Respinto' ? 'respinto'
+                    : 'ricevuto';
+
+                  return {
+                    id: d.number,
+                    number: d.number,
+                    customer_name: d.customer_name,
+                    customer_code: d.customer_code,
+                    customer_id: d.customer_code,
+                    agent_name: d.agent_name,
+                    agent_code: d.agent_code,
+                    total: Number(d.total) || 0,
+                    subtotal: Number(d.subtotal) || 0,
+                    workflow_status: wfStatus,
+                    submitted_at: d.created_at || d.document_date,
+                    notes: d.notes || '',
+                    origin_offer_id: originOfferId || d.origin_offer_id || '',
+                    shipping_date: d.shipping_date || '',
+                    carrier: d.carrier || '',
+                    ddt_number: d.ddt_number || '',
+                    ddt_date: d.ddt_date || '',
+                    tracking_number: d.tracking_number || '',
+                    payment_method: d.payment_method || '',
+                    lines: normalizedLines,
+                    payload: {
+                      payment: d.payment_method || '',
+                      notes: d.notes || '',
+                      lines: normalizedLines
+                    }
+                  };
+                });
+
                 updateStats();
                 renderOrders();
                 loadedFromSupabase = true;
+
+                // Se alcuni ordini sono ancora privi di righe (es. ordini storici registrati su Google Sheets),
+                // interroga in background /api/orders per recuperare e sincronizzare le righe mancanti!
+                if (allOrders.some(o => !o.lines || o.lines.length === 0)) {
+                  enrichMissingOrderLinesFromApi(linesByDoc);
+                }
               }
             }
           } catch (supErr) {
@@ -1352,7 +1635,14 @@
           const res = await fetch(`/api/orders?id=${encodeURIComponent(repoId)}`);
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const data = await res.json();
-          allOrders = data.orders || [];
+          allOrders = (data.orders || []).map(o => {
+            const normLines = (o.payload?.lines || o.lines || []).map(normalizeOrderLine).filter(Boolean);
+            return {
+              ...o,
+              lines: normLines,
+              payload: { ...(o.payload || {}), lines: normLines }
+            };
+          });
           updateStats();
           renderOrders();
         }
@@ -1363,6 +1653,48 @@
             Errore caricamento ordini: ${err.message}. Riprova tra poco.
           </div>
         `;
+      }
+    }
+
+    async function enrichMissingOrderLinesFromApi(linesByDoc = new Map()) {
+      try {
+        if (window.companyConfigPromise) {
+          try { await window.companyConfigPromise; } catch {}
+        }
+        const rawRepo = window.companyConfig?.repository?.spreadsheetId;
+        const repoId = (rawRepo && rawRepo.length >= 20 && !rawRepo.includes('1mnW')) ? rawRepo : '1Hi1Nppj4szI4UwfSeC632KkpF0dEQjqxnIVIenn-Fjc';
+        const res = await fetch(`/api/orders?id=${encodeURIComponent(repoId)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const apiOrders = data.orders || [];
+        if (!apiOrders.length) return;
+
+        let updatedAny = false;
+        for (const ord of allOrders) {
+          if (ord.lines && ord.lines.length > 0) continue;
+          const apiMatch = apiOrders.find(ao => ao.number === ord.number || ao.id === ord.number);
+          if (!apiMatch) continue;
+
+          if (apiMatch.origin_offer_id && !ord.origin_offer_id) {
+            ord.origin_offer_id = apiMatch.origin_offer_id;
+          }
+          let foundLines = apiMatch.payload?.lines || apiMatch.lines || [];
+          if ((!foundLines || !foundLines.length) && apiMatch.origin_offer_id && linesByDoc.has(apiMatch.origin_offer_id)) {
+            foundLines = linesByDoc.get(apiMatch.origin_offer_id) || [];
+          }
+          if (foundLines && foundLines.length > 0) {
+            const normLines = foundLines.map(normalizeOrderLine).filter(Boolean);
+            ord.lines = normLines;
+            ord.payload = { ...(ord.payload || {}), ...(apiMatch.payload || {}), lines: normLines };
+            backfillOrderLinesToSupabase(ord.number, normLines);
+            updatedAny = true;
+          }
+        }
+        if (updatedAny) {
+          renderOrders();
+        }
+      } catch (e) {
+        console.warn('Arricchimento righe da API Google Sheets non disponibile:', e);
       }
     }
 
@@ -1403,7 +1735,8 @@
         const matchesTab = currentFilter === 'all' || ord.workflow_status === currentFilter;
         if (!matchesTab) return false;
         if (!term) return true;
-        const haystack = `${ord.number} ${ord.customer_name} ${ord.agent_name} ${ord.ddt_number || ''} ${ord.carrier || ''}`.toLowerCase();
+        const linesText = getOrderLines(ord).map(l => `${l.code || l.product_code || ''} ${l.description || ''}`).join(' ');
+        const haystack = `${ord.number} ${ord.customer_name} ${ord.agent_name} ${ord.ddt_number || ''} ${ord.carrier || ''} ${linesText}`.toLowerCase();
         return haystack.includes(term);
       });
 
@@ -1439,6 +1772,51 @@
           </div>
         ` : '';
 
+        // Righe articolo visibili direttamente nella card dell'ordine per controllo immediato magazzino e vendita
+        const lines = getOrderLines(ord);
+        const totalPieces = lines.reduce((sum, l) => sum + (Number(l.quantity ?? l.qty ?? 1) || 1), 0);
+        const itemsPreviewHtml = lines.length > 0 ? `
+          <div class="card-items-box">
+            <div class="card-items-head">
+              <span>📋 Articoli Venduti / Da Preparare (${lines.length} ${lines.length === 1 ? 'articolo' : 'articoli'} · ${totalPieces} pz totali)</span>
+              <span style="color:#0284c7; cursor:pointer; font-weight:700;" onclick="openOrderDetailsModal('${ord.id || ord.number}')">Dettaglio prezzi & sconti ↗</span>
+            </div>
+            <div style="overflow-x:auto;">
+              <table class="card-items-table">
+                <thead>
+                  <tr>
+                    <th style="width:120px;">Codice Articolo</th>
+                    <th>Descrizione Prodotto</th>
+                    <th style="width:150px;">Ubicazione</th>
+                    <th style="width:90px; text-align:center;">Quantità</th>
+                    <th style="width:110px; text-align:right;">Importo Netto</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${lines.map(l => {
+                    const row = computeLineDetails(l);
+                    const loc = l.location || (window.catalogProductsMap?.[row.code]?.location) || 'Magazzino';
+                    return `
+                      <tr>
+                        <td><strong style="font-family:monospace; color:var(--navy);">${escapeHtml(row.code)}</strong></td>
+                        <td><strong style="color:#1e293b;">${escapeHtml(row.desc)}</strong></td>
+                        <td><span style="display:inline-block; background:#f0f9ff; color:#0369a1; border:1px solid #bae6fd; border-radius:4px; padding:1px 6px; font-size:.75rem; font-weight:700;">📍 ${escapeHtml(loc)}</span></td>
+                        <td style="text-align:center;"><strong style="background:#e0f2fe; color:#0369a1; padding:3px 9px; border-radius:6px; font-size:.9rem;">${row.qty} ${escapeHtml(l.um || 'PZ')}</strong></td>
+                        <td style="text-align:right; font-weight:700; color:var(--navy);">${euro(row.lineNetTotal)}</td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ` : `
+          <div class="card-items-box" style="background:#fffbeb; border-color:#fde68a; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <span style="font-size:.82rem; color:#92400e;">⚠️ <strong>Nessuna riga articolo associata a questo ordine storico.</strong> Clicca a destra per associare gli articoli venduti da preparare in magazzino.</span>
+            <button type="button" class="btn secondary btn-sm" style="background:#fff; border-color:#f59e0b; color:#b45309; font-weight:750;" onclick="openOrderDetailsModal('${ord.id || ord.number}')">➕ Associa Articoli</button>
+          </div>
+        `;
+
         return `
           <div class="order-card" data-id="${ord.id || ord.number}">
             <div class="order-header">
@@ -1454,6 +1832,7 @@
               <div class="order-total">${euro(ord.total)}</div>
             </div>
 
+            ${itemsPreviewHtml}
             ${shippingHtml}
             ${ord.notes ? `<div style="font-size:.82rem; color:var(--muted); margin-bottom:8px;">💡 <em>${ord.notes}</em></div>` : ''}
 
@@ -1700,12 +2079,13 @@
 
     function getOrderLines(ord) {
       if (!ord) return [];
-      let lines = ord.payload?.lines || [];
+      let lines = (Array.isArray(ord.lines) && ord.lines.length > 0) ? ord.lines : (ord.payload?.lines || ord.document_lines || []);
       if ((!lines || lines.length === 0) && (ord.origin_offer_id || ord.payload?.convertedFromOffer)) {
         const offNum = ord.origin_offer_id || ord.payload?.convertedFromOffer;
         const matched = allOffers.find(o => o.number === offNum || o.id === offNum || o.offerNumber === offNum);
-        if (matched?.payload?.lines && matched.payload.lines.length > 0) {
-          lines = matched.payload.lines;
+        const offLines = matched?.lines || matched?.payload?.lines || [];
+        if (offLines.length > 0) {
+          lines = offLines;
         }
       }
       if ((!lines || lines.length === 0) && Array.isArray(ord.payload?.items)) {
@@ -1717,17 +2097,71 @@
       return lines || [];
     }
 
+    async function ensureOrderLines(ord) {
+      if (!ord) return [];
+      let lines = getOrderLines(ord);
+      if (lines && lines.length > 0) return lines;
+
+      if (window.ClwData && typeof window.ClwData.getDocumentLines === 'function') {
+        try {
+          let supLines = await window.ClwData.getDocumentLines(ord.number || ord.id);
+          if ((!supLines || !supLines.length) && ord.origin_offer_id) {
+            supLines = await window.ClwData.getDocumentLines(ord.origin_offer_id);
+          }
+          if (supLines && supLines.length > 0) {
+            const norm = supLines.map(normalizeOrderLine).filter(Boolean);
+            ord.lines = norm;
+            ord.payload = { ...(ord.payload || {}), lines: norm };
+            renderOrders();
+            return norm;
+          }
+        } catch (e) {
+          console.warn('Errore caricamento righe on-demand da Supabase:', e);
+        }
+      }
+      return [];
+    }
+
+    async function saveOrderLinesToSupabase(ord, newLines) {
+      if (!ord) return;
+      const normLines = (newLines || []).map(normalizeOrderLine).filter(Boolean);
+      ord.lines = normLines;
+      ord.payload = { ...(ord.payload || {}), lines: normLines };
+
+      const orderNumber = ord.number || ord.id;
+      try {
+        localStorage.setItem(`clw_doc_lines_${orderNumber}`, JSON.stringify(normLines));
+      } catch {}
+
+      if (window.ClwData && window.ClwData.isConfigured()) {
+        const client = window.clwSupabase || (window.supabase && window.supabase.createClient(window.ClwData.getConfig().url, window.ClwData.getConfig().key));
+        if (client) {
+          await client.from('document_lines').delete().eq('document_number', orderNumber);
+          if (normLines.length > 0) {
+            await backfillOrderLinesToSupabase(orderNumber, normLines);
+          }
+        }
+      }
+      renderOrders();
+    }
+
     function computeLineDetails(l) {
-      const code = l.code || l.product?.code || l.codice || 'N/D';
+      const code = l.code || l.product_code || l.product?.code || l.codice || 'N/D';
       const desc = l.description || l.product?.description || l.descrizione || (window.catalogProductsMap?.[code]?.description) || 'Articolo';
       const qty = Number(l.quantity ?? l.qty ?? l.qta ?? 1);
       const catProd = window.catalogProductsMap?.[code] || {};
-      const listPrice = Number(l.listPrice ?? l.price ?? l.product?.price ?? catProd.price ?? 0);
+      const listPrice = Number(l.listPrice ?? l.list_price ?? l.price ?? l.product?.price ?? catProd.price ?? 0);
       
       let rawDiscounts = l.discounts ?? l.discount ?? l.sconti ?? [];
       if (typeof rawDiscounts === 'number') rawDiscounts = [rawDiscounts];
       else if (typeof rawDiscounts === 'string') rawDiscounts = rawDiscounts.split(/[+,/]/).map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
-      else if (!Array.isArray(rawDiscounts)) rawDiscounts = [];
+      else if (!Array.isArray(rawDiscounts)) {
+        const d1 = Number(l.discount_1 || 0);
+        const d2 = Number(l.discount_2 || 0);
+        const d3 = Number(l.discount_3 || 0);
+        const d4 = Number(l.discount_4 || 0);
+        rawDiscounts = [d1, d2, d3, d4].filter(n => n > 0);
+      }
 
       const discounts = rawDiscounts.map(d => Number(d) || 0).filter(d => d > 0);
       const extraDiscount = Number(l.discount_extra ?? l.extra_discount ?? l.extraDiscount ?? 0);
@@ -1737,9 +2171,9 @@
       const markupMultiplier = 1 + (markup / 100);
       const unitNet = listPrice > 0 ? (listPrice * discountMultiplier * markupMultiplier) : (l.net_price ? Number(l.net_price) : 0);
       
-      const lineNetTotal = (l.net != null && !isNaN(Number(l.net))) 
+      const lineNetTotal = (l.net != null && !isNaN(Number(l.net)) && Number(l.net) > 0) 
         ? Number(l.net) 
-        : (l.total != null && !isNaN(Number(l.total)))
+        : (l.total != null && !isNaN(Number(l.total)) && Number(l.total) > 0)
           ? Number(l.total)
           : (unitNet * qty);
         
@@ -1769,6 +2203,16 @@
       };
     }
 
+    async function removeOrderLine(orderId, lineIdx) {
+      const ord = allOrders.find(o => o.id === orderId || o.number === orderId);
+      if (!ord) return;
+      const lines = [...getOrderLines(ord)];
+      lines.splice(lineIdx, 1);
+      await saveOrderLinesToSupabase(ord, lines);
+      toast('Riga articolo rimossa');
+      openOrderDetailsModal(orderId);
+    }
+
     async function openOrderDetailsModal(orderId) {
       try {
         const ord = allOrders.find(o => o.id === orderId || o.number === orderId);
@@ -1777,11 +2221,11 @@
           return;
         }
 
-        if ((!allOffers || allOffers.length === 0) && (ord.origin_offer_id || ord.payload?.convertedFromOffer)) {
+        if (!window.catalogProductsList || !window.catalogProductsList.length) {
           try { await loadAuxiliaryData(); } catch {}
         }
 
-        const lines = getOrderLines(ord);
+        const lines = await ensureOrderLines(ord);
         const cust = allCustomers.find(c =>
           (ord.customer_id && (String(c.id) === String(ord.customer_id) || String(c.code) === String(ord.customer_id))) ||
           (c.name && ord.customer_name && c.name.trim().toLowerCase() === ord.customer_name.trim().toLowerCase())
@@ -1841,14 +2285,15 @@
         if (!lines || lines.length === 0) {
           tbody.innerHTML = `
             <tr>
-              <td colspan="8" style="text-align:center; padding:28px; color:var(--muted);">
-                <em>Nessuna riga articolo dettagliata trovata per questo ordine. Totale complessivo registrato: <strong>${euro(ord.total)}</strong>.</em>
+              <td colspan="8" style="text-align:center; padding:24px; color:#92400e; background:#fffbeb;">
+                <strong>⚠️ Nessuna riga articolo dettagliata associata a questo ordine storico.</strong><br>
+                <span style="font-size:.83rem;">Totale registrato: <strong>${euro(ord.total)}</strong> (Imponibile: <strong>${euro(ord.subtotal || (ord.total / 1.22))}</strong>). Usa il box qui sotto <em>"➕ Aggiungi / Associa Articolo"</em> per inserire l'articolo venduto.</span>
               </td>
             </tr>
           `;
-          calcNetSum = Number(ord.total) || 0;
+          calcNetSum = Number(ord.subtotal) || Number(ord.total) || 0;
         } else {
-          tbody.innerHTML = lines.map(l => {
+          tbody.innerHTML = lines.map((l, idx) => {
             const row = computeLineDetails(l);
             calcNetSum += row.lineNetTotal;
             calcVatSum += row.vatAmount;
@@ -1857,9 +2302,14 @@
             if (row.discounts.length === 0 && row.markup === 0) discountTagCls += ' zero';
             else if (row.effDiscount >= 30) discountTagCls += ' high';
 
+            const loc = l.location || (window.catalogProductsMap?.[row.code]?.location) || 'Magazzino';
+
             return `
               <tr>
-                <td><strong style="color:var(--navy); font-family:monospace;">${escapeHtml(row.code)}</strong></td>
+                <td>
+                  <strong style="color:var(--navy); font-family:monospace;">${escapeHtml(row.code)}</strong>
+                  <div style="margin-top:2px;"><small style="color:#0369a1; font-weight:700;">📍 ${escapeHtml(loc)}</small></div>
+                </td>
                 <td>
                   <div style="font-weight:600; color:#1e293b;">${escapeHtml(row.desc)}</div>
                 </td>
@@ -1871,10 +2321,83 @@
                 </td>
                 <td class="num" style="color:#0369a1; font-weight:600;">${row.unitNet > 0 ? euro(row.unitNet) : euro(row.listPrice)}</td>
                 <td class="num" style="font-weight:800; color:var(--navy); font-size:.95rem;">${euro(row.lineNetTotal)}</td>
-                <td class="num" style="color:var(--muted); font-size:.82rem;">${row.vatRate}%</td>
+                <td class="num" style="color:var(--muted); font-size:.82rem; white-space:nowrap;">
+                  ${row.vatRate}%
+                  <button type="button" onclick="removeOrderLine('${escapeHtml(ord.id || ord.number)}', ${idx})" title="Rimuovi riga" style="background:none; border:0; cursor:pointer; margin-left:6px; font-size:.85rem;">🗑️</button>
+                </td>
               </tr>
             `;
           }).join('');
+        }
+
+        // Gestione box aggiunta rapida riga articolo
+        const prodInp = $('addLineProductInput');
+        const qtyInp = $('addLineQtyInput');
+        const priceInp = $('addLinePriceInput');
+        const discInp = $('addLineDiscInput');
+        if (prodInp) {
+          prodInp.value = '';
+          qtyInp.value = 1;
+          priceInp.value = lines.length === 0 && ord.subtotal > 0 ? Number(ord.subtotal).toFixed(2) : (lines.length === 0 && ord.total > 0 ? (Number(ord.total) / 1.22).toFixed(2) : '');
+          discInp.value = 0;
+          prodInp.oninput = () => {
+            const val = prodInp.value.trim();
+            const matched = window.catalogProductsMap?.[val] || (window.catalogProductsList || []).find(p => p.code.toLowerCase() === val.toLowerCase() || p.description.toLowerCase() === val.toLowerCase());
+            if (matched && matched.price > 0) {
+              priceInp.value = Number(matched.price).toFixed(2);
+            }
+          };
+        }
+
+        const btnAddLine = $('btnAddOrderLine');
+        if (btnAddLine) {
+          btnAddLine.onclick = async () => {
+            const rawVal = (prodInp.value || '').trim();
+            if (!rawVal) {
+              toast('Inserisci o seleziona un codice o descrizione articolo');
+              prodInp.focus();
+              return;
+            }
+            const matched = window.catalogProductsMap?.[rawVal] ||
+              (window.catalogProductsList || []).find(p =>
+                p.code.toLowerCase() === rawVal.toLowerCase() ||
+                p.description.toLowerCase().includes(rawVal.toLowerCase())
+              );
+            const code = matched ? matched.code : rawVal.split(' ')[0].toUpperCase();
+            const desc = matched ? matched.description : rawVal;
+            const qty = Math.max(1, Number(qtyInp.value) || 1);
+            const listPrice = priceInp.value !== '' ? Number(priceInp.value) : (matched ? Number(matched.price) || 0 : (Number(ord.subtotal) || Number(ord.total) / 1.22 || 0));
+            const disc = Math.max(0, Math.min(100, Number(discInp.value) || 0));
+            const netUnit = listPrice * (1 - disc / 100);
+            const lineTotal = netUnit * qty;
+
+            const newLine = normalizeOrderLine({
+              code,
+              product_code: code,
+              description: desc,
+              brand: matched?.brand || '',
+              location: matched?.location || matched?.primary_location || 'Magazzino',
+              um: matched?.um || 'PZ',
+              quantity: qty,
+              listPrice,
+              discounts: disc > 0 ? [disc] : [],
+              net_price: netUnit,
+              total: lineTotal,
+              vat: matched?.vat || 22
+            });
+
+            btnAddLine.disabled = true;
+            btnAddLine.textContent = 'Salvataggio…';
+            try {
+              const updatedLines = [...getOrderLines(ord), newLine];
+              await saveOrderLinesToSupabase(ord, updatedLines);
+              toast(`✅ Articolo ${code} associato all'ordine e salvato su Supabase!`);
+              await openOrderDetailsModal(orderId);
+            } finally {
+              btnAddLine.disabled = false;
+              btnAddLine.textContent = '💾 Aggiungi Riga';
+            }
+          };
         }
 
         const orderGrandTotal = Number(ord.total) > 0 ? Number(ord.total) : (calcNetSum + calcVatSum);
@@ -1928,7 +2451,9 @@
           openPrintDdt(ord.id || ord.number);
         };
 
-        $('orderDetailsModal').showModal();
+        if (!$('orderDetailsModal').open) {
+          $('orderDetailsModal').showModal();
+        }
       } catch (err) {
         console.error('Errore apertura dettaglio ordine:', err);
         toast(`Errore: ${err.message}`);
@@ -1936,41 +2461,54 @@
     }
 
     // Print Picking List for warehouse staff
-    function openPrintPicking(orderId) {
+    async function openPrintPicking(orderId) {
       try {
         const ord = allOrders.find(o => o.id === orderId || o.number === orderId);
         if (!ord) return;
 
         const dateStr = ord.submitted_at ? new Date(ord.submitted_at).toLocaleDateString('it-IT') : new Date().toLocaleDateString('it-IT');
-        let lines = getOrderLines(ord);
+        let lines = await ensureOrderLines(ord);
 
         const processedLines = lines.map(l => {
-          const code = String(l.code || '').trim();
+          const code = String(l.code || l.product_code || '').trim();
           const p = (window.catalogProductsMap && window.catalogProductsMap[code]) || {};
           return {
             ...l,
-            location: l.location || p.location || 'Magazzino / Picking'
+            code: code || 'ART',
+            description: l.description || p.description || 'Articolo',
+            brand: l.brand || p.brand || '',
+            um: l.um || p.um || 'PZ',
+            quantity: Number(l.quantity ?? l.qty ?? 1) || 1,
+            location: l.location || p.location || p.primary_location || 'Magazzino / Picking'
           };
         });
 
         // Sort items by warehouse location (aisle / shelf walkthrough order)
         processedLines.sort((a, b) => String(a.location || '').localeCompare(String(b.location || '')));
 
+        const totalPieces = processedLines.reduce((acc, l) => acc + (Number(l.quantity) || 1), 0);
+
         const linesHtml = processedLines.length > 0 ? processedLines.map((l, idx) => `
           <tr>
             <td class="center"><span style="display:inline-block; width:18px; height:18px; border:2px solid #334155; border-radius:3px;"></span></td>
-            <td><strong>${escapeHtml(l.code || 'ART')}</strong></td>
-            <td>${escapeHtml(l.description || 'Articolo')}</td>
-            <td class="center" style="font-weight:800; font-size:1.05rem; color:#0369a1;">${l.quantity || 1}</td>
+            <td><strong style="font-family:monospace; font-size:.95rem; color:var(--navy);">${escapeHtml(l.code)}</strong></td>
+            <td>
+              <div style="font-weight:700; color:#0f172a;">${escapeHtml(l.description)}</div>
+              ${l.brand ? `<small style="color:#64748b;">Marca: ${escapeHtml(l.brand)}</small>` : ''}
+            </td>
+            <td class="center" style="font-weight:800; font-size:1.05rem; color:#0369a1;">${l.quantity} ${escapeHtml(l.um || 'PZ')}</td>
             <td><strong style="color:#0369a1;">📍 ${escapeHtml(l.location || 'Magazzino / Picking')}</strong></td>
           </tr>
         `).join('') : `
           <tr>
-            <td class="center"><span style="display:inline-block; width:18px; height:18px; border:2px solid #334155; border-radius:3px;"></span></td>
-            <td><strong>Articoli Ordine</strong></td>
-            <td>Totale Documento: ${euro(ord.total)}</td>
-            <td class="center">1 compl.</td>
-            <td>Pallet / Scatola</td>
+            <td colspan="5" style="text-align:center; padding:18px; background:#fffbeb; color:#92400e;">
+              <strong>⚠️ Nessun articolo associato a questo ordine (${escapeHtml(ord.number)} - Totale: ${euro(ord.total)}).</strong>
+              <div class="no-print" style="margin-top:10px;">
+                <button type="button" class="btn primary btn-sm" onclick="$('printModal').close(); openOrderDetailsModal('${escapeHtml(ord.id || ord.number)}');">
+                  ➕ Associa Ora gli Articoli Venduti all'Ordine
+                </button>
+              </div>
+            </td>
           </tr>
         `;
 
@@ -1979,16 +2517,23 @@
             <div>
               <h1 class="print-title">📦 DISTINTA DI PRELIEVO (PICKING)</h1>
               <div style="font-size:1.1rem; font-weight:700; color:#334155; margin-top:4px;">Ordine: ${ord.number}</div>
+              ${ord.origin_offer_id ? `<div style="font-size:.85rem; color:#0284c7; font-weight:600;">Rif. Offerta: ${escapeHtml(ord.origin_offer_id)}</div>` : ''}
             </div>
             <div style="text-align:right;">
               <div><strong>Data:</strong> ${dateStr}</div>
               <div><strong>Agente:</strong> ${ord.agent_name || ord.agent_code || 'N/D'}</div>
+              <div style="margin-top:4px; font-size:.85rem; background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:6px; font-weight:700; display:inline-block;">
+                ${processedLines.length} righe · ${totalPieces} pezzi da prelevare
+              </div>
             </div>
           </div>
 
-          <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:12px 16px; margin-bottom:20px;">
-            <div><strong>Cliente di destinazione:</strong> ${ord.customer_name}</div>
-            ${ord.notes ? `<div style="margin-top:4px; font-size:.85rem; color:#475569;">Note preparazione: ${ord.notes}</div>` : ''}
+          <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:12px 16px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div>
+              <div><strong>Cliente di destinazione:</strong> ${ord.customer_name}</div>
+              ${ord.notes ? `<div style="margin-top:4px; font-size:.85rem; color:#475569;">Note preparazione: ${ord.notes}</div>` : ''}
+            </div>
+            <div style="font-size:.9rem; font-weight:700; color:#334155;">Totale Ordine: ${euro(ord.total)}</div>
           </div>
 
           <table class="print-table">
@@ -1997,8 +2542,8 @@
                 <th style="width:40px;" class="center">Prelevato</th>
                 <th style="width:120px;">Codice Articolo</th>
                 <th>Descrizione Prodotto</th>
-                <th style="width:80px;" class="center">Quantità</th>
-                <th style="width:140px;">Ubicazione / Note</th>
+                <th style="width:85px;" class="center">Quantità</th>
+                <th style="width:150px;">Ubicazione / Note</th>
               </tr>
             </thead>
             <tbody>
@@ -2021,7 +2566,7 @@
     }
 
     // Print DDT / Bolla di Consegna (Conforme D.P.R. 472/1996 - Modello Climawell)
-    function openPrintDdt(orderId) {
+    async function openPrintDdt(orderId) {
       try {
         const ord = allOrders.find(o => o.id === orderId || o.number === orderId);
         if (!ord) return;
@@ -2072,7 +2617,7 @@
         const orderNotes = ord.notes || ord.payload?.notes || '';
 
         // Items list (Quantities ONLY, NO PRICES as explicitly requested)
-        let lines = getOrderLines(ord);
+        let lines = await ensureOrderLines(ord);
 
         // Generate rows and empty filler rows: compact and fits many articles
         const targetRows = Math.max(12, (lines ? lines.length : 1) + 1);
@@ -2080,10 +2625,10 @@
         if (lines && lines.length > 0) {
           rowsHtml = lines.map(l => `
             <tr>
-              <td><strong>${escapeHtml(l.code || '')}</strong></td>
+              <td><strong>${escapeHtml(l.code || l.product_code || '')}</strong></td>
               <td>${escapeHtml(l.description || 'Articolo')}</td>
-              <td style="text-align:center;">NR</td>
-              <td style="text-align:center; font-weight:700;">${l.quantity || 1}</td>
+              <td style="text-align:center;">${escapeHtml(l.um || 'NR')}</td>
+              <td style="text-align:center; font-weight:700;">${l.quantity || l.qty || 1}</td>
             </tr>
           `).join('');
         } else {

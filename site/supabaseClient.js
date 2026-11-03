@@ -471,39 +471,136 @@
     },
 
     /**
-     * Recupera le righe dettagliate di un'offerta o ordine da Supabase
+     * Recupera le righe dettagliate di un'offerta o ordine da Supabase (con fallback su offerta di origine e cache locale)
      */
     async getDocumentLines(documentNumber) {
+      if (!documentNumber) return [];
+      const docNum = String(documentNumber).trim();
       const client = initClient();
-      if (client && documentNumber) {
+
+      if (client) {
         try {
+          // 1. Ricerca diretta per document_number
           const { data, error } = await client
             .from('document_lines')
             .select('*')
-            .eq('document_number', documentNumber)
+            .eq('document_number', docNum)
             .order('line_number', { ascending: true });
           if (!error && data && data.length > 0) return data;
+
+          // 2. Fallback: se è un ordine (ORD-... o OCL-...), prova con il numero dell'offerta di origine (OFF-... / OFC-...)
+          const candidates = new Set();
+          if (/^ORD-/i.test(docNum)) {
+            candidates.add(docNum.replace(/^ORD-/i, 'OFF-'));
+            candidates.add(docNum.replace(/^ORD-/i, 'OFC-'));
+            candidates.add(docNum.replace(/^ORD-/i, ''));
+          } else if (/^OCL-/i.test(docNum)) {
+            candidates.add(docNum.replace(/^OCL-/i, 'OFC-'));
+            candidates.add(docNum.replace(/^OCL-/i, 'OFF-'));
+          }
+
+          // Controlla anche se nelle note della testata è indicato "Convertito da Offerta ..."
+          const { data: docRows } = await client
+            .from('documents')
+            .select('notes')
+            .eq('number', docNum)
+            .limit(1);
+          if (docRows && docRows[0]?.notes) {
+            const m = String(docRows[0].notes).match(/Offerta\s+([A-Z0-9_-]+)/i);
+            if (m && m[1]) candidates.add(m[1].trim());
+          }
+
+          if (candidates.size > 0) {
+            const { data: altData, error: altErr } = await client
+              .from('document_lines')
+              .select('*')
+              .in('document_number', Array.from(candidates))
+              .order('line_number', { ascending: true });
+            if (!altErr && altData && altData.length > 0) return altData;
+          }
         } catch (err) {
           console.warn('[Supabase] Errore document_lines:', err.message);
         }
       }
+
+      // 3. Fallback cache locale (localStorage)
+      try {
+        const localLines = localStorage.getItem(`clw_doc_lines_${docNum}`);
+        if (localLines) {
+          const parsed = JSON.parse(localLines);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+        const subRaw = localStorage.getItem(`submission-${docNum}`);
+        if (subRaw) {
+          const sub = JSON.parse(subRaw);
+          if (Array.isArray(sub?.payload?.lines) && sub.payload.lines.length > 0) {
+            return sub.payload.lines.map((l, idx) => ({
+              line_number: idx + 1,
+              product_code: l.code || l.product_code || '',
+              description: l.description || '',
+              quantity: Number(l.quantity || l.qty) || 1,
+              list_price: Number(l.listPrice || l.list_price || l.price) || 0,
+              discount_1: Number(l.discounts?.[0] || l.discount_1) || 0,
+              discount_2: Number(l.discounts?.[1] || l.discount_2) || 0,
+              discount_3: Number(l.discounts?.[2] || l.discount_3) || 0,
+              discount_4: Number(l.discounts?.[3] || l.discount_4) || 0,
+              discount_extra: Number(l.extraDiscount || l.discount_extra || l.extra_discount) || 0,
+              net_price: Number(l.net_price || (l.net && l.quantity ? l.net / l.quantity : l.net)) || 0,
+              total: Number(l.net || l.total) || 0,
+              vat: Number(l.vat) || 22,
+              location: l.location || ''
+            }));
+          }
+        }
+      } catch {}
+
       return [];
     },
 
     /**
-     * Recupera gli ordini da preparare (per il magazziniere)
+     * Recupera gli ordini da preparare (per il magazziniere) con tutte le righe articolo
      */
     async getWarehouseOrders() {
       const client = initClient();
       if (client) {
         try {
-          const { data, error } = await client
+          const { data: orders, error } = await client
             .from('documents')
-            .select('*, document_lines(*)')
+            .select('*')
             .eq('document_type', 'OCL')
-            .in('status', ['Inviato', 'In Preparazione', 'Preparato'])
-            .order('document_date', { ascending: true });
-          if (!error && data) return data;
+            .in('status', ['Inviato', 'Approvato', 'In Preparazione', 'Preparato'])
+            .order('created_at', { ascending: false });
+          if (!error && Array.isArray(orders) && orders.length > 0) {
+            const allLinesRes = await client
+              .from('document_lines')
+              .select('*')
+              .order('line_number', { ascending: true });
+            const allLines = (!allLinesRes.error && Array.isArray(allLinesRes.data)) ? allLinesRes.data : [];
+            const linesByDoc = new Map();
+            for (const l of allLines) {
+              const key = String(l.document_number || '').trim();
+              if (!key) continue;
+              if (!linesByDoc.has(key)) linesByDoc.set(key, []);
+              linesByDoc.get(key).push(l);
+            }
+
+            return orders.map(ord => {
+              const num = String(ord.number || '').trim();
+              let docLines = linesByDoc.get(num) || [];
+              if (!docLines.length && /^ORD-/i.test(num)) {
+                docLines = linesByDoc.get(num.replace(/^ORD-/i, 'OFF-')) || linesByDoc.get(num.replace(/^ORD-/i, 'OFC-')) || [];
+              }
+              if (!docLines.length && ord.notes) {
+                const m = String(ord.notes).match(/Offerta\s+([A-Z0-9_-]+)/i);
+                if (m && m[1]) docLines = linesByDoc.get(m[1].trim()) || [];
+              }
+              return {
+                ...ord,
+                document_lines: docLines,
+                lines: docLines
+              };
+            });
+          }
         } catch (err) {
           console.warn('[Supabase] Errore ordini magazzino:', err.message);
         }
@@ -729,6 +826,12 @@
         };
       });
 
+      try {
+        if (formattedLines.length > 0 && number) {
+          localStorage.setItem(`clw_doc_lines_${number}`, JSON.stringify(formattedLines));
+        }
+      } catch {}
+
       if (client) {
         try {
           const { error: docErr } = await client.from('documents').upsert(docPayload, { onConflict: 'number' });
@@ -737,9 +840,9 @@
           if (formattedLines.length > 0) {
             await client.from('document_lines').delete().eq('document_number', number);
             let { error: linesErr } = await client.from('document_lines').insert(formattedLines);
-            if (linesErr && (linesErr.message || '').includes('discount_extra')) {
-              // Fallback se la colonna non è ancora creata nel database Supabase
-              const safeLines = formattedLines.map(({ discount_extra, ...rest }) => rest);
+            if (linesErr) {
+              // Fallback progressivo se alcune colonne opzionali non sono presenti nel database Supabase
+              const safeLines = formattedLines.map(({ discount_extra, um, vat, ...rest }) => rest);
               const retry = await client.from('document_lines').insert(safeLines);
               linesErr = retry.error;
             }
