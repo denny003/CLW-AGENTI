@@ -1,0 +1,2717 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gestione Ordini & Magazzino — Offerte Agenti</title>
+  <link rel="icon" href="/favicon.svg">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabaseClient.js"></script>
+  <style>
+    .workflow-shell { max-width: 1240px; margin: 0 auto; padding: 28px 20px 60px; }
+    .workflow-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 14px; }
+    .workflow-title h1 { font-size: 1.7rem; margin: 0 0 4px; color: var(--navy); }
+    .workflow-title p { margin: 0; color: var(--muted); font-size: .92rem; }
+
+    /* Stats Grid */
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 24px; }
+    .stat-pill { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; box-shadow: var(--shadow); transition: transform .15s; }
+    .stat-pill:hover { transform: translateY(-2px); }
+    .stat-pill small { display: block; font-size: .75rem; text-transform: uppercase; font-weight: 700; letter-spacing: .05em; color: var(--muted); margin-bottom: 4px; }
+    .stat-pill .num { font-size: 1.6rem; font-weight: 800; color: var(--navy); line-height: 1.1; }
+    .stat-pill .sub { font-size: .8rem; color: #16835b; font-weight: 600; margin-top: 3px; display: block; }
+
+    /* Filter Tabs */
+    .filter-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 20px; border-bottom: 1px solid var(--line); }
+    .tab-btn { background: transparent; border: 0; border-bottom: 3px solid transparent; padding: 10px 14px; font-weight: 700; font-size: .88rem; color: var(--muted); cursor: pointer; white-space: nowrap; transition: all .15s; }
+    .tab-btn:hover { color: var(--navy); }
+    .tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+    .tab-btn .badge { background: #e2e8f0; color: #334155; padding: 2px 7px; border-radius: 10px; font-size: .75rem; margin-left: 6px; font-weight: 750; }
+    .tab-btn.active .badge { background: #dbeafe; color: var(--blue); }
+
+    /* Search & Bar */
+    .search-bar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    .search-input { flex: 1; min-width: 260px; background: #fff; border: 1px solid #cfdbe1; border-radius: 10px; padding: 11px 16px; font-size: .92rem; }
+    .search-input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(32,118,181,.12); }
+
+    /* Order Cards */
+    .orders-grid { display: flex; flex-direction: column; gap: 14px; }
+    .order-card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 20px; box-shadow: var(--shadow); transition: all .2s; }
+    .order-card:hover { border-color: #94bcd8; box-shadow: 0 10px 30px rgba(12,41,64,.09); }
+    .order-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+    .order-main-info { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+    .order-num { font-size: 1.15rem; font-weight: 800; color: var(--navy); font-family: monospace; }
+    .order-date { font-size: .82rem; color: var(--muted); }
+    .order-customer { font-size: 1.05rem; font-weight: 750; color: #1e293b; margin: 4px 0 2px; }
+    .order-agent { font-size: .84rem; color: #475569; }
+
+    /* Workflow Badges */
+    .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; font-size: .8rem; font-weight: 750; letter-spacing: .02em; }
+    .status-ricevuto { background: #fef3c7; color: #92400e; }
+    .status-approvato { background: #e0f2fe; color: #0369a1; }
+    .status-magazzino { background: #ede9fe; color: #6d28d9; }
+    .status-spedito { background: #dcfce7; color: #15803d; }
+    .status-fatturato { background: #d1fae5; color: #065f46; border: 1px solid #10b981; }
+    .status-respinto { background: #fee2e2; color: #991b1b; }
+
+    /* Shipping Details Box inside Card */
+    .shipping-box { background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 10px; padding: 10px 14px; margin: 12px 0; font-size: .84rem; display: flex; gap: 18px; flex-wrap: wrap; align-items: center; }
+    .shipping-box strong { color: #334155; }
+    .shipping-box a { color: var(--blue); text-decoration: none; font-weight: 700; }
+    .shipping-box a:hover { text-decoration: underline; }
+
+    /* Card Actions */
+    .order-actions { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 14px; margin-top: 12px; flex-wrap: wrap; gap: 10px; }
+    .order-total { font-size: 1.25rem; font-weight: 800; color: var(--navy); }
+    .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-sm { padding: 8px 12px; font-size: .82rem; border-radius: 8px; }
+    .btn-next-step { background: #0284c7; color: #fff; font-weight: 750; }
+    .btn-next-step:hover { background: #0369a1; }
+
+    /* Print Preview Modal */
+    .print-doc { background: #fff; padding: 24px; color: #0f172a; font-family: Inter, sans-serif; line-height: 1.4; }
+    .print-header { display: flex; justify-content: space-between; border-bottom: 2px solid #0f172a; padding-bottom: 16px; margin-bottom: 20px; }
+    .print-title { font-size: 1.5rem; font-weight: 800; color: #0f172a; text-transform: uppercase; margin: 0; }
+    .print-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: .88rem; }
+    .print-table th, .print-table td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; }
+    .print-table th { background: #f1f5f9; font-weight: 700; }
+    .print-table td.text-right { text-align: right; }
+    .print-table td.center { text-align: center; }
+
+    /* DDT Official Format Styling (D.P.R. 472 del 14/08/1996) */
+    .ddt-sheet {
+      background: #fff;
+      color: #000;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 10px;
+      line-height: 1.25;
+      padding: 0;
+      width: 100%;
+      max-width: 195mm;
+      box-sizing: border-box;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 275mm;
+      max-height: 277mm;
+    }
+    .ddt-header-section {
+      flex-shrink: 0;
+    }
+    .ddt-top-row {
+      display: grid;
+      grid-template-columns: 48% 50%;
+      gap: 2%;
+      margin-bottom: 6px;
+    }
+    .ddt-sender-box {
+      padding-right: 8px;
+    }
+    .ddt-brand-logo {
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      color: #0b2942;
+      display: inline-block;
+      font-family: Inter, sans-serif;
+    }
+    .ddt-brand-sub {
+      font-size: 9.5px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      color: #0284c7;
+      margin-top: -3px;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      font-family: Inter, sans-serif;
+    }
+    .ddt-sender-info {
+      font-size: 10px;
+      color: #222;
+      line-height: 1.3;
+    }
+    .ddt-recipient-container {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .ddt-client-box, .ddt-dest-box {
+      border: 1px solid #000;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .ddt-box-header {
+      background: #f1f5f9;
+      border-bottom: 1px solid #000;
+      padding: 2px 6px;
+      font-size: 9px;
+      font-weight: 800;
+      display: flex;
+      justify-content: space-between;
+      text-transform: uppercase;
+    }
+    .ddt-box-body {
+      padding: 4px 6px;
+      font-size: 10px;
+      line-height: 1.3;
+    }
+    .ddt-client-name {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+    .ddt-doc-title {
+      font-size: 13.5px;
+      font-weight: 800;
+      margin: 8px 0 4px;
+      letter-spacing: -0.01em;
+      color: #000;
+    }
+    .ddt-meta-table, .ddt-items-table, .ddt-bottom-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid #000;
+    }
+    .ddt-meta-table td, .ddt-items-table th, .ddt-items-table td, .ddt-bottom-table td {
+      border: 1px solid #000;
+      padding: 3px 5px;
+      vertical-align: top;
+    }
+    .ddt-cell-label {
+      font-size: 8px;
+      font-weight: 700;
+      color: #333;
+      text-transform: uppercase;
+      line-height: 1.1;
+      margin-bottom: 2px;
+    }
+    .ddt-cell-val {
+      font-size: 10px;
+      color: #000;
+    }
+    .ddt-middle-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      margin: 2px 0;
+      min-height: 110mm;
+      overflow: hidden;
+    }
+    .ddt-items-table {
+      margin: 0 0 2px;
+      flex: 1;
+    }
+    .ddt-items-table th {
+      background: #f1f5f9;
+      font-size: 8.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 2.5px 5px;
+      border-bottom: 1px solid #000;
+      line-height: 1.15;
+    }
+    .ddt-items-table td {
+      padding: 2px 5px;
+      font-size: 9px;
+      line-height: 1.15;
+      height: 15px;
+    }
+    .ddt-empty-row td {
+      height: 15px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .ddt-delay-notice {
+      font-size: 8px;
+      font-weight: 700;
+      margin: 2px 0 3px;
+      color: #333;
+      line-height: 1.15;
+      flex-shrink: 0;
+    }
+    .ddt-bottom-section {
+      flex-shrink: 0;
+      margin-top: auto;
+    }
+    .ddt-signature-space {
+      height: 32px;
+      min-height: 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding-bottom: 2px;
+      box-sizing: border-box;
+    }
+    .ddt-signature-line {
+      width: 100%;
+      border-bottom: 1px dotted #94a3b8;
+      height: 0;
+    }
+    .ddt-bottom-table td {
+      padding: 2px 4px;
+    }
+    .ddt-inner-subtable {
+      width: 100%;
+      border-collapse: collapse;
+      border: 0;
+    }
+    .ddt-inner-subtable td {
+      border: 0;
+      border-right: 1px solid #000;
+      padding: 2px 4px;
+    }
+    .ddt-inner-subtable td:last-child {
+      border-right: 0;
+    }
+    .ddt-footer-legal {
+      font-size: 7px;
+      color: #333;
+      line-height: 1.15;
+      margin-top: 2px;
+      border-top: 1px solid #000;
+      padding-top: 2px;
+    }
+
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 8mm 8mm 6mm 8mm;
+      }
+      html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        height: auto !important;
+        min-height: 0 !important;
+        background: #fff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      /* Hide all elements on body except the print modal */
+      body > * {
+        display: none !important;
+      }
+      /* Reset dialog#printModal to static block starting at page top */
+      body > dialog#printModal {
+        display: block !important;
+        position: static !important;
+        inset: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+        background: transparent !important;
+      }
+      dialog#printModal::backdrop {
+        display: none !important;
+      }
+      /* Hide modal controls / buttons */
+      .no-print,
+      .print-actions,
+      dialog#printModal .no-print,
+      dialog#printModal > div > div:first-child {
+        display: none !important;
+      }
+      dialog#printModal > div {
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      #printableArea {
+        display: block !important;
+        position: static !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        box-shadow: none !important;
+        border: none !important;
+        overflow: visible !important;
+      }
+      .ddt-sheet {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        height: 270mm !important;
+        max-height: 270mm !important;
+        min-height: 268mm !important;
+        page-break-after: avoid !important;
+        page-break-inside: avoid !important;
+        page-break-before: avoid !important;
+        break-inside: avoid !important;
+        overflow: hidden !important;
+      }
+    }
+
+    /* Mode Switcher */
+    .mode-switch-bar {
+      display: flex;
+      background: #e2e8f0;
+      border-radius: 12px;
+      padding: 4px;
+      gap: 6px;
+      margin-bottom: 24px;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+    }
+    .mode-switch-btn {
+      flex: 1;
+      padding: 12px 18px;
+      font-size: .95rem;
+      font-weight: 750;
+      border: 0;
+      border-radius: 9px;
+      background: transparent;
+      color: #475569;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all .2s ease;
+    }
+    .mode-switch-btn:hover {
+      color: var(--navy);
+    }
+    .mode-switch-btn.active {
+      background: #ffffff;
+      color: var(--navy);
+      box-shadow: 0 4px 12px rgba(11,41,66,0.12);
+    }
+
+    /* Production Dashboard Specific */
+    .source-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .02em;
+    }
+    .source-badge .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      display: inline-block;
+    }
+
+    /* Urgency Badges */
+    .urgency-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 9px;
+      border-radius: 14px;
+      font-size: .75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+      white-space: nowrap;
+    }
+    .status-critico { background: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
+    .status-riordino { background: #ffedd5; color: #c2410c; border: 1px solid #fb923c; }
+    .status-ottimale { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+    .status-overstock { background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
+
+    /* Production Table */
+    .table-container {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      overflow-x: auto;
+      margin-bottom: 24px;
+    }
+    .prod-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .84rem;
+      text-align: left;
+    }
+    .prod-table th {
+      background: #f8fafc;
+      color: #475569;
+      font-weight: 750;
+      padding: 12px 14px;
+      border-bottom: 2px solid #e2e8f0;
+      white-space: nowrap;
+    }
+    .prod-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #1e293b;
+      vertical-align: middle;
+    }
+    .prod-table tr:hover {
+      background: #f8fafc;
+    }
+    .qty-produce-badge {
+      display: inline-block;
+      padding: 5px 10px;
+      background: #0284c7;
+      color: #fff;
+      font-weight: 800;
+      border-radius: 8px;
+      font-size: .88rem;
+    }
+    .qty-produce-zero {
+      color: #94a3b8;
+      font-weight: 600;
+    }
+    .learned-chip {
+      display: inline-block;
+      font-size: .72rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #f1f5f9;
+      color: #475569;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    /* Explanation Info Card */
+    .info-card {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 20px;
+      box-shadow: var(--shadow);
+    }
+    .info-card h3 {
+      margin: 0 0 10px;
+      font-size: 1rem;
+      color: var(--navy);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 14px;
+      font-size: .84rem;
+      color: #475569;
+    }
+    .info-block {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .info-block strong {
+      color: #1e293b;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .formula-tag {
+      display: inline-block;
+      background: #e2e8f0;
+      color: #0f172a;
+      font-family: monospace;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: .78rem;
+      margin-top: 4px;
+    }
+
+    /* Order Details Modal */
+    .details-table-wrap { overflow-x: auto; margin: 16px 0; border: 1px solid var(--line); border-radius: 10px; }
+    .details-table { width: 100%; border-collapse: collapse; font-size: .88rem; background: #fff; }
+    .details-table th, .details-table td { padding: 10px 12px; border-bottom: 1px solid #eef2f5; text-align: left; }
+    .details-table th { background: #f8fafc; font-weight: 750; color: #475569; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
+    .details-table tr:last-child td { border-bottom: 0; }
+    .details-table tr:hover td { background: #f8fafc; }
+    .details-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .details-table th.num { text-align: right; }
+    .discount-tag { display: inline-block; background: #e0f2fe; color: #0369a1; padding: 2px 7px; border-radius: 6px; font-weight: 700; font-size: .8rem; }
+    .discount-tag.high { background: #fef3c7; color: #92400e; }
+    .discount-tag.zero { background: #f1f5f9; color: #64748b; font-weight: 500; }
+    .order-info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 16px; font-size: .86rem; }
+    .order-info-item label { display: block; font-size: .72rem; text-transform: uppercase; color: var(--muted); font-weight: 750; margin-bottom: 2px; }
+    .order-info-item strong { color: #1e293b; font-size: .92rem; }
+    .summary-box-grid { display: grid; grid-template-columns: 1fr auto; gap: 16px; background: #f1f5f9; border-radius: 10px; padding: 14px 18px; margin-top: 14px; align-items: center; }
+
+    /* Mobile Responsive Optimizations for Smartphones */
+    @media (max-width: 768px) {
+      .topbar {
+        height: auto !important;
+        min-height: 56px !important;
+        padding: 8px 12px !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+      }
+      .topbar .brand small {
+        display: none !important;
+      }
+      .topbar .heading-actions {
+        width: 100% !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        gap: 6px !important;
+      }
+      .topbar .heading-actions .btn {
+        flex: 1 !important;
+        padding: 7px 6px !important;
+        font-size: 0.74rem !important;
+        text-align: center !important;
+        justify-content: center !important;
+      }
+
+      .workflow-shell {
+        padding: 12px 10px 40px !important;
+      }
+      .workflow-header {
+        margin-bottom: 14px !important;
+      }
+      .workflow-title h1 {
+        font-size: 1.3rem !important;
+      }
+      .workflow-title p {
+        font-size: 0.8rem !important;
+      }
+
+      /* Mode switcher compact on mobile */
+      .mode-switch-bar {
+        margin-bottom: 14px !important;
+        padding: 3px !important;
+        gap: 4px !important;
+      }
+      .mode-switch-btn {
+        padding: 9px 8px !important;
+        font-size: 0.78rem !important;
+        gap: 4px !important;
+      }
+
+      /* Stats Row: Swipeable Horizontal Carousel on Mobile */
+      .stats-row {
+        display: flex !important;
+        overflow-x: auto !important;
+        gap: 8px !important;
+        margin-bottom: 16px !important;
+        padding-bottom: 6px !important;
+        -webkit-overflow-scrolling: touch !important;
+        scroll-snap-type: x mandatory !important;
+      }
+      .stat-pill {
+        flex: 0 0 130px !important;
+        padding: 10px 12px !important;
+        scroll-snap-align: start !important;
+      }
+      .stat-pill small {
+        font-size: 0.68rem !important;
+      }
+      .stat-pill .num {
+        font-size: 1.3rem !important;
+      }
+      .stat-pill .sub {
+        font-size: 0.74rem !important;
+      }
+
+      /* Filter tabs scrollable */
+      .filter-tabs {
+        gap: 4px !important;
+        padding-bottom: 4px !important;
+        margin-bottom: 14px !important;
+      }
+      .tab-btn {
+        padding: 8px 10px !important;
+        font-size: 0.8rem !important;
+      }
+
+      /* Search Bar */
+      .search-bar {
+        margin-bottom: 14px !important;
+      }
+      .search-input {
+        min-width: 0 !important;
+        width: 100% !important;
+        padding: 9px 12px !important;
+        font-size: 0.85rem !important;
+      }
+
+      /* Order Cards Compact */
+      .order-card {
+        padding: 14px !important;
+        border-radius: 12px !important;
+      }
+      .order-header {
+        flex-direction: column !important;
+        gap: 8px !important;
+        align-items: stretch !important;
+      }
+      .order-header > div:first-child {
+        width: 100% !important;
+      }
+      .order-main-info {
+        justify-content: space-between !important;
+        width: 100% !important;
+      }
+      .order-customer {
+        font-size: 0.95rem !important;
+      }
+      .order-agent {
+        font-size: 0.78rem !important;
+      }
+      .shipping-box {
+        padding: 8px 10px !important;
+        gap: 8px !important;
+        font-size: 0.78rem !important;
+      }
+
+      /* Actions full width grid */
+      .order-actions {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+      }
+      .order-total {
+        font-size: 1.15rem !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+      }
+      .btn-group {
+        width: 100% !important;
+        display: grid !important;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)) !important;
+        gap: 6px !important;
+      }
+      .btn-sm {
+        padding: 9px 6px !important;
+        font-size: 0.78rem !important;
+        text-align: center !important;
+        justify-content: center !important;
+      }
+
+      /* Dialogs on mobile */
+      dialog {
+        width: 95vw !important;
+        max-width: 95vw !important;
+        margin: 12px auto !important;
+        max-height: 90vh !important;
+      }
+      .order-info-grid {
+        grid-template-columns: 1fr !important;
+        padding: 10px !important;
+      }
+      .summary-box-grid {
+        grid-template-columns: 1fr !important;
+        padding: 10px 12px !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">OA</span>
+      <div>
+        <strong>Offerte Agenti</strong>
+        <small>Gestione Ordini, Magazzino & DDT</small>
+      </div>
+    </div>
+    <div class="heading-actions">
+      <a class="btn secondary" href="/area-sviluppo.html" style="background:#0284c7; color:#fff; border-color:#0284c7; font-weight:700;">🚀 Area di Sviluppo</a>
+      <a class="btn secondary" href="/">← Torna alle pratiche</a>
+      <a class="btn secondary" href="/configurazione.html">⚙️ Configurazione</a>
+    </div>
+  </header>
+
+  <main class="workflow-shell">
+    <!-- MODE SWITCHER -->
+    <div class="mode-switch-bar">
+      <button type="button" id="btnModeOrders" class="mode-switch-btn active" onclick="switchMainView('orders')">
+        📦 Pipeline Ordini & DDT
+      </button>
+      <button type="button" id="btnModeProduction" class="mode-switch-btn" onclick="switchMainView('production')">
+        🏭 Piano Produzione & Scorte Intelligenti (Supabase)
+      </button>
+    </div>
+
+    <!-- SECTION 1: PIPELINE ORDINI -->
+    <section id="sectionOrders">
+      <div class="workflow-header">
+        <div class="workflow-title">
+          <h1>Pipeline Ordini & Spedizioni</h1>
+          <p>Avanzamento lavorazione: Ricezione → Approvazione → Picking Magazzino → Bolla/DDT → Fatturazione</p>
+        </div>
+        <div>
+          <button type="button" id="btnRefresh" class="btn secondary">🔄 Aggiorna dati</button>
+        </div>
+      </div>
+
+    <!-- STATS SUMMARY -->
+    <div class="stats-row">
+      <div class="stat-pill">
+        <small>📥 Ricevuti</small>
+        <div class="num" id="statRicevuti">0</div>
+        <span class="sub" id="statRicevutiTot">0,00 €</span>
+      </div>
+      <div class="stat-pill">
+        <small>⚙️ In Lavorazione</small>
+        <div class="num" id="statApprovati">0</div>
+        <span class="sub" id="statApprovatiTot">0,00 €</span>
+      </div>
+      <div class="stat-pill">
+        <small>📦 In Picking</small>
+        <div class="num" id="statMagazzino">0</div>
+        <span class="sub" id="statMagazzinoTot">0,00 €</span>
+      </div>
+      <div class="stat-pill">
+        <small>🚚 Spediti / DDT</small>
+        <div class="num" id="statSpediti">0</div>
+        <span class="sub" id="statSpeditiTot">0,00 €</span>
+      </div>
+      <div class="stat-pill">
+        <small>💶 Fatturati</small>
+        <div class="num" id="statFatturati">0</div>
+        <span class="sub" id="statFatturatiTot">0,00 €</span>
+      </div>
+    </div>
+
+    <!-- FILTER TABS -->
+    <div class="filter-tabs">
+      <button class="tab-btn active" data-filter="all">Tutti gli Ordini <span class="badge" id="tabCountAll">0</span></button>
+      <button class="tab-btn" data-filter="ricevuto">📥 Ricevuti <span class="badge" id="tabCountRicevuti">0</span></button>
+      <button class="tab-btn" data-filter="approvato">⚙️ In Lavorazione <span class="badge" id="tabCountApprovati">0</span></button>
+      <button class="tab-btn" data-filter="magazzino">📦 Magazzino <span class="badge" id="tabCountMagazzino">0</span></button>
+      <button class="tab-btn" data-filter="spedito">🚚 Spediti con DDT <span class="badge" id="tabCountSpediti">0</span></button>
+      <button class="tab-btn" data-filter="fatturato">💶 Fatturati <span class="badge" id="tabCountFatturati">0</span></button>
+    </div>
+
+    <!-- SEARCH BAR -->
+    <div class="search-bar">
+      <input type="text" id="searchInput" class="search-input" placeholder="🔍 Cerca per numero ordine, cliente, agente o DDT…">
+    </div>
+
+    <!-- ORDERS LIST -->
+    <div id="ordersContainer" class="orders-grid">
+      <div style="text-align:center; padding: 40px; color: var(--muted);">Caricamento ordini in corso…</div>
+    </div>
+    </section>
+
+    <!-- SECTION 2: PIANO PRODUZIONE & OTTIMIZZAZIONE SCORTE -->
+    <section id="sectionProduction" style="display:none;">
+      <div class="workflow-header">
+        <div class="workflow-title">
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:4px;">
+            <h1>Pianificazione Produzione & Scorte Intelligenti</h1>
+            <span class="source-badge"><span class="dot"></span> Dati Live Supabase & Plus 2000</span>
+          </div>
+          <p>Algoritmo auto-apprenditivo: calcola lead time reale storico dagli ordini evasi e ottimizza punto di riordino (ROP), scorta minima e lotti di fabbricazione</p>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" id="btnRefreshProd" class="btn secondary">🔄 Ricalcola dati Supabase</button>
+          <button type="button" id="btnExportProdCsv" class="btn secondary">📥 Esporta CSV</button>
+          <button type="button" id="btnPrintProduction" class="btn primary">🖨️ Stampa Ordine Produzione</button>
+        </div>
+      </div>
+
+      <!-- KPI METRICS SUMMARY -->
+      <div class="stats-row">
+        <div class="stat-pill" style="border-left: 4px solid #ef4444;">
+          <small>🚨 Sottoscorta / Critici</small>
+          <div class="num" id="prodStatCritical" style="color: #991b1b;">0</div>
+          <span class="sub" style="color: #991b1b;" id="prodStatCriticalSub">Rischio rottura immediato</span>
+        </div>
+        <div class="stat-pill" style="border-left: 4px solid #f97316;">
+          <small>🏭 Da Produrre (Sotto ROP)</small>
+          <div class="num" id="prodStatReorder" style="color: #c2410c;">0</div>
+          <span class="sub" style="color: #c2410c;" id="prodStatReorderSub">Sotto punto riordino</span>
+        </div>
+        <div class="stat-pill" style="border-left: 4px solid #0284c7;">
+          <small>📦 Pezzi Totali da Produrre</small>
+          <div class="num" id="prodStatPieces" style="color: #0369a1;">0</div>
+          <span class="sub" style="color: #0369a1;" id="prodStatPiecesSub">Lotti consigliati</span>
+        </div>
+        <div class="stat-pill" style="border-left: 4px solid #10b981;">
+          <small>⏱️ Lead Time Reale Appreso</small>
+          <div class="num" id="prodStatLeadTime">-- gg</div>
+          <span class="sub" id="prodStatLeadTimeSub">Media da spedizioni reali</span>
+        </div>
+        <div class="stat-pill" style="border-left: 4px solid #8b5cf6;">
+          <small>📋 Impegnato Ordini Aperti</small>
+          <div class="num" id="prodStatCommitted" style="color: #6d28d9;">0</div>
+          <span class="sub" style="color: #6d28d9;" id="prodStatCommittedSub">Pezzi richiesti da clienti</span>
+        </div>
+      </div>
+
+      <!-- FILTER TABS FOR PRODUCTION -->
+      <div class="filter-tabs">
+        <button type="button" class="tab-btn prod-tab active" data-filter="all">Tutti gli Articoli <span class="badge" id="prodTabCountAll">0</span></button>
+        <button type="button" class="tab-btn prod-tab" data-filter="CRITICO">🚨 Critici / Rottura <span class="badge" id="prodTabCountCritical">0</span></button>
+        <button type="button" class="tab-btn prod-tab" data-filter="RIORDINO">🟠 Da Produrre (ROP) <span class="badge" id="prodTabCountReorder">0</span></button>
+        <button type="button" class="tab-btn prod-tab" data-filter="OTTIMALE">🟢 Scorta Ottimale <span class="badge" id="prodTabCountOptimal">0</span></button>
+        <button type="button" class="tab-btn prod-tab" data-filter="OVERSTOCK">🔵 Overstock <span class="badge" id="prodTabCountOverstock">0</span></button>
+      </div>
+
+      <!-- SEARCH & FAMILY FILTER -->
+      <div class="search-bar">
+        <input type="text" id="prodSearchInput" class="search-input" placeholder="🔍 Cerca per codice articolo, descrizione, marca o famiglia…">
+        <select id="prodFamilyFilter" class="search-input" style="max-width:240px;">
+          <option value="">Tutte le Famiglie / Linee</option>
+        </select>
+      </div>
+
+      <!-- PRODUCTION TABLE -->
+      <div class="table-container">
+        <table class="prod-table">
+          <thead>
+            <tr>
+              <th style="width:105px;">Codice</th>
+              <th>Descrizione & Famiglia</th>
+              <th style="text-align:center;">Giacenza Live (Supabase)</th>
+              <th style="text-align:center;">Impegnato Clienti</th>
+              <th style="text-align:center;">Disp. Netta</th>
+              <th style="text-align:center;">Lead Time Appreso</th>
+              <th style="text-align:center;">Consumo / gg</th>
+              <th style="text-align:center;">Scorta Min (SS)</th>
+              <th style="text-align:center;">Punto Riordino (ROP)</th>
+              <th style="text-align:center;">Scorta Max</th>
+              <th style="text-align:center;">Lotto Min</th>
+              <th style="text-align:center; background:#e0f2fe; color:#0369a1;">PRODUCI SUBITO</th>
+              <th style="text-align:center;">Stato Urgenza</th>
+              <th style="text-align:center; width:90px;">Parametri</th>
+            </tr>
+          </thead>
+          <tbody id="productionTableBody">
+            <tr>
+              <td colspan="14" style="text-align:center; padding:40px; color:var(--muted);">
+                Caricamento dati di produzione e calcolo algoritmo da Supabase in corso…
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ALGORITHM EXPLANATION CARD -->
+      <div class="info-card">
+        <h3>💡 Come funziona l'algoritmo auto-apprenditivo di produzione</h3>
+        <p style="margin:0; font-size:.85rem; color:#64748b;">
+          Tutti i parametri vengono calcolati esclusivamente estraendo lo storico ordini e le giacenze attuali presenti sul database Supabase.
+        </p>
+        <div class="info-grid">
+          <div class="info-block">
+            <strong>1. Apprendimento Tempo di Evasione / Produzione</strong>
+            L'algoritmo misura per ogni ordine evaso su Supabase i giorni effettivi trascorsi tra <em>data inserimento ordine</em> e <em>data spedizione/DDT</em>.
+            <div class="formula-tag">L_reale = Data_Spedizione - Data_Ordine</div>
+          </div>
+          <div class="info-block">
+            <strong>2. Scorta Minima di Sicurezza Dinamica (SS)</strong>
+            Basata sulla formula di King (Service Level 95%, Z=1.65): assorbe sia la variabilità della domanda dei clienti sia le incertezze del tempo di produzione.
+            <div class="formula-tag">SS = 1.65 × √(L × σ_D² + D² × σ_L²)</div>
+          </div>
+          <div class="info-block">
+            <strong>3. Punto di Riordino (ROP)</strong>
+            Rappresenta la soglia di allerta: quando la giacenza libera (Giacenza reale − Ordini clienti aperti) scende sotto il ROP, scatta il fabbisogno di produzione.
+            <div class="formula-tag">ROP = (Domanda_Media × L) + SS</div>
+          </div>
+          <div class="info-block">
+            <strong>4. Fabbisogno e Lotti di Produzione</strong>
+            La quantità consigliata copre il fabbisogno fino alla Scorta Massima calcolata ed è sempre arrotondata al multiplo del lotto minimo per ottimizzare i costi di setup.
+            <div class="formula-tag">Q_prod = ⌈(MaxStock − Disp) / LottoMin⌉ × LottoMin</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer style="text-align: center; padding: 24px 16px 36px; color: #64748b; font-size: 0.85rem; border-top: 1px solid #e2e8f0; margin-top: 36px;">
+    <div id="footerText">© Climawell — Gestione Ordini, Magazzino & DDT</div>
+    <div style="margin-top: 6px;">
+      <a href="/privacy.html" style="color: #0284c7; text-decoration: none; font-weight: 500;">🔒 Informativa Privacy & Protezione Dati (GDPR Reg. UE 2016/679)</a>
+    </div>
+  </footer>
+
+  <!-- MODAL: MODIFICA PARAMETRI PRODUZIONE ARTICOLO -->
+  <dialog id="prodParamModal" style="width: min(550px, calc(100vw - 28px));">
+    <form id="prodParamForm" method="dialog">
+      <div class="dialog-head">
+        <div>
+          <h2 id="modalProdTitle">Parametri Produzione Articolo</h2>
+          <p id="modalProdDesc">Personalizza tempi e lotti su Google Sheets (Parametri_Produzione)</p>
+        </div>
+        <button type="button" class="icon-btn" onclick="$('prodParamModal').close()">✕</button>
+      </div>
+
+      <input type="hidden" id="modalProdCode">
+
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; margin-bottom:14px; font-size:.85rem;">
+        <div>Codice: <strong id="modalProdCodeLabel">--</strong></div>
+        <div>Descrizione: <strong id="modalProdNameLabel">--</strong></div>
+        <div>Giacenza attuale Supabase: <strong id="modalProdStockLabel">--</strong></div>
+      </div>
+
+      <div class="two-cols" style="margin-bottom:12px;">
+        <div class="field">
+          <span>Tempo Stimato di Produzione (giorni)</span>
+          <input type="number" id="modalLeadTime" min="1" max="90" placeholder="Es. 7 (default auto-appreso)">
+          <small style="color:var(--muted); font-size:.72rem;">Se vuoto, usa la media appresa dagli ordini reali</small>
+        </div>
+        <div class="field">
+          <span>Lotto Minimo di Produzione (pz)</span>
+          <input type="number" id="modalMinLot" min="1" max="1000" placeholder="Es. 12">
+          <small style="color:var(--muted); font-size:.72rem;">Multiplo di lavorazione</small>
+        </div>
+      </div>
+
+      <div class="two-cols" style="margin-bottom:12px;">
+        <div class="field">
+          <span>Scorta Minima Manuale (opzionale)</span>
+          <input type="number" id="modalManualMinStock" min="0" placeholder="Auto-calcolata se vuota">
+        </div>
+        <div class="field">
+          <span>Scorta Massima Manuale (opzionale)</span>
+          <input type="number" id="modalManualMaxStock" min="0" placeholder="Auto-calcolata se vuota">
+        </div>
+      </div>
+
+      <div class="two-cols" style="margin-bottom:12px;">
+        <div class="field">
+          <span>Ubicazione Magazzino (Scaffale / Corsia)</span>
+          <input type="text" id="modalProdLocation" placeholder="Es. Scaffale A-02, Corsia B">
+          <small style="color:var(--muted); font-size:.72rem;">Indica dove stoccare e prelevare l'articolo</small>
+        </div>
+        <div class="field">
+          <span>Giacenza Rettificata (opzionale)</span>
+          <input type="number" id="modalManualStock" min="0" placeholder="Lascia vuoto per calcolo live">
+          <small style="color:var(--muted); font-size:.72rem;">Sovrascrive la giacenza da inventario fisico</small>
+        </div>
+      </div>
+
+      <div class="field" style="margin-bottom:14px;">
+        <span>Note di Produzione / Istruzioni Reparto</span>
+        <textarea id="modalProdNotes" rows="2" placeholder="Es. Materie prime speciali, packaging dedicato..."></textarea>
+      </div>
+
+      <div class="dialog-actions">
+        <button type="button" class="btn secondary" onclick="$('prodParamModal').close()">Annulla</button>
+        <button type="submit" id="btnSaveProdParam" class="btn primary">💾 Salva su Google Sheets</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- MODAL: AGGIORNA STATO E SPEDIZIONE -->
+  <dialog id="statusModal">
+    <form id="statusForm" method="dialog">
+      <div class="dialog-head">
+        <div>
+          <h2 id="modalOrderNumber">Aggiorna Ordine</h2>
+          <p id="modalCustomerName">Modifica stato di avanzamento e dati di trasporto</p>
+        </div>
+        <button type="button" class="icon-btn" onclick="$('statusModal').close()">✕</button>
+      </div>
+
+      <input type="hidden" id="modalOrderId">
+
+      <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:10px; padding:10px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <span style="font-size:.85rem; color:#0369a1; font-weight:700;">🔍 Controllo amministrativo righe e prezzi</span>
+        <button type="button" class="btn secondary btn-sm" style="font-weight:750; color:#0369a1; background:#fff; border-color:#7dd3fc;" onclick="openOrderDetailsModal($('modalOrderId').value)">Apri Dettaglio & Sconti ↗</button>
+      </div>
+
+      <div class="field" style="margin-bottom:14px;">
+        <span>Stato Avanzamento</span>
+        <select id="modalStatusSelect" required>
+          <option value="ricevuto">📥 Ricevuto (In verifica)</option>
+          <option value="approvato">⚙️ In Lavorazione (Approvato per evasione)</option>
+          <option value="magazzino">📦 In Preparazione Magazzino (Picking list pronta)</option>
+          <option value="spedito">🚚 Spedito (Merce affidata al corriere con DDT)</option>
+          <option value="fatturato">💶 Fatturato (Ciclo concluso)</option>
+          <option value="respinto">❌ Respinto / Annullato</option>
+        </select>
+      </div>
+
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px; margin-bottom:14px;">
+        <strong style="display:block; font-size:.85rem; color:#1e293b; margin-bottom:8px;">📦 Dati Bolla di Consegna / DDT & Spedizione</strong>
+        <div class="two-cols">
+          <div class="field">
+            <span>Numero Bolla / DDT</span>
+            <input type="text" id="modalDdtNumber" placeholder="Es. DDT-2026-0042">
+          </div>
+          <div class="field">
+            <span>Data Bolla / DDT</span>
+            <input type="date" id="modalDdtDate">
+          </div>
+        </div>
+
+        <div class="two-cols" style="margin-top:10px;">
+          <div class="field">
+            <span>Corriere / Vettore</span>
+            <select id="modalCarrier">
+              <option value="">Seleziona corriere…</option>
+              <option value="GLS">GLS</option>
+              <option value="BRT">BRT (Bartolini)</option>
+              <option value="DHL">DHL Express</option>
+              <option value="TNT / FedEx">TNT / FedEx</option>
+              <option value="SDA / Poste">SDA / Poste Italiane</option>
+              <option value="Mezzo proprio">Consegna con mezzo proprio</option>
+              <option value="Ritiro cliente">Ritiro diretto del cliente</option>
+            </select>
+          </div>
+          <div class="field">
+            <span>Numero di Tracking</span>
+            <input type="text" id="modalTrackingNumber" placeholder="Codice spedizione">
+          </div>
+        </div>
+
+        <div class="two-cols" style="margin-top:10px;">
+          <div class="field">
+            <span>Data Effettiva Spedizione / Ritiro</span>
+            <input type="date" id="modalShippingDate">
+          </div>
+          <div class="field">
+            <span>Ora / Inizio Trasporto</span>
+            <input type="time" id="modalTransportStartTime">
+          </div>
+        </div>
+
+        <div class="two-cols" style="margin-top:10px;">
+          <div class="field">
+            <span>Aspetto esteriore dei beni</span>
+            <select id="modalGoodsAppearance">
+              <option value="SCATOLE">SCATOLE</option>
+              <option value="COLLO">COLLO</option>
+              <option value="CARTONI">CARTONI</option>
+              <option value="PALLET">PALLET</option>
+              <option value="BUSTA">BUSTA</option>
+              <option value="SFUSO">SFUSO</option>
+            </select>
+          </div>
+          <div class="field">
+            <span>Numero Colli</span>
+            <input type="number" id="modalPackagesCount" min="1" value="1">
+          </div>
+        </div>
+
+        <div class="two-cols" style="margin-top:10px;">
+          <div class="field">
+            <span>Porto</span>
+            <select id="modalPorto">
+              <option value="FRANCO">FRANCO (A carico mittente)</option>
+              <option value="ASSEGNATO">ASSEGNATO (A carico destinatario)</option>
+            </select>
+          </div>
+          <div class="field">
+            <span>Tipo Spedizione</span>
+            <select id="modalShippingType">
+              <option value="MEZZO CORRIERE">MEZZO CORRIERE</option>
+              <option value="MEZZO PROPRIO">MEZZO PROPRIO</option>
+              <option value="RITIRO CLIENTE">RITIRO CLIENTE</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="two-cols" style="margin-top:10px;">
+          <div class="field">
+            <span>Peso Totale (Kg) (opzionale)</span>
+            <input type="text" id="modalWeight" placeholder="Es. 3.5">
+          </div>
+          <div class="field">
+            <span>Condizioni Pagamento</span>
+            <input type="text" id="modalPaymentMethod" placeholder="Es. CONTRASSEGNO / RIMESSA DIRETTA">
+          </div>
+        </div>
+
+        <div class="two-cols" style="margin-top:10px;">
+          <div class="field">
+            <span>Causale Trasporto</span>
+            <input type="text" id="modalCausale" value="VENDITA">
+          </div>
+          <div class="field">
+            <span>Destinazione Diversa (se applicabile)</span>
+            <input type="text" id="modalDestAddress" placeholder="Lascia vuoto se coincide con la sede legale cliente">
+          </div>
+        </div>
+
+        <div class="two-cols" style="margin-top:10px;">
+          <div class="field">
+            <span>Codice Destinatario SDI (Fatt. Elettronica)</span>
+            <input type="text" id="modalSdi" placeholder="Es. 0000000 o 7 caratteri" maxlength="7">
+          </div>
+          <div class="field">
+            <span>Banca d'Appoggio Cliente</span>
+            <input type="text" id="modalBankInfo" placeholder="Es. Intesa Sanpaolo / Unicredit">
+          </div>
+        </div>
+
+        <div class="two-cols" style="margin-top:10px;">
+          <div class="field">
+            <span>IBAN Cliente (per Ri.Ba. / Bonifico)</span>
+            <input type="text" id="modalIban" placeholder="IT00X0000000000000000000000">
+          </div>
+          <div class="field">
+            <span>E-mail Amministrazione / Cliente</span>
+            <input type="email" id="modalCustomerEmail" placeholder="amministrazione@cliente.it">
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <span>Note Consegna / Vettore (stampate su DDT)</span>
+        <textarea id="modalNotes" rows="2" placeholder="Es. Consegnare ore mattino, ritirare contrassegno contanti..."></textarea>
+      </div>
+
+      <div class="dialog-actions">
+        <button type="button" class="btn secondary" onclick="$('statusModal').close()">Annulla</button>
+        <button type="button" id="btnSaveAndPrintDdt" class="btn secondary" style="background:#e0f2fe; color:#0369a1; border-color:#7dd3fc; font-weight:750;">🖨️ Salva & Stampa DDT</button>
+        <button type="submit" id="btnSaveStatus" class="btn primary">💾 Salva su Supabase</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- MODAL: DETTAGLIO ORDINE & CONTROLLO PREZZI/SCONTI -->
+  <dialog id="orderDetailsModal" style="width: min(920px, calc(100vw - 28px)); max-height: calc(100vh - 40px); overflow-y: auto;">
+    <div style="padding: 22px;">
+      <div class="dialog-head" style="margin-bottom: 16px;">
+        <div>
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <h2 id="detailOrderTitle" style="font-size:1.35rem; font-weight:800; color:var(--navy); margin:0;">Dettaglio Ordine</h2>
+            <span id="detailStatusBadge" class="status-badge"></span>
+          </div>
+          <p id="detailOrderSubtitle" style="margin:4px 0 0; color:var(--muted); font-size:.88rem;">Verifica righe, prezzi di listino, sconti applicati e totali per approvazione amministrativa</p>
+        </div>
+        <button type="button" class="icon-btn" onclick="$('orderDetailsModal').close()">✕</button>
+      </div>
+
+      <div id="detailOrderMeta" class="order-info-grid">
+        <!-- populated dynamically with client, agent, date, payment, etc. -->
+      </div>
+
+      <div class="details-table-wrap">
+        <table class="details-table">
+          <thead>
+            <tr>
+              <th style="width:110px;">Codice</th>
+              <th>Descrizione Articolo</th>
+              <th class="num" style="width:65px;">Q.tà</th>
+              <th class="num" style="width:100px;">Listino Cad.</th>
+              <th style="width:130px;">Sconto / Ric.</th>
+              <th class="num" style="width:105px;">Netto Cad.</th>
+              <th class="num" style="width:110px;">Totale Riga</th>
+              <th class="num" style="width:65px;">IVA</th>
+            </tr>
+          </thead>
+          <tbody id="detailLinesBody">
+            <!-- populated dynamically -->
+          </tbody>
+        </table>
+      </div>
+
+      <div id="detailEconomicSummary" class="summary-box-grid">
+        <!-- populated dynamically -->
+      </div>
+
+      <div id="detailNotesBox" style="margin-top:12px; font-size:.84rem; color:#475569; background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px; display:none;">
+        <strong>💡 Note & Istruzioni dell'ordine:</strong> <span id="detailNotesText"></span>
+      </div>
+
+      <div class="dialog-actions" style="margin-top:20px; flex-wrap:wrap;">
+        <button type="button" class="btn secondary" onclick="$('orderDetailsModal').close()">Chiudi</button>
+        <button type="button" class="btn secondary" id="btnDetailPrintPicking">📦 Stampa Picking</button>
+        <button type="button" class="btn secondary" id="btnDetailPrintDdt">📄 Stampa DDT</button>
+        <button type="button" class="btn secondary" id="btnDetailOpenStatus" style="font-weight:700;">✏️ Modifica Stato & DDT</button>
+        <button type="button" class="btn primary" id="btnDetailApprove" style="background:#0284c7; font-weight:750;">⚙️ Approva Ordine</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- MODAL: ANTEPRIMA STAMPA (PICKING LIST / DDT) -->
+  <dialog id="printModal" style="width: min(850px, calc(100vw - 28px));">
+    <div style="padding: 20px;">
+      <div class="no-print" style="display:flex; justify-content:space-between; margin-bottom:16px;">
+        <button type="button" class="btn primary" onclick="window.print()">🖨️ Stampa Documento</button>
+        <button type="button" class="icon-btn" onclick="$('printModal').close()">✕</button>
+      </div>
+      <div id="printableArea" class="print-doc"></div>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="/config/companyConfig.js"></script>
+  <script>
+    const $ = id => document.getElementById(id);
+    const toast = msg => {
+      const t = $('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2600);
+    };
+
+    const euro = val => new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(Number(val) || 0);
+
+    let allOrders = [];
+    let allOffers = [];
+    let allCustomers = [];
+    let companyProfile = {
+      displayName: 'Climawell',
+      companyName: 'Climawell',
+      address: 'Via delle Tre Pietre 2/C',
+      postalCode: '50149',
+      city: 'Firenze',
+      province: 'FI',
+      phone: '055/42.89.074',
+      vatNumber: '04732490489',
+      website: 'www.climawell.it',
+      email: 'info@climawell.it'
+    };
+    let currentFilter = 'all';
+
+    function formatDdtDate(isoStr) {
+      if (!isoStr) return '';
+      if (/^\d{2}\/\d{2}\/\d{4}$/.test(isoStr)) return isoStr;
+      const d = new Date(isoStr);
+      if (isNaN(d.getTime())) return isoStr;
+      return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    }
+
+    async function loadAuxiliaryData() {
+      try {
+        if (window.ClwData && window.ClwData.isConfigured()) {
+          const [comp, custs, prods] = await Promise.all([
+            window.ClwData.getCompany().catch(() => null),
+            window.ClwData.getCustomers().catch(() => []),
+            window.ClwData.getProducts().catch(() => [])
+          ]);
+          if (comp) {
+            companyProfile = { ...companyProfile, ...comp };
+            if ($('footerText')) {
+              $('footerText').textContent = comp.footer_text || `© ${comp.display_name || comp.company_name || 'Climawell'} — Gestione Ordini, Magazzino & DDT`;
+            }
+          }
+          if (custs && custs.length > 0) allCustomers = custs;
+          if (prods && prods.length > 0) window.catalogProductsMap = Object.fromEntries(prods.map(p => [p.code, p]));
+          return;
+        }
+      } catch (e) {
+        console.warn('Caricamento dati ausiliari non bloccante:', e);
+      }
+    }
+
+    async function loadOrders() {
+      try {
+        loadAuxiliaryData();
+        
+        let loadedFromSupabase = false;
+        if (window.ClwData && window.ClwData.isConfigured()) {
+          try {
+            const client = window.clwSupabase || (window.supabase && window.supabase.createClient(window.ClwData.getConfig().url, window.ClwData.getConfig().key));
+            if (client) {
+              const { data: supOrders, error: supErr } = await client
+                .from('documents')
+                .select('*')
+                .eq('document_type', 'OCL')
+                .order('created_at', { ascending: false });
+
+              if (!supErr && Array.isArray(supOrders)) {
+                allOrders = supOrders.map(d => ({
+                  id: d.number,
+                  number: d.number,
+                  customer_name: d.customer_name,
+                  customer_code: d.customer_code,
+                  agent_name: d.agent_name,
+                  agent_code: d.agent_code,
+                  total: Number(d.total) || 0,
+                  subtotal: Number(d.subtotal) || 0,
+                  workflow_status: (d.status === 'In Preparazione' ? 'magazzino' : (d.status === 'Spedito' ? 'spedito' : (d.status === 'Approvato' ? 'approvato' : 'ricevuto'))),
+                  submitted_at: d.created_at || d.document_date,
+                  notes: d.notes || '',
+                  shipping_date: d.shipping_date || '',
+                  carrier: d.carrier || '',
+                  ddt_number: d.ddt_number || '',
+                  tracking_number: d.tracking_number || ''
+                }));
+                updateStats();
+                renderOrders();
+                loadedFromSupabase = true;
+              }
+            }
+          } catch (supErr) {
+            console.warn('[Supabase] Errore ordini in gestione-ordini, fallback su API:', supErr);
+          }
+        }
+
+        if (!loadedFromSupabase) {
+          if (window.companyConfigPromise) {
+            try { await window.companyConfigPromise; } catch {}
+          }
+          const rawRepo = window.companyConfig?.repository?.spreadsheetId;
+          const repoId = (rawRepo && rawRepo.length >= 20 && !rawRepo.includes('1mnW')) ? rawRepo : '1Hi1Nppj4szI4UwfSeC632KkpF0dEQjqxnIVIenn-Fjc';
+          const res = await fetch(`/api/orders?id=${encodeURIComponent(repoId)}`);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          allOrders = data.orders || [];
+          updateStats();
+          renderOrders();
+        }
+      } catch (err) {
+        console.error(err);
+        $('ordersContainer').innerHTML = `
+          <div style="text-align:center; padding: 40px; color: #c5221f;">
+            Errore caricamento ordini: ${err.message}. Riprova tra poco.
+          </div>
+        `;
+      }
+    }
+
+    function updateStats() {
+      const counts = { ricevuto: 0, approvato: 0, magazzino: 0, spedito: 0, fatturato: 0 };
+      const totals = { ricevuto: 0, approvato: 0, magazzino: 0, spedito: 0, fatturato: 0 };
+
+      for (const ord of allOrders) {
+        const st = ord.workflow_status || 'ricevuto';
+        if (counts[st] !== undefined) {
+          counts[st]++;
+          totals[st] += (Number(ord.total) || 0);
+        }
+      }
+
+      $('statRicevuti').textContent = counts.ricevuto;
+      $('statRicevutiTot').textContent = euro(totals.ricevuto);
+      $('statApprovati').textContent = counts.approvato;
+      $('statApprovatiTot').textContent = euro(totals.approvato);
+      $('statMagazzino').textContent = counts.magazzino;
+      $('statMagazzinoTot').textContent = euro(totals.magazzino);
+      $('statSpediti').textContent = counts.spedito;
+      $('statSpeditiTot').textContent = euro(totals.spedito);
+      $('statFatturati').textContent = counts.fatturato;
+      $('statFatturatiTot').textContent = euro(totals.fatturato);
+
+      $('tabCountAll').textContent = allOrders.length;
+      $('tabCountRicevuti').textContent = counts.ricevuto;
+      $('tabCountApprovati').textContent = counts.approvato;
+      $('tabCountMagazzino').textContent = counts.magazzino;
+      $('tabCountSpediti').textContent = counts.spedito;
+      $('tabCountFatturati').textContent = counts.fatturato;
+    }
+
+    function renderOrders() {
+      const term = $('searchInput').value.trim().toLowerCase();
+      const filtered = allOrders.filter(ord => {
+        const matchesTab = currentFilter === 'all' || ord.workflow_status === currentFilter;
+        if (!matchesTab) return false;
+        if (!term) return true;
+        const haystack = `${ord.number} ${ord.customer_name} ${ord.agent_name} ${ord.ddt_number || ''} ${ord.carrier || ''}`.toLowerCase();
+        return haystack.includes(term);
+      });
+
+      if (!filtered.length) {
+        $('ordersContainer').innerHTML = `
+          <div style="text-align:center; padding: 48px; background:#fff; border-radius:14px; border:1px solid var(--line); color:var(--muted);">
+            Nessun ordine trovato con i criteri selezionati.
+          </div>
+        `;
+        return;
+      }
+
+      $('ordersContainer').innerHTML = filtered.map(ord => {
+        const st = ord.workflow_status || 'ricevuto';
+        const stLabels = {
+          ricevuto: { label: '📥 Ricevuto', cls: 'status-ricevuto', next: 'approvato', nextLabel: '⚙️ Approva Ordine' },
+          approvato: { label: '⚙️ In Lavorazione', cls: 'status-approvato', next: 'magazzino', nextLabel: '📦 Invia a Magazzino (Picking)' },
+          magazzino: { label: '📦 In Magazzino (Picking)', cls: 'status-magazzino', next: 'spedito', nextLabel: '🚚 Spedisci con DDT' },
+          spedito: { label: '🚚 Spedito', cls: 'status-spedito', next: 'fatturato', nextLabel: '💶 Segna come Fatturato' },
+          fatturato: { label: '💶 Fatturato & Concluso', cls: 'status-fatturato', next: null, nextLabel: '' },
+          respinto: { label: '❌ Respinto', cls: 'status-respinto', next: null, nextLabel: '' }
+        };
+        const currentMeta = stLabels[st] || stLabels.ricevuto;
+
+        // Shipping box if shipping info present
+        const hasShipping = ord.ddt_number || ord.carrier || ord.shipping_date || ord.tracking_number;
+        const shippingHtml = hasShipping ? `
+          <div class="shipping-box">
+            ${ord.ddt_number ? `<span>📄 <strong>DDT:</strong> ${ord.ddt_number} ${ord.ddt_date ? `(${ord.ddt_date})` : ''}</span>` : ''}
+            ${ord.carrier ? `<span>🚚 <strong>Vettore:</strong> ${ord.carrier}</span>` : ''}
+            ${ord.shipping_date ? `<span>📅 <strong>Spedito il:</strong> ${ord.shipping_date}</span>` : ''}
+            ${ord.tracking_number ? `<span>🏷️ <strong>Tracking:</strong> ${ord.tracking_link ? `<a href="${ord.tracking_link}" target="_blank">${ord.tracking_number} ↗</a>` : ord.tracking_number}</span>` : ''}
+          </div>
+        ` : '';
+
+        return `
+          <div class="order-card" data-id="${ord.id || ord.number}">
+            <div class="order-header">
+              <div>
+                <div class="order-main-info">
+                  <span class="order-num" style="cursor:pointer;" onclick="openOrderDetailsModal('${ord.id || ord.number}')" title="Clicca per visualizzare articoli, prezzi e sconti">${ord.number} 🔍</span>
+                  <span class="order-date">📅 ${ord.submitted_at ? new Date(ord.submitted_at).toLocaleDateString('it-IT') : ''}</span>
+                  <span class="status-badge ${currentMeta.cls}">${currentMeta.label}</span>
+                </div>
+                <div class="order-customer">${ord.customer_name || 'Cliente non specificato'}</div>
+                <div class="order-agent">👤 Agente: <strong>${ord.agent_name || ord.agent_code || 'N/D'}</strong> ${ord.origin_offer_id ? `· Da Offerta: <strong>${ord.origin_offer_id}</strong>` : ''}</div>
+              </div>
+              <div class="order-total">${euro(ord.total)}</div>
+            </div>
+
+            ${shippingHtml}
+            ${ord.notes ? `<div style="font-size:.82rem; color:var(--muted); margin-bottom:8px;">💡 <em>${ord.notes}</em></div>` : ''}
+
+            <div class="order-actions">
+              <div class="btn-group">
+                <button type="button" class="btn secondary btn-sm" style="font-weight:700; color:#0369a1; border-color:#7dd3fc; background:#f0f9ff;" onclick="openOrderDetailsModal('${ord.id || ord.number}')">🔍 Dettaglio & Prezzi</button>
+                <button type="button" class="btn secondary btn-sm" onclick="openPrintPicking('${ord.id || ord.number}')">📦 Stampa Picking</button>
+                <button type="button" class="btn secondary btn-sm" onclick="openPrintDdt('${ord.id || ord.number}')">📄 Stampa DDT</button>
+              </div>
+              <div class="btn-group">
+                <button type="button" class="btn secondary btn-sm" onclick="openStatusModal('${ord.id || ord.number}')">✏️ Modifica Stato & DDT</button>
+                ${currentMeta.next ? `<button type="button" class="btn btn-next-step btn-sm" onclick="quickNextStep('${ord.id || ord.number}', '${currentMeta.next}')">${currentMeta.nextLabel}</button>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Filter tab clicks
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        renderOrders();
+      };
+    });
+
+    $('searchInput').oninput = renderOrders;
+    $('btnRefresh').onclick = loadOrders;
+
+    function openStatusModal(orderId) {
+      const ord = allOrders.find(o => (o.id === orderId || o.number === orderId));
+      if (!ord) return;
+
+      $('modalOrderId').value = ord.id || ord.number;
+      $('modalOrderNumber').textContent = `Aggiorna Ordine ${ord.number}`;
+      $('modalCustomerName').textContent = `Cliente: ${ord.customer_name || 'N/D'} · Totale: ${euro(ord.total)}`;
+      $('modalStatusSelect').value = ord.workflow_status || 'ricevuto';
+      $('modalDdtNumber').value = ord.ddt_number || '';
+      $('modalDdtDate').value = ord.ddt_date || (ord.workflow_status === 'spedito' ? new Date().toISOString().slice(0, 10) : '');
+      $('modalCarrier').value = ord.carrier || '';
+      $('modalTrackingNumber').value = ord.tracking_number || '';
+      $('modalShippingDate').value = ord.shipping_date || (ord.workflow_status === 'magazzino' || ord.workflow_status === 'spedito' ? new Date().toISOString().slice(0, 10) : '');
+      $('modalTransportStartTime').value = ord.transport_start_time || '';
+      $('modalGoodsAppearance').value = ord.goods_appearance || 'SCATOLE';
+      $('modalPackagesCount').value = ord.packages_count || 1;
+      $('modalWeight').value = ord.weight || '';
+      const cust = allCustomers.find(c =>
+        (ord.customer_id && (String(c.id) === String(ord.customer_id) || String(c.code) === String(ord.customer_id))) ||
+        (c.name && ord.customer_name && c.name.trim().toLowerCase() === ord.customer_name.trim().toLowerCase())
+      ) || {};
+
+      $('modalPorto').value = ord.porto || 'FRANCO';
+      $('modalShippingType').value = ord.shipping_type || (ord.carrier ? 'MEZZO CORRIERE' : 'MEZZO CORRIERE');
+      $('modalPaymentMethod').value = ord.payment_method || ord.payload?.payment || cust.payment || '';
+      $('modalCausale').value = ord.causale || 'VENDITA';
+      $('modalDestAddress').value = ord.destination_address || '';
+      $('modalSdi').value = ord.sdi || ord.payload?.sdi || cust.sdi || '';
+      $('modalBankInfo').value = ord.bank_info || ord.payload?.bank || cust.bank || '';
+      $('modalIban').value = ord.iban || ord.payload?.iban || cust.iban || '';
+      $('modalCustomerEmail').value = ord.customer_email || ord.payload?.customerEmail || cust.email || '';
+      $('modalNotes').value = ord.notes || ord.payload?.notes || '';
+
+      $('statusModal').showModal();
+    }
+
+    function getModalFormData() {
+      return {
+        status: $('modalStatusSelect').value,
+        ddtNumber: $('modalDdtNumber').value.trim(),
+        ddtDate: $('modalDdtDate').value,
+        carrier: $('modalCarrier').value,
+        trackingNumber: $('modalTrackingNumber').value.trim(),
+        shippingDate: $('modalShippingDate').value,
+        transportStartTime: $('modalTransportStartTime').value,
+        goodsAppearance: $('modalGoodsAppearance').value,
+        packagesCount: parseInt($('modalPackagesCount').value, 10) || 1,
+        weight: $('modalWeight').value.trim(),
+        porto: $('modalPorto').value,
+        shippingType: $('modalShippingType').value,
+        paymentMethod: $('modalPaymentMethod').value.trim(),
+        causale: $('modalCausale').value.trim() || 'VENDITA',
+        destinationAddress: $('modalDestAddress').value.trim(),
+        sdi: $('modalSdi').value.trim(),
+        bankInfo: $('modalBankInfo').value.trim(),
+        iban: $('modalIban').value.trim().replace(/\s+/g, ''),
+        customerEmail: $('modalCustomerEmail').value.trim(),
+        notes: $('modalNotes').value.trim()
+      };
+    }
+
+    async function quickNextStep(orderId, nextStatus) {
+      if (nextStatus === 'spedito') {
+        // Open modal to prompt for DDT number
+        openStatusModal(orderId);
+        $('modalStatusSelect').value = 'spedito';
+        if (!$('modalDdtNumber').value) {
+          const ord = allOrders.find(o => o.id === orderId || o.number === orderId);
+          const year = new Date().getFullYear();
+          $('modalDdtNumber').value = `DDT-${year}-${(ord?.number || '').slice(-4)}`;
+        }
+        if (!$('modalDdtDate').value) {
+          $('modalDdtDate').value = new Date().toISOString().slice(0, 10);
+        }
+        if (!$('modalShippingDate').value) {
+          $('modalShippingDate').value = new Date().toISOString().slice(0, 10);
+        }
+        return;
+      }
+
+      await saveStatusUpdate(orderId, { status: nextStatus });
+    }
+
+    $('statusForm').onsubmit = async e => {
+      e.preventDefault();
+      const orderId = $('modalOrderId').value;
+      const data = getModalFormData();
+
+      $('btnSaveStatus').disabled = true;
+      $('btnSaveStatus').textContent = 'Salvataggio…';
+      try {
+        await saveStatusUpdate(orderId, data);
+        $('statusModal').close();
+      } finally {
+        $('btnSaveStatus').disabled = false;
+        $('btnSaveStatus').textContent = '💾 Salva su Google Sheets';
+      }
+    };
+
+    $('btnSaveAndPrintDdt').onclick = async () => {
+      const orderId = $('modalOrderId').value;
+      const data = getModalFormData();
+      if (!data.ddtNumber) {
+        const year = new Date().getFullYear();
+        data.ddtNumber = `DDT-${year}-${orderId.slice(-4)}`;
+        $('modalDdtNumber').value = data.ddtNumber;
+      }
+      if (!data.ddtDate) {
+        data.ddtDate = new Date().toISOString().slice(0, 10);
+        $('modalDdtDate').value = data.ddtDate;
+      }
+      if (data.status === 'ricevuto' || data.status === 'approvato' || data.status === 'magazzino') {
+        data.status = 'spedito';
+        $('modalStatusSelect').value = 'spedito';
+      }
+
+      $('btnSaveAndPrintDdt').disabled = true;
+      $('btnSaveAndPrintDdt').textContent = 'Salvataggio…';
+      try {
+        await saveStatusUpdate(orderId, data);
+        $('statusModal').close();
+        openPrintDdt(orderId);
+      } finally {
+        $('btnSaveAndPrintDdt').disabled = false;
+        $('btnSaveAndPrintDdt').textContent = '🖨️ Salva & Stampa DDT';
+      }
+    };
+
+    async function saveStatusUpdate(orderId, updateData) {
+      try {
+        if (window.ClwData && window.ClwData.isConfigured()) {
+          const client = window.clwSupabase || (window.supabase && window.supabase.createClient(window.ClwData.getConfig().url, window.ClwData.getConfig().key));
+          if (client) {
+            const statusMap = {
+              'ricevuto': 'Inviato',
+              'approvato': 'Approvato',
+              'magazzino': 'In Preparazione',
+              'spedito': 'Spedito',
+              'fatturato': 'Fatturato',
+              'respinto': 'Respinto'
+            };
+            const supaPayload = {
+              updated_at: new Date().toISOString()
+            };
+            if (updateData.status) supaPayload.status = statusMap[updateData.status] || updateData.status;
+            if (updateData.ddtNumber !== undefined) supaPayload.ddt_number = updateData.ddtNumber;
+            if (updateData.ddtDate !== undefined) supaPayload.ddt_date = updateData.ddtDate;
+            if (updateData.carrier !== undefined) supaPayload.carrier = updateData.carrier;
+            if (updateData.trackingNumber !== undefined) supaPayload.tracking_number = updateData.trackingNumber;
+            if (updateData.shippingDate !== undefined) supaPayload.shipping_date = updateData.shippingDate;
+            if (updateData.notes !== undefined) supaPayload.notes = updateData.notes;
+
+            await client.from('documents').update(supaPayload).eq('number', orderId);
+            toast('Stato ordine e dati DDT salvati su Supabase!');
+
+            const ord = allOrders.find(o => o.id === orderId || o.number === orderId);
+            if (ord) {
+              if (updateData.status) ord.workflow_status = updateData.status;
+              if (updateData.ddtNumber !== undefined) ord.ddt_number = updateData.ddtNumber;
+              if (updateData.ddtDate !== undefined) ord.ddt_date = updateData.ddtDate;
+              if (updateData.carrier !== undefined) ord.carrier = updateData.carrier;
+              if (updateData.trackingNumber !== undefined) ord.tracking_number = updateData.trackingNumber;
+              if (updateData.shippingDate !== undefined) ord.shipping_date = updateData.shippingDate;
+              if (updateData.notes !== undefined) ord.notes = updateData.notes;
+            }
+            updateStats();
+            renderOrders();
+            return;
+          }
+        }
+
+        const res = await fetch('/api/orders/update-status', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ orderId, ...updateData })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Errore aggiornamento');
+
+        toast('Stato ordine e dati DDT aggiornati!');
+        // Update local object immediately
+        const ord = allOrders.find(o => o.id === orderId || o.number === orderId);
+        if (ord) {
+          if (updateData.status) ord.workflow_status = updateData.status;
+          if (updateData.ddtNumber !== undefined) ord.ddt_number = updateData.ddtNumber;
+          if (updateData.ddtDate !== undefined) ord.ddt_date = updateData.ddtDate;
+          if (updateData.carrier !== undefined) ord.carrier = updateData.carrier;
+          if (updateData.trackingNumber !== undefined) ord.tracking_number = updateData.trackingNumber;
+          if (updateData.shippingDate !== undefined) ord.shipping_date = updateData.shippingDate;
+          if (updateData.transportStartTime !== undefined) ord.transport_start_time = updateData.transportStartTime;
+          if (updateData.goodsAppearance !== undefined) ord.goods_appearance = updateData.goodsAppearance;
+          if (updateData.packagesCount !== undefined) ord.packages_count = updateData.packagesCount;
+          if (updateData.weight !== undefined) ord.weight = updateData.weight;
+          if (updateData.porto !== undefined) ord.porto = updateData.porto;
+          if (updateData.shippingType !== undefined) ord.shipping_type = updateData.shippingType;
+          if (updateData.paymentMethod !== undefined) ord.payment_method = updateData.paymentMethod;
+          if (updateData.causale !== undefined) ord.causale = updateData.causale;
+          if (updateData.destinationAddress !== undefined) ord.destination_address = updateData.destinationAddress;
+          if (updateData.sdi !== undefined) ord.sdi = updateData.sdi;
+          if (updateData.bankInfo !== undefined) ord.bank_info = updateData.bankInfo;
+          if (updateData.iban !== undefined) ord.iban = updateData.iban;
+          if (updateData.customerEmail !== undefined) ord.customer_email = updateData.customerEmail;
+          if (updateData.notes !== undefined) ord.notes = updateData.notes;
+        }
+        updateStats();
+        renderOrders();
+      } catch (err) {
+        toast(`Errore: ${err.message}`);
+        throw err;
+      }
+    }
+
+    function getOrderLines(ord) {
+      if (!ord) return [];
+      let lines = ord.payload?.lines || [];
+      if ((!lines || lines.length === 0) && (ord.origin_offer_id || ord.payload?.convertedFromOffer)) {
+        const offNum = ord.origin_offer_id || ord.payload?.convertedFromOffer;
+        const matched = allOffers.find(o => o.number === offNum || o.id === offNum || o.offerNumber === offNum);
+        if (matched?.payload?.lines && matched.payload.lines.length > 0) {
+          lines = matched.payload.lines;
+        }
+      }
+      if ((!lines || lines.length === 0) && Array.isArray(ord.payload?.items)) {
+        lines = ord.payload.items;
+      }
+      if ((!lines || lines.length === 0) && Array.isArray(ord.payload?.products)) {
+        lines = ord.payload.products;
+      }
+      return lines || [];
+    }
+
+    function computeLineDetails(l) {
+      const code = l.code || l.product?.code || l.codice || 'N/D';
+      const desc = l.description || l.product?.description || l.descrizione || (window.catalogProductsMap?.[code]?.description) || 'Articolo';
+      const qty = Number(l.quantity ?? l.qty ?? l.qta ?? 1);
+      const catProd = window.catalogProductsMap?.[code] || {};
+      const listPrice = Number(l.listPrice ?? l.price ?? l.product?.price ?? catProd.price ?? 0);
+      
+      let rawDiscounts = l.discounts ?? l.discount ?? l.sconti ?? [];
+      if (typeof rawDiscounts === 'number') rawDiscounts = [rawDiscounts];
+      else if (typeof rawDiscounts === 'string') rawDiscounts = rawDiscounts.split(/[+,/]/).map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+      else if (!Array.isArray(rawDiscounts)) rawDiscounts = [];
+
+      const discounts = rawDiscounts.map(d => Number(d) || 0).filter(d => d > 0);
+      const extraDiscount = Number(l.discount_extra ?? l.extra_discount ?? l.extraDiscount ?? 0);
+      const markup = Number(l.markup ?? l.ricarico ?? 0);
+      
+      const discountMultiplier = discounts.reduce((m, d) => m * (1 - d / 100), 1) * (1 - extraDiscount / 100);
+      const markupMultiplier = 1 + (markup / 100);
+      const unitNet = listPrice > 0 ? (listPrice * discountMultiplier * markupMultiplier) : (l.net_price ? Number(l.net_price) : 0);
+      
+      const lineNetTotal = (l.net != null && !isNaN(Number(l.net))) 
+        ? Number(l.net) 
+        : (l.total != null && !isNaN(Number(l.total)))
+          ? Number(l.total)
+          : (unitNet * qty);
+        
+      const vatRate = Number(l.vat ?? l.product?.vat ?? catProd.vat ?? 22);
+      const vatAmount = lineNetTotal * (vatRate / 100);
+      
+      let discountParts = discounts.map(d => `${d}%`);
+      if (extraDiscount > 0) discountParts.push(`${extraDiscount}% ext.`);
+      let discountStr = discountParts.length > 0 ? discountParts.join(' + ') : '0%';
+      if (markup > 0) discountStr += ` (+${markup}% ric.)`;
+
+      const effDiscount = (1 - (discountMultiplier * markupMultiplier)) * 100;
+
+      return {
+        code,
+        desc,
+        qty,
+        listPrice,
+        discounts,
+        markup,
+        discountStr,
+        effDiscount,
+        unitNet,
+        lineNetTotal,
+        vatRate,
+        vatAmount
+      };
+    }
+
+    async function openOrderDetailsModal(orderId) {
+      try {
+        const ord = allOrders.find(o => o.id === orderId || o.number === orderId);
+        if (!ord) {
+          toast('Ordine non trovato');
+          return;
+        }
+
+        if ((!allOffers || allOffers.length === 0) && (ord.origin_offer_id || ord.payload?.convertedFromOffer)) {
+          try { await loadAuxiliaryData(); } catch {}
+        }
+
+        const lines = getOrderLines(ord);
+        const cust = allCustomers.find(c =>
+          (ord.customer_id && (String(c.id) === String(ord.customer_id) || String(c.code) === String(ord.customer_id))) ||
+          (c.name && ord.customer_name && c.name.trim().toLowerCase() === ord.customer_name.trim().toLowerCase())
+        ) || {};
+
+        const st = ord.workflow_status || 'ricevuto';
+        const stLabels = {
+          ricevuto: { label: '📥 Ricevuto (In verifica)', cls: 'status-ricevuto' },
+          approvato: { label: '⚙️ In Lavorazione (Approvato)', cls: 'status-approvato' },
+          magazzino: { label: '📦 In Magazzino (Picking)', cls: 'status-magazzino' },
+          spedito: { label: '🚚 Spedito', cls: 'status-spedito' },
+          fatturato: { label: '💶 Fatturato & Concluso', cls: 'status-fatturato' },
+          respinto: { label: '❌ Respinto', cls: 'status-respinto' }
+        };
+        const currentMeta = stLabels[st] || stLabels.ricevuto;
+
+        $('detailOrderTitle').textContent = `Ordine ${ord.number}`;
+        const badgeEl = $('detailStatusBadge');
+        badgeEl.className = `status-badge ${currentMeta.cls}`;
+        badgeEl.textContent = currentMeta.label;
+
+        const dateStr = ord.submitted_at ? new Date(ord.submitted_at).toLocaleDateString('it-IT') : 'N/D';
+        const clientName = ord.customer_name || cust.name || 'Cliente non specificato';
+        const clientAddress = cust.address ? `${cust.address}, ${cust.city || ''} (${cust.province || ''})` : (ord.destination_address || ord.payload?.destinationAddress || 'N/D');
+        const pivaOrCf = cust.vatNumber || cust.taxCode || ord.payload?.customerVat || 'N/D';
+        const payment = ord.payment_method || ord.payload?.payment || cust.payment || 'Non specificato';
+        const sdi = ord.sdi || ord.payload?.sdi || cust.sdi || '';
+        const iban = ord.iban || ord.payload?.iban || cust.iban || '';
+
+        $('detailOrderMeta').innerHTML = `
+          <div class="order-info-item">
+            <label>Cliente / Ragione Sociale</label>
+            <strong>${escapeHtml(clientName)}</strong>
+            <small style="color:var(--muted); display:block; margin-top:2px;">${escapeHtml(clientAddress)}</small>
+          </div>
+          <div class="order-info-item">
+            <label>Agente</label>
+            <strong>${escapeHtml(ord.agent_name || ord.agent_code || 'N/D')}</strong>
+            ${ord.origin_offer_id ? `<small style="color:#0284c7; display:block; margin-top:2px; font-weight:600;">🔗 Da Offerta: ${escapeHtml(ord.origin_offer_id)}</small>` : ''}
+          </div>
+          <div class="order-info-item">
+            <label>Data Registrazione</label>
+            <strong>📅 ${dateStr}</strong>
+            <small style="color:var(--muted); display:block; margin-top:2px;">P.IVA / CF: ${escapeHtml(pivaOrCf)}</small>
+          </div>
+          <div class="order-info-item">
+            <label>Pagamento & Dati Fiscali</label>
+            <strong>💳 ${escapeHtml(payment)}</strong>
+            ${(sdi || iban) ? `<small style="color:var(--muted); display:block; margin-top:2px;">${sdi ? `SDI: ${escapeHtml(sdi)}` : ''} ${iban ? `· IBAN: ${escapeHtml(iban)}` : ''}</small>` : ''}
+          </div>
+        `;
+
+        const tbody = $('detailLinesBody');
+        let calcNetSum = 0;
+        let calcVatSum = 0;
+
+        if (!lines || lines.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="8" style="text-align:center; padding:28px; color:var(--muted);">
+                <em>Nessuna riga articolo dettagliata trovata per questo ordine. Totale complessivo registrato: <strong>${euro(ord.total)}</strong>.</em>
+              </td>
+            </tr>
+          `;
+          calcNetSum = Number(ord.total) || 0;
+        } else {
+          tbody.innerHTML = lines.map(l => {
+            const row = computeLineDetails(l);
+            calcNetSum += row.lineNetTotal;
+            calcVatSum += row.vatAmount;
+
+            let discountTagCls = 'discount-tag';
+            if (row.discounts.length === 0 && row.markup === 0) discountTagCls += ' zero';
+            else if (row.effDiscount >= 30) discountTagCls += ' high';
+
+            return `
+              <tr>
+                <td><strong style="color:var(--navy); font-family:monospace;">${escapeHtml(row.code)}</strong></td>
+                <td>
+                  <div style="font-weight:600; color:#1e293b;">${escapeHtml(row.desc)}</div>
+                </td>
+                <td class="num" style="font-weight:750; font-size:.95rem;">${row.qty}</td>
+                <td class="num">${row.listPrice > 0 ? euro(row.listPrice) : '—'}</td>
+                <td>
+                  <span class="${discountTagCls}">${escapeHtml(row.discountStr)}</span>
+                  ${row.effDiscount > 0 ? `<small style="display:block; color:var(--muted); font-size:.73rem; margin-top:2px;">eff. -${row.effDiscount.toFixed(1)}%</small>` : ''}
+                </td>
+                <td class="num" style="color:#0369a1; font-weight:600;">${row.unitNet > 0 ? euro(row.unitNet) : euro(row.listPrice)}</td>
+                <td class="num" style="font-weight:800; color:var(--navy); font-size:.95rem;">${euro(row.lineNetTotal)}</td>
+                <td class="num" style="color:var(--muted); font-size:.82rem;">${row.vatRate}%</td>
+              </tr>
+            `;
+          }).join('');
+        }
+
+        const orderGrandTotal = Number(ord.total) > 0 ? Number(ord.total) : (calcNetSum + calcVatSum);
+        $('detailEconomicSummary').innerHTML = `
+          <div>
+            <div style="font-size:.85rem; color:#475569;">
+              Imponibile Totale Merce: <strong>${euro(calcNetSum)}</strong>
+              ${calcVatSum > 0 ? `· IVA Totale: <strong>${euro(calcVatSum)}</strong>` : ''}
+            </div>
+            <div style="font-size:.78rem; color:var(--muted); margin-top:4px;">
+              ${lines.length} articoli/righe in ordine · Valuta: ${ord.currency || 'EUR'}
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <span style="display:block; font-size:.75rem; text-transform:uppercase; font-weight:750; color:var(--muted);">Totale Documento</span>
+            <strong style="font-size:1.55rem; color:var(--navy); font-weight:850;">${euro(orderGrandTotal)}</strong>
+          </div>
+        `;
+
+        const notes = ord.notes || ord.payload?.notes || '';
+        const notesBox = $('detailNotesBox');
+        if (notes) {
+          $('detailNotesText').textContent = notes;
+          notesBox.style.display = 'block';
+        } else {
+          notesBox.style.display = 'none';
+        }
+
+        const btnApprove = $('btnDetailApprove');
+        if (st === 'ricevuto') {
+          btnApprove.style.display = 'inline-flex';
+          btnApprove.textContent = '⚙️ Approva Ordine';
+          btnApprove.onclick = async () => {
+            if (confirm(`Confermi l'approvazione dell'ordine ${ord.number} per un totale di ${euro(orderGrandTotal)}?`)) {
+              $('orderDetailsModal').close();
+              await quickNextStep(ord.id || ord.number, 'approvato');
+            }
+          };
+        } else {
+          btnApprove.style.display = 'none';
+        }
+
+        $('btnDetailOpenStatus').onclick = () => {
+          $('orderDetailsModal').close();
+          openStatusModal(ord.id || ord.number);
+        };
+        $('btnDetailPrintPicking').onclick = () => {
+          openPrintPicking(ord.id || ord.number);
+        };
+        $('btnDetailPrintDdt').onclick = () => {
+          openPrintDdt(ord.id || ord.number);
+        };
+
+        $('orderDetailsModal').showModal();
+      } catch (err) {
+        console.error('Errore apertura dettaglio ordine:', err);
+        toast(`Errore: ${err.message}`);
+      }
+    }
+
+    // Print Picking List for warehouse staff
+    function openPrintPicking(orderId) {
+      try {
+        const ord = allOrders.find(o => o.id === orderId || o.number === orderId);
+        if (!ord) return;
+
+        const dateStr = ord.submitted_at ? new Date(ord.submitted_at).toLocaleDateString('it-IT') : new Date().toLocaleDateString('it-IT');
+        let lines = getOrderLines(ord);
+
+        const processedLines = lines.map(l => {
+          const code = String(l.code || '').trim();
+          const p = (window.catalogProductsMap && window.catalogProductsMap[code]) || {};
+          return {
+            ...l,
+            location: l.location || p.location || 'Magazzino / Picking'
+          };
+        });
+
+        // Sort items by warehouse location (aisle / shelf walkthrough order)
+        processedLines.sort((a, b) => String(a.location || '').localeCompare(String(b.location || '')));
+
+        const linesHtml = processedLines.length > 0 ? processedLines.map((l, idx) => `
+          <tr>
+            <td class="center"><span style="display:inline-block; width:18px; height:18px; border:2px solid #334155; border-radius:3px;"></span></td>
+            <td><strong>${escapeHtml(l.code || 'ART')}</strong></td>
+            <td>${escapeHtml(l.description || 'Articolo')}</td>
+            <td class="center" style="font-weight:800; font-size:1.05rem; color:#0369a1;">${l.quantity || 1}</td>
+            <td><strong style="color:#0369a1;">📍 ${escapeHtml(l.location || 'Magazzino / Picking')}</strong></td>
+          </tr>
+        `).join('') : `
+          <tr>
+            <td class="center"><span style="display:inline-block; width:18px; height:18px; border:2px solid #334155; border-radius:3px;"></span></td>
+            <td><strong>Articoli Ordine</strong></td>
+            <td>Totale Documento: ${euro(ord.total)}</td>
+            <td class="center">1 compl.</td>
+            <td>Pallet / Scatola</td>
+          </tr>
+        `;
+
+        $('printableArea').innerHTML = `
+          <div class="print-header">
+            <div>
+              <h1 class="print-title">📦 DISTINTA DI PRELIEVO (PICKING)</h1>
+              <div style="font-size:1.1rem; font-weight:700; color:#334155; margin-top:4px;">Ordine: ${ord.number}</div>
+            </div>
+            <div style="text-align:right;">
+              <div><strong>Data:</strong> ${dateStr}</div>
+              <div><strong>Agente:</strong> ${ord.agent_name || ord.agent_code || 'N/D'}</div>
+            </div>
+          </div>
+
+          <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:12px 16px; margin-bottom:20px;">
+            <div><strong>Cliente di destinazione:</strong> ${ord.customer_name}</div>
+            ${ord.notes ? `<div style="margin-top:4px; font-size:.85rem; color:#475569;">Note preparazione: ${ord.notes}</div>` : ''}
+          </div>
+
+          <table class="print-table">
+            <thead>
+              <tr>
+                <th style="width:40px;" class="center">Prelevato</th>
+                <th style="width:120px;">Codice Articolo</th>
+                <th>Descrizione Prodotto</th>
+                <th style="width:80px;" class="center">Quantità</th>
+                <th style="width:140px;">Ubicazione / Note</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${linesHtml}
+            </tbody>
+          </table>
+
+          <div style="display:flex; justify-content:space-between; margin-top:40px; padding-top:20px; border-top:1px solid #cbd5e1;">
+            <div>Data e Ora Inizio: ___________________</div>
+            <div>Firma Addetto Magazzino: ___________________</div>
+          </div>
+        `;
+        const modal = $('printModal');
+        if (modal.open) modal.close();
+        modal.showModal();
+      } catch (err) {
+        console.error('Error opening picking print modal:', err);
+        toast('Errore apertura Picking: ' + err.message);
+      }
+    }
+
+    // Print DDT / Bolla di Consegna (Conforme D.P.R. 472/1996 - Modello Climawell)
+    function openPrintDdt(orderId) {
+      try {
+        const ord = allOrders.find(o => o.id === orderId || o.number === orderId);
+        if (!ord) return;
+
+        // Customer resolution from loaded customers or fallback
+        const cust = allCustomers.find(c =>
+          (ord.customer_id && (String(c.id) === String(ord.customer_id) || String(c.code) === String(ord.customer_id))) ||
+          (c.name && ord.customer_name && c.name.trim().toLowerCase() === ord.customer_name.trim().toLowerCase())
+        ) || {};
+
+        const clientCode = cust.code || cust.id || ord.customer_id || '7841';
+        const clientName = ord.customer_name || cust.name || 'Cliente';
+        const clientAddress = cust.address || ord.payload?.customerAddress || '';
+        const clientZip = cust.postalCode || '';
+        const clientCity = cust.city || '';
+        const clientProv = cust.province || '';
+        const clientCityZip = [clientZip, clientCity, clientProv ? `${clientProv}` : ''].filter(Boolean).join(' ');
+        const pivaOrCf = cust.vatNumber || cust.taxCode || cust.piva || cust.cf || ord.payload?.customerVat || '';
+
+        const destText = ord.destination_address || ord.payload?.destinationAddress || '';
+        const destHtml = destText ? `
+          <div style="font-weight:700;">${destText}</div>
+        ` : `
+          <div class="ddt-client-name" style="font-size:11.5px;">${clientName}</div>
+          <div>${clientAddress || 'COME SOPRA'}</div>
+          <div>${clientCityZip}</div>
+        `;
+
+        // Company info (Climawell)
+        const compName = companyProfile.displayName || companyProfile.companyName || 'Climawell';
+        const compAddr = companyProfile.address || 'Via delle Tre Pietre 2/C';
+        const compCapCity = `${companyProfile.postalCode || '50149'} ${companyProfile.city || companyProfile.province || 'Firenze'} (${companyProfile.province || 'FI'})`;
+        const compTel = companyProfile.phone || '055/42.89.074';
+        const compVat = companyProfile.vatNumber || companyProfile.taxCode || '04732490489';
+        const compWeb = companyProfile.website || 'www.climawell.it';
+        const compEmail = companyProfile.email || 'info@climawell.it';
+
+        // DDT metadata
+        const ddtNum = ord.ddt_number || `DDT-${new Date().getFullYear()}-${(ord.number || '').slice(-4)}`;
+        const ddtDate = ord.ddt_date || (ord.shipping_date ? ord.shipping_date : new Date().toISOString().slice(0, 10));
+        const ddtDateFormatted = formatDdtDate(ddtDate);
+        const paymentMethod = ord.payment_method || ord.payload?.payment || cust.payment || 'CONTRASSEGNO';
+        const causale = ord.causale || 'VENDITA';
+        const bankAppoggio = ord.bank_info || ord.payload?.bank || cust.bank || '';
+        const clientIban = ord.iban || ord.payload?.iban || cust.iban || '';
+        const clientSdi = ord.sdi || ord.payload?.sdi || cust.sdi || '';
+        const clientEmail = ord.customer_email || ord.payload?.customerEmail || cust.email || '';
+        const orderNotes = ord.notes || ord.payload?.notes || '';
+
+        // Items list (Quantities ONLY, NO PRICES as explicitly requested)
+        let lines = getOrderLines(ord);
+
+        // Generate rows and empty filler rows: compact and fits many articles
+        const targetRows = Math.max(12, (lines ? lines.length : 1) + 1);
+        let rowsHtml = '';
+        if (lines && lines.length > 0) {
+          rowsHtml = lines.map(l => `
+            <tr>
+              <td><strong>${escapeHtml(l.code || '')}</strong></td>
+              <td>${escapeHtml(l.description || 'Articolo')}</td>
+              <td style="text-align:center;">NR</td>
+              <td style="text-align:center; font-weight:700;">${l.quantity || 1}</td>
+            </tr>
+          `).join('');
+        } else {
+          rowsHtml = `
+            <tr>
+              <td><strong>${escapeHtml(ord.number)}</strong></td>
+              <td>Merce come da ordine commerciale del ${formatDdtDate(ord.submitted_at)}</td>
+              <td style="text-align:center;">NR</td>
+              <td style="text-align:center; font-weight:700;">1</td>
+            </tr>
+          `;
+        }
+
+        if (orderNotes) {
+          rowsHtml += `
+            <tr>
+              <td></td>
+              <td colspan="3" style="font-style:italic; font-size:9px; padding:2px 5px; color:#1e293b;">
+                ${escapeHtml(orderNotes)}
+              </td>
+            </tr>
+          `;
+        }
+
+        const renderedCount = (lines && lines.length > 0 ? lines.length : 1) + (orderNotes ? 1 : 0);
+        const emptyRowsNeeded = Math.max(0, targetRows - renderedCount);
+        for (let i = 0; i < emptyRowsNeeded; i++) {
+          rowsHtml += `
+            <tr class="ddt-empty-row">
+              <td>&nbsp;</td>
+              <td>&nbsp;</td>
+              <td style="text-align:center;">&nbsp;</td>
+              <td style="text-align:center;">&nbsp;</td>
+            </tr>
+          `;
+        }
+
+        // Bottom table / carrier data
+        const carrier = ord.carrier || '';
+        const shipDate = ord.shipping_date || ddtDate;
+        const shipDateFormatted = formatDdtDate(shipDate);
+        const shipTime = ord.transport_start_time || '';
+        const shipDateTime = [shipDateFormatted, shipTime].filter(Boolean).join(' ');
+        const goodsAppearance = ord.goods_appearance || 'SCATOLE';
+        const packagesCount = ord.packages_count || 1;
+        const weight = ord.weight ? `${ord.weight} kg` : '';
+        const porto = ord.porto || 'FRANCO';
+        const shippingType = ord.shipping_type || (carrier ? 'MEZZO CORRIERE' : 'MEZZO CORRIERE');
+        const agentDisplay = ord.agent_name || ord.agent_code || '';
+
+        const clientEmailHtml = clientEmail ? `<div style="font-size:9px; color:#1e293b; margin-top:2px;">✉️ ${escapeHtml(clientEmail)}</div>` : '';
+
+        $('printableArea').innerHTML = `
+          <div class="ddt-sheet">
+            <!-- TOP HEADER SECTION -->
+            <div class="ddt-header-section">
+              <!-- SENDER CLIMAWELL (LEFT) & CLIENT/DESTINATION (RIGHT) -->
+              <div class="ddt-top-row">
+                <div class="ddt-sender-box">
+                  <div class="ddt-brand-logo">${escapeHtml(companyProfile.displayName || companyProfile.companyName || 'CLIMAWELL')}</div>
+                  <div class="ddt-brand-sub">SISTEMA GESTIONALE RETE VENDITE</div>
+                  <div class="ddt-sender-info">
+                    <strong>${compName}</strong><br>
+                    ${compAddr}<br>
+                    ${compCapCity}<br>
+                    ${compTel ? `Tel. Ufficio ${compTel}<br>` : ''}
+                    P.IVA ${compVat}<br>
+                    ${compWeb}<br>
+                    E-mail: ${compEmail}
+                  </div>
+                </div>
+
+                <div class="ddt-recipient-container">
+                  <div class="ddt-client-box">
+                    <div class="ddt-box-header">
+                      <span>Cliente</span>
+                      <span>Codice: ${clientCode}</span>
+                    </div>
+                    <div class="ddt-box-body">
+                      <div class="ddt-client-name">${clientName}</div>
+                      <div>${clientAddress}</div>
+                      <div>${clientCityZip}</div>
+                      ${clientEmailHtml}
+                    </div>
+                  </div>
+
+                  <div class="ddt-dest-box">
+                    <div class="ddt-box-header">
+                      <span>Destinazione</span>
+                    </div>
+                    <div class="ddt-box-body">
+                      ${destHtml}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- DOCUMENT TITLE -->
+              <div class="ddt-doc-title">Documento di Trasporto - D.P.R. 472 del 14/08/1996</div>
+
+              <!-- META TABLE (PAGINA, PAGAMENTO, P.IVA/CF, NR DDT, DATA, CAUSALE, SDI, BANCA/IBAN) -->
+              <table class="ddt-meta-table">
+                <tr>
+                  <td style="width: 7%;">
+                    <div class="ddt-cell-label">Pagina</div>
+                    <div class="ddt-cell-val" style="text-align:center;">1</div>
+                  </td>
+                  <td style="width: 33%;">
+                    <div class="ddt-cell-label">Pagamento</div>
+                    <div class="ddt-cell-val"><strong>${paymentMethod}</strong></div>
+                  </td>
+                  <td style="width: 32%;">
+                    <div class="ddt-cell-label">Partita Iva / Codice Fiscale</div>
+                    <div class="ddt-cell-val">${pivaOrCf || '---'}</div>
+                  </td>
+                  <td style="width: 14%;">
+                    <div class="ddt-cell-label">Nr. D.D.T.</div>
+                    <div class="ddt-cell-val"><strong>${ddtNum}</strong></div>
+                  </td>
+                  <td style="width: 14%;">
+                    <div class="ddt-cell-label">Data D.D.T.</div>
+                    <div class="ddt-cell-val"><strong>${ddtDateFormatted}</strong></div>
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="2">
+                    <div class="ddt-cell-label">Causale Trasporto</div>
+                    <div class="ddt-cell-val"><strong>${causale}</strong></div>
+                  </td>
+                  <td style="width: 32%;">
+                    <div class="ddt-cell-label">Codice Destinatario SDI</div>
+                    <div class="ddt-cell-val"><strong>${clientSdi || '0000000'}</strong></div>
+                  </td>
+                  <td colspan="2">
+                    <div class="ddt-cell-label">Banca Appoggio &amp; IBAN (Ri.Ba.)</div>
+                    <div class="ddt-cell-val" style="font-size:9px; line-height:1.2;">
+                      ${bankAppoggio ? `<strong>${bankAppoggio}</strong><br>` : ''}
+                      ${clientIban ? `IBAN: <span style="font-family:monospace; font-weight:700;">${clientIban}</span>` : (!bankAppoggio ? '---' : '')}
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- MIDDLE SECTION (ITEMS TABLE WITH FILLER SPACE & DELAY NOTICE) -->
+            <div class="ddt-middle-section">
+              <table class="ddt-items-table">
+                <thead>
+                  <tr>
+                    <th style="width: 18%;">Codice articolo</th>
+                    <th style="width: 66%;">Descrizione</th>
+                    <th style="width: 6%; text-align:center;">Um</th>
+                    <th style="width: 10%; text-align:center;">Quantità</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rowsHtml}
+                </tbody>
+              </table>
+
+              <!-- DELAY INTEREST NOTICE -->
+              <div class="ddt-delay-notice">
+                Per i ritardati pagamenti verranno conteggiati gli interessi bancari correnti, oltre alle spese di emissione e gestione bancarie.
+              </div>
+            </div>
+
+            <!-- BOTTOM SECTION (WAREHOUSE / CARRIER TABLE & LEGAL FOOTER PINNED TO BOTTOM) -->
+            <div class="ddt-bottom-section">
+              <table class="ddt-bottom-table">
+                <!-- ROW 1 -->
+                <tr>
+                  <td style="width: 48%;">
+                    <div class="ddt-cell-label">Vettore - Ragione Sociale e Residenza</div>
+                    <div class="ddt-cell-val" style="font-weight:700; min-height:14px;">${carrier}</div>
+                  </td>
+                  <td style="width: 24%;">
+                    <div class="ddt-cell-label">Data e Ora Ritiro</div>
+                    <div class="ddt-cell-val" style="min-height:14px;">${shipDateTime}</div>
+                  </td>
+                  <td style="width: 28%;">
+                    <div class="ddt-cell-label">Firma Vettore</div>
+                    <div class="ddt-signature-space">
+                      <div class="ddt-signature-line"></div>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- ROW 2: WITHOUT TOTALE MERCE -->
+                <tr>
+                  <td style="width: 34%;">
+                    <div class="ddt-cell-label">Data/Ora Inizio Trasporto/Consegna</div>
+                    <div class="ddt-cell-val" style="min-height:14px;">${shipDateTime}</div>
+                  </td>
+                  <td style="width: 33%;">
+                    <div class="ddt-cell-label">Firma Conducente</div>
+                    <div class="ddt-signature-space">
+                      <div class="ddt-signature-line"></div>
+                    </div>
+                  </td>
+                  <td style="width: 33%;">
+                    <div class="ddt-cell-label">Firma Destinatario</div>
+                    <div class="ddt-signature-space">
+                      <div class="ddt-signature-line"></div>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- ROW 3 -->
+                <tr>
+                  <td colspan="3" style="padding:0;">
+                    <table class="ddt-inner-subtable">
+                      <tr>
+                        <td style="width: 24%;">
+                          <div class="ddt-cell-label">Compilatore</div>
+                          <div class="ddt-cell-val">Ufficio Spedizioni</div>
+                        </td>
+                        <td style="width: 26%;">
+                          <div class="ddt-cell-label">Aspetto esteriore dei beni</div>
+                          <div class="ddt-cell-val"><strong>${goodsAppearance}</strong></div>
+                        </td>
+                        <td style="width: 22%;">
+                          <div class="ddt-cell-label">VS Referente</div>
+                          <div class="ddt-cell-val">${cust.name ? cust.name.slice(0, 22) : ''}</div>
+                        </td>
+                        <td style="width: 14%;">
+                          <div class="ddt-cell-label">Peso</div>
+                          <div class="ddt-cell-val">${weight}</div>
+                        </td>
+                        <td style="width: 14%;">
+                          <div class="ddt-cell-label">Colli</div>
+                          <div class="ddt-cell-val"><strong>${packagesCount}</strong></div>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- ROW 4 -->
+                <tr>
+                  <td colspan="3" style="padding:0;">
+                    <table class="ddt-inner-subtable">
+                      <tr>
+                        <td style="width: 24%;">
+                          <div class="ddt-cell-label">Porto</div>
+                          <div class="ddt-cell-val"><strong>${porto}</strong></div>
+                        </td>
+                        <td style="width: 48%;">
+                          <div class="ddt-cell-label">Spedizione</div>
+                          <div class="ddt-cell-val"><strong>${shippingType}</strong></div>
+                        </td>
+                        <td style="width: 28%;">
+                          <div class="ddt-cell-label">Agente</div>
+                          <div class="ddt-cell-val">${agentDisplay}</div>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- LEGAL AND PRIVACY FOOTER (COMPLIANT CON REG. UE 2016/679 GDPR & ART. 2220 C.C.) -->
+              <div class="ddt-footer-legal">
+                In caso di nostra consegna il materiale verra' scaricato al numero civico. Non si accettano reclami per merce rotta o mancante se non al momento dello scarico annotati sul documento.<br>
+                <strong>Informativa Privacy (artt. 13-14 Reg. UE 2016/679 - GDPR):</strong> I dati personali sono trattati dal Titolare per adempimenti fiscali, amministrativi e di consegna contrattuale (art. 6, par. 1, lett. b-c GDPR), con conservazione per i termini di legge (10 anni ex art. 2220 c.c.). Per l'esercizio dei diritti (artt. 15-22 GDPR: accesso, rettifica, cancellazione) o informativa completa: <em>${escapeHtml(compEmail)}</em> o consultare la policy su /privacy.html.
+              </div>
+            </div>
+          </div>
+        `;
+
+        const modal = $('printModal');
+        if (modal.open) modal.close();
+        modal.showModal();
+      } catch (err) {
+        console.error('Error opening DDT print modal:', err);
+        toast('Errore apertura DDT: ' + err.message);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // PRODUCTION & INVENTORY OPTIMIZATION ENGINE (CLIENT SIDE)
+    // -------------------------------------------------------------
+    let allProduction = [];
+    let productionKpi = {};
+    let currentProdFilter = 'all';
+    let currentMainView = 'orders';
+
+    function switchMainView(mode) {
+      currentMainView = mode;
+      if (mode === 'production') {
+        $('btnModeOrders').classList.remove('active');
+        $('btnModeProduction').classList.add('active');
+        $('sectionOrders').style.display = 'none';
+        $('sectionProduction').style.display = 'block';
+        window.location.hash = '#produzione';
+        if (!allProduction.length) {
+          loadProductionAnalysis();
+        }
+      } else {
+        $('btnModeProduction').classList.remove('active');
+        $('btnModeOrders').classList.add('active');
+        $('sectionProduction').style.display = 'none';
+        $('sectionOrders').style.display = 'block';
+        window.location.hash = '#ordini';
+      }
+    }
+
+    async function loadProductionAnalysis() {
+      $('productionTableBody').innerHTML = `
+        <tr>
+          <td colspan="14" style="text-align:center; padding:40px; color:var(--muted);">
+            🔄 Connessione a Supabase in corso… calcolo tempi reali e fabbisogni…
+          </td>
+        </tr>
+      `;
+
+      try {
+        const res = await fetch('/api/production/analysis');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        allProduction = data.analysis || [];
+        productionKpi = data.kpi || {};
+
+        // Update KPI metrics
+        $('prodStatCritical').textContent = productionKpi.criticalCount || 0;
+        $('prodStatReorder').textContent = productionKpi.reorderCount || 0;
+        $('prodStatPieces').textContent = (productionKpi.totalPiecesToProduce || 0).toLocaleString('it-IT');
+        $('prodStatLeadTime').textContent = `${productionKpi.companyAvgLeadTimeDays || 7} gg`;
+        $('prodStatLeadTimeSub').textContent = `Su ${productionKpi.shippedOrdersAnalyzed || 0} spedizioni reali analizzate`;
+        $('prodStatCommitted').textContent = (productionKpi.totalCommittedPieces || 0).toLocaleString('it-IT');
+
+        // Tab counts
+        $('prodTabCountAll').textContent = allProduction.length;
+        $('prodTabCountCritical').textContent = productionKpi.criticalCount || 0;
+        $('prodTabCountReorder').textContent = productionKpi.reorderCount || 0;
+        $('prodTabCountOptimal').textContent = productionKpi.optimalCount || 0;
+        $('prodTabCountOverstock').textContent = productionKpi.overstockCount || 0;
+
+        // Populate family filter
+        const families = Array.from(new Set(allProduction.map(x => x.family || x.macroFamily).filter(Boolean))).sort();
+        const famSelect = $('prodFamilyFilter');
+        famSelect.innerHTML = '<option value="">Tutte le Famiglie / Linee</option>' +
+          families.map(f => `<option value="${escapeHtml(f)}">${escapeHtml(f)}</option>`).join('');
+
+        renderProduction();
+      } catch (err) {
+        console.error('Error loading production analysis:', err);
+        $('productionTableBody').innerHTML = `
+          <tr>
+            <td colspan="14" style="text-align:center; padding:40px; color:#c5221f;">
+              Errore caricamento analisi produzione: ${err.message}. Riprova tra poco.
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    function renderProduction() {
+      const term = $('prodSearchInput').value.trim().toLowerCase();
+      const selectedFamily = $('prodFamilyFilter').value;
+
+      const filtered = allProduction.filter(item => {
+        if (currentProdFilter !== 'all' && item.urgency !== currentProdFilter) return false;
+        if (selectedFamily && (item.family !== selectedFamily && item.macroFamily !== selectedFamily)) return false;
+        if (term) {
+          const haystack = `${item.code} ${item.description} ${item.brand} ${item.family} ${item.location || ''}`.toLowerCase();
+          if (!haystack.includes(term)) return false;
+        }
+        return true;
+      });
+
+      if (!filtered.length) {
+        $('productionTableBody').innerHTML = `
+          <tr>
+            <td colspan="14" style="text-align:center; padding:40px; color:var(--muted);">
+              Nessun articolo corrisponde ai filtri selezionati.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      $('productionTableBody').innerHTML = filtered.map(item => {
+        const prodBadge = item.suggestedProduction > 0
+          ? `<span class="qty-produce-badge">+${item.suggestedProduction} pz</span>`
+          : `<span class="qty-produce-zero">—</span>`;
+
+        const urgencyBadge = `<span class="urgency-badge ${item.urgencyClass}">${item.urgencyIcon} ${item.urgency}</span>`;
+
+        return `
+          <tr>
+            <td>
+              <strong style="font-family:monospace; font-size:.9rem; color:var(--navy);">${escapeHtml(item.code)}</strong>
+              <div style="margin-top:3px;"><span style="display:inline-block; background:#f0f9ff; color:#0369a1; border:1px solid #bae6fd; border-radius:4px; padding:1px 5px; font-size:.72rem; font-weight:700;">📍 ${escapeHtml(item.location || 'Magazzino')}</span></div>
+            </td>
+            <td>
+              <div style="font-weight:700; color:#1e293b;">${escapeHtml(item.description)}</div>
+              <div style="font-size:.74rem; color:var(--muted);">${escapeHtml(item.brand || '')} ${item.family ? `· ${escapeHtml(item.family)}` : ''}</div>
+            </td>
+            <td style="text-align:center; font-weight:750;">
+              ${item.currentStock}
+            </td>
+            <td style="text-align:center; color:#6d28d9; font-weight:750;">
+              ${item.committedQty > 0 ? `-${item.committedQty}` : '0'}
+            </td>
+            <td style="text-align:center; font-weight:800; color:${item.freeStock <= 0 ? '#dc2626' : (item.freeStock <= item.reorderPoint ? '#ea580c' : '#16a34a')};">
+              ${item.freeStock}
+            </td>
+            <td style="text-align:center;">
+              <strong>${item.effectiveLeadTime} gg</strong>
+              <div class="learned-chip">${escapeHtml(item.leadTimeSource || '')}</div>
+            </td>
+            <td style="text-align:center;">
+              ${item.dailyDemand > 0 ? `${item.dailyDemand} /gg` : '0'}
+            </td>
+            <td style="text-align:center; color:#475569;">
+              ${item.safetyStock}
+            </td>
+            <td style="text-align:center; font-weight:700; color:#c2410c;">
+              ${item.reorderPoint}
+            </td>
+            <td style="text-align:center; color:#475569;">
+              ${item.maxStock}
+            </td>
+            <td style="text-align:center;">
+              ${item.minProductionLot} pz
+            </td>
+            <td style="text-align:center; background:rgba(2, 132, 199, 0.05);">
+              ${prodBadge}
+            </td>
+            <td style="text-align:center;">
+              ${urgencyBadge}
+            </td>
+            <td style="text-align:center;">
+              <button type="button" class="btn secondary btn-sm" onclick="openProdParamModal('${escapeHtml(item.code)}')">⚙️ Modifica</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Filter clicks for production tabs
+    document.querySelectorAll('.prod-tab').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('.prod-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentProdFilter = btn.dataset.filter;
+        renderProduction();
+      };
+    });
+
+    $('prodSearchInput').oninput = renderProduction;
+    $('prodFamilyFilter').onchange = renderProduction;
+    $('btnRefreshProd').onclick = loadProductionAnalysis;
+
+    // Modal Edit Article Production Parameters
+    function openProdParamModal(code) {
+      const item = allProduction.find(x => x.code === code);
+      if (!item) return;
+
+      $('modalProdCode').value = item.code;
+      $('modalProdCodeLabel').textContent = item.code;
+      $('modalProdNameLabel').textContent = item.description;
+      $('modalProdStockLabel').textContent = `${item.currentStock} pezzi (Disponibile netto: ${item.freeStock})`;
+      $('modalLeadTime').value = item.effectiveLeadTime || '';
+      $('modalMinLot').value = item.minProductionLot || '';
+      $('modalManualMinStock').value = item.safetyStock || '';
+      $('modalManualMaxStock').value = item.maxStock || '';
+      $('modalProdLocation').value = item.location || '';
+      $('modalManualStock').value = item.manualStock != null ? item.manualStock : '';
+      $('modalProdNotes').value = item.notes || '';
+
+      $('prodParamModal').showModal();
+    }
+
+    $('prodParamForm').onsubmit = async e => {
+      e.preventDefault();
+      const code = $('modalProdCode').value;
+      const data = {
+        code,
+        leadTimeDays: $('modalLeadTime').value ? Number($('modalLeadTime').value) : null,
+        minProductionLot: $('modalMinLot').value ? Number($('modalMinLot').value) : null,
+        manualSafetyStock: $('modalManualMinStock').value ? Number($('modalManualMinStock').value) : null,
+        manualMaxStock: $('modalManualMaxStock').value ? Number($('modalManualMaxStock').value) : null,
+        location: $('modalProdLocation').value.trim(),
+        manualStock: $('modalManualStock').value ? Number($('modalManualStock').value) : null,
+        notes: $('modalProdNotes').value.trim()
+      };
+
+      $('btnSaveProdParam').disabled = true;
+      $('btnSaveProdParam').textContent = 'Salvataggio su Google Sheets…';
+      try {
+        const res = await fetch('/api/production/parameters', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const resp = await res.json();
+        if (!res.ok) throw new Error(resp.error || 'Errore salvataggio parametri');
+        toast('Parametri di produzione salvati su Google Sheets!');
+        $('prodParamModal').close();
+        await loadProductionAnalysis();
+      } catch (err) {
+        toast(`Errore: ${err.message}`);
+      } finally {
+        $('btnSaveProdParam').disabled = false;
+        $('btnSaveProdParam').textContent = '💾 Salva su Google Sheets';
+      }
+    };
+
+    // Print Production Plan
+    $('btnPrintProduction').onclick = () => {
+      if (!allProduction.length) return;
+      const toProduce = allProduction.filter(x => x.suggestedProduction > 0);
+      const dateStr = new Date().toLocaleDateString('it-IT');
+
+      const rowsHtml = toProduce.length > 0 ? toProduce.map((item, idx) => `
+        <tr>
+          <td class="center">${idx + 1}</td>
+          <td><strong>${escapeHtml(item.code)}</strong></td>
+          <td>${escapeHtml(item.description)}</td>
+          <td class="center">${item.currentStock}</td>
+          <td class="center" style="color:#6d28d9;">${item.committedQty}</td>
+          <td class="center" style="font-weight:700;">${item.freeStock}</td>
+          <td class="center">${item.minProductionLot} pz</td>
+          <td class="center" style="font-size:1.1rem; font-weight:800; color:#0369a1; background:#f0f9ff;">+${item.suggestedProduction} PZ</td>
+          <td class="center"><span class="urgency-badge ${item.urgencyClass}">${item.urgency}</span></td>
+        </tr>
+      `).join('') : `
+        <tr>
+          <td colspan="9" style="text-align:center; padding:30px;">Tutti i prodotti risultano con giacenza ottimale. Nessun lotto urgente da produrre.</td>
+        </tr>
+      `;
+
+      $('printableArea').innerHTML = `
+        <div class="print-header">
+          <div>
+            <h1 class="print-title">🏭 SCHEDA PIANIFICAZIONE PRODUZIONE</h1>
+            <div style="font-size:1.05rem; font-weight:700; color:#334155; margin-top:4px;">Ordine di ripristino scorte & fabbisogni clienti</div>
+          </div>
+          <div style="text-align:right;">
+            <div><strong>Data Emissione:</strong> ${dateStr}</div>
+            <div><strong>Fonte Dati:</strong> Supabase PostgreSQL (Real-time)</div>
+          </div>
+        </div>
+
+        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:12px 16px; margin-bottom:20px; font-size:.88rem; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+          <div>Articoli da produrre: <strong>${toProduce.length}</strong></div>
+          <div>Pezzi complessivi da fabbricare: <strong>${(productionKpi.totalPiecesToProduce || 0).toLocaleString('it-IT')} PZ</strong></div>
+          <div>Tempo medio evasione appreso: <strong>${productionKpi.companyAvgLeadTimeDays || 7} giorni</strong></div>
+        </div>
+
+        <table class="print-table">
+          <thead>
+            <tr>
+              <th style="width:40px;" class="center">Pos.</th>
+              <th style="width:110px;">Codice</th>
+              <th>Descrizione Articolo</th>
+              <th style="width:70px;" class="center">Giacenza</th>
+              <th style="width:70px;" class="center">Impegnato</th>
+              <th style="width:70px;" class="center">Disponibile</th>
+              <th style="width:75px;" class="center">Lotto Min</th>
+              <th style="width:110px;" class="center">LOTTO DA PRODURRE</th>
+              <th style="width:90px;" class="center">Urgenza</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-top:50px; padding-top:20px; border-top:1px solid #cbd5e1; font-size:.82rem;">
+          <div>Responsabile Produzione:<br><br>______________________</div>
+          <div>Capo Magazzino / Materie:<br><br>______________________</div>
+          <div>Controllo Qualità & Consegna:<br><br>______________________</div>
+        </div>
+      `;
+      $('printModal').showModal();
+    };
+
+    // Export Production CSV
+    $('btnExportProdCsv').onclick = () => {
+      if (!allProduction.length) return;
+      const headers = ['Codice', 'Descrizione', 'Marca', 'Famiglia', 'Giacenza_Supabase', 'Impegnato_Ordini', 'Disponibile_Netto', 'Lead_Time_Appreso_gg', 'Consumo_Giornaliero', 'Scorta_Minima_SS', 'Punto_Riordino_ROP', 'Scorta_Massima', 'Lotto_Minimo', 'Quantita_Da_Produrre', 'Stato_Urgenza'];
+      const rows = allProduction.map(x => [
+        `"${x.code}"`,
+        `"${(x.description || '').replace(/"/g, '""')}"`,
+        `"${(x.brand || '').replace(/"/g, '""')}"`,
+        `"${(x.family || '').replace(/"/g, '""')}"`,
+        x.currentStock,
+        x.committedQty,
+        x.freeStock,
+        x.effectiveLeadTime,
+        x.dailyDemand,
+        x.safetyStock,
+        x.reorderPoint,
+        x.maxStock,
+        x.minProductionLot,
+        x.suggestedProduction,
+        x.urgency
+      ]);
+
+      const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `piano_produzione_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, m => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[m]));
+    }
+
+    // Initial page router based on hash
+    if (window.location.hash === '#produzione') {
+      switchMainView('production');
+    }
+
+    loadOrders();
+  </script>
+</body>
+</html>

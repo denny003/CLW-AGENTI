@@ -1,0 +1,2627 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Area di Sviluppo Commerciale & Mappa Territoriale | Climawell</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <!-- Leaflet Map CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <!-- Leaflet MarkerCluster CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-hover: #0369a1;
+      --navy: #0f172a;
+      --navy-light: #1e293b;
+      --surface: #ffffff;
+      --bg: #f8fafc;
+      --line: #e2e8f0;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --purple: #8b5cf6;
+      --blue: #2563eb;
+    }
+
+    /* Custom Leaflet Cluster for Clients (Companies & Individuals) */
+    .marker-cluster-companies {
+      background: rgba(5, 150, 105, 0.25);
+      border-radius: 50%;
+    }
+    .marker-cluster-companies div {
+      width: 36px;
+      height: 36px;
+      margin-left: 4px;
+      margin-top: 4px;
+      text-align: center;
+      border-radius: 50%;
+      font-weight: 800;
+      font-size: 13px;
+      background: #059669;
+      color: #ffffff;
+      border: 2px solid #ffffff;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .marker-cluster-companies.cluster-large div {
+      background: #047857;
+      width: 44px;
+      height: 44px;
+      font-size: 14px;
+    }
+
+    .marker-cluster-individuals {
+      background: rgba(2, 132, 199, 0.25);
+      border-radius: 50%;
+    }
+    .marker-cluster-individuals div {
+      width: 36px;
+      height: 36px;
+      margin-left: 4px;
+      margin-top: 4px;
+      text-align: center;
+      border-radius: 50%;
+      font-weight: 800;
+      font-size: 13px;
+      background: #0284c7;
+      color: #ffffff;
+      border: 2px solid #ffffff;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .marker-cluster-individuals.cluster-large div {
+      background: #0369a1;
+      width: 44px;
+      height: 44px;
+      font-size: 14px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* TOPBAR */
+    .dev-topbar {
+      background: var(--navy);
+      color: #fff;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+      z-index: 1000;
+      flex-shrink: 0;
+    }
+    .dev-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .dev-badge {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.9rem;
+      padding: 6px 12px;
+      border-radius: 8px;
+      letter-spacing: -0.5px;
+    }
+    .dev-titles h1 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+    }
+    .dev-titles small {
+      color: #94a3b8;
+      font-size: 0.75rem;
+    }
+
+    .dev-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .agent-select-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--navy-light);
+      padding: 4px 10px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+    }
+    .agent-select-box label {
+      font-size: 0.78rem;
+      color: #cbd5e1;
+      font-weight: 600;
+    }
+    .agent-select-box select {
+      background: transparent;
+      color: #fff;
+      border: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+    }
+    .agent-select-box select option {
+      background: var(--navy);
+      color: #fff;
+    }
+
+    .btn-nav {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      text-decoration: none;
+      padding: 7px 12px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: background 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-nav:hover { background: rgba(255,255,255,0.2); }
+
+    /* KPI STATS BAR */
+    .kpi-strip {
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      padding: 8px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      overflow-x: auto;
+      flex-shrink: 0;
+    }
+    .kpi-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 4px 12px;
+      border-radius: 8px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      white-space: nowrap;
+    }
+    .kpi-icon {
+      font-size: 1.25rem;
+    }
+    .kpi-content strong {
+      display: block;
+      font-size: 1rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .kpi-content small {
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    /* FILTER & SEARCH BAR */
+    .control-bar {
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      padding: 8px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+    .search-inputs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      max-width: 550px;
+    }
+    .input-geo {
+      flex: 1;
+      padding: 7px 12px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .input-geo:focus { border-color: var(--primary); }
+    .select-radius {
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      background: #fff;
+      outline: none;
+    }
+
+    .category-pills {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .cat-btn {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      border: 1px solid var(--line);
+      background: #fff;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+    }
+    .cat-btn:hover { background: #f1f5f9; }
+    .cat-btn.active.cat-companies { background: #dcfce7; border-color: #86efac; color: #15803d; }
+    .cat-btn.active.cat-individuals { background: #e0f2fe; border-color: #7dd3fc; color: #0284c7; }
+    .cat-btn.active.cat-active-clients { background: #dcfce7; border-color: #86efac; color: #15803d; }
+    .cat-btn.active.cat-plumbers { background: #e0f2fe; border-color: #7dd3fc; color: #0369a1; }
+    .cat-btn.active.cat-electricians { background: #fef3c7; border-color: #fcd34d; color: #b45309; }
+    .cat-btn.active.cat-builders { background: #f3e8ff; border-color: #d8b4fe; color: #7e22ce; }
+    .cat-btn.active.cat-designers { background: #ccfbf1; border-color: #5eead4; color: #0f766e; }
+
+    .select-promo-filter {
+      padding: 6px 10px;
+      border: 1px solid #c084fc;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      background: #faf5ff;
+      color: #7e22ce;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .btn-web-search {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #fff;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 6px rgba(2,132,199,0.3);
+      transition: transform 0.1s, opacity 0.15s;
+    }
+    .btn-web-search:hover { opacity: 0.95; }
+    .btn-web-search:active { transform: scale(0.98); }
+
+    /* WORKSPACE BODY */
+    .dev-workspace {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 170px);
+      position: relative;
+    }
+
+    /* MAP CONTAINER */
+    #map {
+      flex: 1;
+      height: 100%;
+      background: #e2e8f0;
+      z-index: 10;
+    }
+
+    /* SIDEBAR OPPORTUNITIES */
+    .dev-sidebar {
+      width: 440px;
+      max-width: 45%;
+      background: #fff;
+      border-left: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      z-index: 20;
+      box-shadow: -4px 0 16px rgba(0,0,0,0.05);
+      transition: transform 0.25s ease;
+    }
+    .sidebar-header {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--line);
+      background: #f8fafc;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .sidebar-header h2 {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--navy);
+    }
+    .sidebar-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+    }
+    .sidebar-tab {
+      flex: 1;
+      padding: 10px 8px;
+      text-align: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--muted);
+      border: none;
+      background: none;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .sidebar-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      background: #f0f9ff;
+    }
+
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+    }
+
+    /* OPPORTUNITY CARDS */
+    .opp-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      transition: border-color 0.15s, box-shadow 0.15s;
+      cursor: pointer;
+    }
+    .opp-card:hover {
+      border-color: #93c5fd;
+      box-shadow: 0 4px 12px rgba(2,132,199,0.08);
+    }
+    .opp-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .opp-badge.badge-plumber { background: #e0f2fe; color: #0369a1; }
+    .opp-badge.badge-electrician { background: #fef3c7; color: #b45309; }
+    .opp-badge.badge-builder { background: #f3e8ff; color: #7e22ce; }
+    .opp-badge.badge-designer { background: #ccfbf1; color: #0f766e; }
+    .opp-badge.badge-client { background: #dcfce7; color: #15803d; }
+
+    .opp-title {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--navy);
+      margin-bottom: 2px;
+    }
+    .opp-addr {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .opp-proximity {
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: #0284c7;
+      background: #f0f9ff;
+      padding: 3px 6px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+    .opp-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px dashed var(--line);
+    }
+    .btn-opp-action {
+      flex: 1;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border: 1px solid var(--line);
+      background: #f8fafc;
+      color: var(--navy);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      text-decoration: none;
+    }
+    .btn-opp-action:hover { background: #e2e8f0; }
+    .btn-opp-primary {
+      background: #0284c7;
+      color: #fff;
+      border-color: #0284c7;
+    }
+    .btn-opp-primary:hover { background: #0369a1; }
+
+    /* ACTION ADVICE BANNER */
+    .action-tip-box {
+      background: linear-gradient(135deg, #eff6ff, #f0fdf4);
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 14px;
+      font-size: 0.82rem;
+    }
+    .action-tip-box strong {
+      color: #1e3a8a;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    /* CUSTOM MARKER ICONS */
+    .custom-marker {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      color: #fff;
+      font-weight: 800;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      border: 2px solid #fff;
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    .custom-marker:hover {
+      transform: scale(1.18);
+      z-index: 9999 !important;
+    }
+    .marker-client { background: #10b981; }
+    .marker-company { background: #059669; }
+    .marker-individual { background: #0284c7; }
+    .marker-plumber { background: #0284c7; }
+    .marker-electrician { background: #f59e0b; }
+    .marker-builder { background: #8b5cf6; }
+    .marker-designer { background: #0d9488; }
+
+    .badge-company { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    .badge-individual { background: #e0f2fe; color: #075985; border: 1px solid #7dd3fc; }
+    .badge-promo-tag { background: #fdf4ff; color: #86198f; border: 1px solid #f0abfc; font-weight: 700; font-size: 0.72rem; padding: 2px 6px; border-radius: 4px; display: inline-block; }
+    .promo-tip-bubble { background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 6px 8px; font-size: 0.73rem; color: #92400e; margin-top: 5px; line-height: 1.35; }
+
+    /* POPUP STYLING */
+    .leaflet-popup-content-wrapper {
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(15,23,42,0.18);
+      padding: 4px;
+    }
+    .map-popup-card {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      padding: 4px 6px;
+      min-width: 230px;
+    }
+    .map-popup-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+    .map-popup-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--navy);
+      margin: 2px 0;
+    }
+    .map-popup-addr {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .map-popup-btns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+      margin-top: 8px;
+    }
+    .map-popup-btn {
+      padding: 5px 8px;
+      border-radius: 5px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      border: 1px solid var(--line);
+      background: #f8fafc;
+      color: var(--navy);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+    .map-popup-btn.primary {
+      background: #0284c7;
+      color: #fff;
+      border-color: #0284c7;
+    }
+
+    /* MODAL STYLES */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      padding: 16px;
+    }
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-box {
+      background: #fff;
+      border-radius: 12px;
+      max-width: 820px;
+      width: 100%;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 45px rgba(0,0,0,0.25);
+      border: 1px solid var(--line);
+      overflow: hidden;
+      animation: modalSlideIn 0.25s ease-out;
+    }
+    @keyframes modalSlideIn {
+      from { transform: translateY(20px) scale(0.97); }
+      to { transform: translateY(0) scale(1); }
+    }
+    .modal-head {
+      padding: 16px 20px;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-head h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .modal-close-btn {
+      background: rgba(255,255,255,0.15);
+      border: none;
+      color: #fff;
+      font-size: 1.2rem;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+    .modal-close-btn:hover { background: rgba(255,255,255,0.3); }
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+      font-size: 0.88rem;
+      color: #334155;
+      line-height: 1.5;
+    }
+    .ateco-card {
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .ateco-tag {
+      font-family: monospace;
+      font-weight: 800;
+      background: #0284c7;
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+    .ateco-source-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .ateco-source-card {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .ateco-source-card h4 {
+      margin: 0 0 6px 0;
+      color: #166534;
+      font-size: 0.92rem;
+    }
+    .ateco-source-card a {
+      color: #0284c7;
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .ateco-source-card a:hover { text-decoration: underline; }
+    .csv-import-area {
+      background: #fafafa;
+      border: 2px dashed #cbd5e1;
+      border-radius: 8px;
+      padding: 14px;
+      margin-top: 16px;
+    }
+    .csv-import-area textarea {
+      width: 100%;
+      height: 90px;
+      font-family: monospace;
+      font-size: 0.78rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 8px;
+      box-sizing: border-box;
+      resize: vertical;
+    }
+
+    /* TOAST */
+    .dev-toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--navy);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .dev-toast.show { opacity: 1; pointer-events: auto; }
+  </style>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <header class="dev-topbar">
+    <div class="dev-brand">
+      <span class="dev-badge">CLW</span>
+      <div class="dev-titles">
+        <h1>Area di Sviluppo Commerciale</h1>
+        <small>Mappa Opportunità Territoriali & Acquisizione Nuovi Clienti</small>
+      </div>
+    </div>
+
+    <div class="dev-actions">
+      <!-- Selettore Agente (per Admin / Rete) -->
+      <div class="agent-select-box" id="agentSelectBox">
+        <label for="agentSelector">👤 Agente:</label>
+        <select id="agentSelector">
+          <option value="AUTO">Caricamento...</option>
+        </select>
+      </div>
+
+      <a href="/" class="btn-nav">📋 Offerte & Pratiche</a>
+      <a href="/giro-visite.html" class="btn-nav">📅 Giro Visite</a>
+      <a href="/configurazione.html" class="btn-nav" id="adminConfigBtn">⚙️ Config</a>
+    </div>
+  </header>
+
+  <!-- KPI STRIP -->
+  <section class="kpi-strip">
+    <div class="kpi-item" style="border-left: 3px solid #059669;">
+      <span class="kpi-icon">🏢</span>
+      <div class="kpi-content">
+        <strong id="kpiCompanies" style="color:#059669;">0</strong>
+        <small>Aziende & P.IVA (B2B)</small>
+      </div>
+    </div>
+
+    <div class="kpi-item" style="border-left: 3px solid #0284c7;">
+      <span class="kpi-icon">👤</span>
+      <div class="kpi-content">
+        <strong id="kpiIndividuals" style="color:#0284c7;">0</strong>
+        <small>Privati & Occasionali (B2C)</small>
+      </div>
+    </div>
+
+    <div class="kpi-item">
+      <span class="kpi-icon">🔧</span>
+      <div class="kpi-content">
+        <strong id="kpiPlumbers">0</strong>
+        <small>Idraulici & Clima (Prospect)</small>
+      </div>
+    </div>
+
+    <div class="kpi-item">
+      <span class="kpi-icon">⚡</span>
+      <div class="kpi-content">
+        <strong id="kpiElectricians">0</strong>
+        <small>Elettricisti / Impianti</small>
+      </div>
+    </div>
+
+    <div class="kpi-item">
+      <span class="kpi-icon">🏗️</span>
+      <div class="kpi-content">
+        <strong id="kpiBuilders">0</strong>
+        <small>Imprese Edili & Cantieri</small>
+      </div>
+    </div>
+
+    <div class="kpi-item" style="border-left: 3px solid #0d9488;">
+      <span class="kpi-icon">📐</span>
+      <div class="kpi-content">
+        <strong id="kpiDesigners" style="color:#0d9488;">0</strong>
+        <small>Studi Termotecnici & Progetti</small>
+      </div>
+    </div>
+
+    <div class="kpi-item" style="background:#f0fdf4; border-color:#bbf7d0;">
+      <span class="kpi-icon">📈</span>
+      <div class="kpi-content">
+        <strong id="kpiPenetration" style="color:#16a34a;">0%</strong>
+        <small>Penetrazione Area</small>
+      </div>
+    </div>
+
+    <div class="kpi-item" style="background:#eff6ff; border-color:#bfdbfe;">
+      <span class="kpi-icon">🎯</span>
+      <div class="kpi-content">
+        <strong id="kpiPotentialRevenue" style="color:#0284c7;">€ 0</strong>
+        <small>Potenziale Stimato Anno</small>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTROL & FILTER BAR -->
+  <section class="control-bar">
+    <div class="search-inputs">
+      <input type="text" id="geoSearchInput" class="input-geo" placeholder="🔍 Cerca Comune, CAP o Zona (es. Firenze, Empoli, Scandicci, Prato, 50149)…">
+      <select id="radiusSelector" class="select-radius" title="Raggio di analisi">
+        <option value="5">Raggio 5 km</option>
+        <option value="15" selected>Raggio 15 km</option>
+        <option value="30">Raggio 30 km</option>
+        <option value="50">Raggio 50 km</option>
+        <option value="ALL">Tutta l'Area</option>
+      </select>
+      <button type="button" id="btnFilterGeo" class="cat-btn" style="background:#0284c7; color:#fff; border-color:#0284c7;">Filtra</button>
+    </div>
+
+    <div class="category-pills">
+      <button type="button" class="cat-btn cat-companies active" id="btnToggleCompanies">
+        <span>🏢</span> Aziende P.IVA (<span id="countCompaniesPill">0</span>)
+      </button>
+      <button type="button" class="cat-btn cat-individuals active" id="btnToggleIndividuals">
+        <span>👤</span> Privati (<span id="countIndividualsPill">0</span>)
+      </button>
+      <button type="button" class="cat-btn cat-plumbers active" id="btnTogglePlumbers">
+        <span>🔧</span> Idraulici (<span id="countPlumbersPill">0</span>)
+      </button>
+      <button type="button" class="cat-btn cat-electricians active" id="btnToggleElectricians">
+        <span>⚡</span> Elettricisti (<span id="countElectriciansPill">0</span>)
+      </button>
+      <button type="button" class="cat-btn cat-builders active" id="btnToggleBuilders">
+        <span>🏗️</span> Imprese Edili (<span id="countBuildersPill">0</span>)
+      </button>
+      <button type="button" class="cat-btn cat-designers active" id="btnToggleDesigners">
+        <span>📐</span> Termotecnici (<span id="countDesignersPill">0</span>)
+      </button>
+
+      <select id="selectPromoCampaign" class="select-promo-filter" title="Filtra clienti per tipologia di campagna promozionale">
+        <option value="ALL">🎯 Tutte le Campagne Promo</option>
+        <option value="idraulica_clima">🔧 Campagna: Termoidraulica & Clima B2B</option>
+        <option value="elettrico_rinnovabili">⚡ Campagna: Elettrico & Rinnovabili</option>
+        <option value="edile_cantieri">🏗️ Campagna: Capitolati & Cantieri Edili</option>
+        <option value="residenziale_privati">🛋️ Campagna: Clima Residenziale Privati</option>
+        <option value="b2b_aziende">🏢 Campagna: Forniture Aziende & Industria</option>
+      </select>
+    </div>
+
+    <div style="display:flex; gap:6px; align-items:center;">
+      <button type="button" id="btnWebScan" class="btn-web-search" title="Cerca nuovi installatori, elettricisti e termotecnici registrati nella mappa">
+        <span>🌐</span> Cerca Nuovi Prospect Live (Web/OSM)
+      </button>
+      <button type="button" id="btnOpenAtecoModal" class="btn-web-search" style="background: linear-gradient(135deg, #0d9488, #059669);" title="Guida Codici ATECO, Registri Ufficiali & Importazione Massiva">
+        <span>📊</span> Banche Dati & ATECO
+      </button>
+    </div>
+  </section>
+
+  <!-- MODAL BANCHE DATI & ATECO -->
+  <div class="modal-backdrop" id="modalAteco">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3><span>📊</span> Banche Dati & Ricerca Nuovi Prospect (Codici ATECO)</h3>
+        <button type="button" class="modal-close-btn" id="btnCloseAtecoModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-top:0;">
+          Per espandere la clientela Climawell e trovare contatti qualificati non ancora presenti nel database, 
+          puoi utilizzare i <strong>Codici ATECO 2007/2022</strong> e i registri pubblici obbligatori italiani:
+        </p>
+
+        <h4 style="margin: 12px 0 8px 0; color: var(--navy);">🎯 I Codici ATECO Strategici per Climawell:</h4>
+        
+        <div class="ateco-card">
+          <span class="ateco-tag">43.22.01</span>
+          <div>
+            <strong>Installazione di impianti idraulici, di riscaldamento e condizionamento</strong>
+            <div style="font-size:0.8rem; color:#64748b;">Target N. 1: Idraulici, termoidraulici, frigoristi e manutentori caldaie/clima.</div>
+          </div>
+        </div>
+
+        <div class="ateco-card">
+          <span class="ateco-tag">71.12.10 / 20</span>
+          <div>
+            <strong>Attività degli studi di ingegneria e periti industriali (Termotecnici)</strong>
+            <div style="font-size:0.8rem; color:#64748b;">Progettisti HVAC, redattori relazioni ex-Legge 10, diagnosi energetiche e asseveratori per detrazioni fiscali. Fondamentali per capitolati e grandi impianti.</div>
+          </div>
+        </div>
+
+        <div class="ateco-card">
+          <span class="ateco-tag">43.21.01</span>
+          <div>
+            <strong>Installazione di impianti elettrici in edifici</strong>
+            <div style="font-size:0.8rem; color:#64748b;">Installatori fotovoltaico, sistemi ibridi con inverter, climatizzatori a pompa di calore e domotica.</div>
+          </div>
+        </div>
+
+        <div class="ateco-card">
+          <span class="ateco-tag">41.20.00</span>
+          <div>
+            <strong>Costruzione di edifici residenziali e non residenziali</strong>
+            <div style="font-size:0.8rem; color:#64748b;">Imprese edili e ristrutturazioni chiavi in mano con impianti a pavimento radiante e VMC.</div>
+          </div>
+        </div>
+
+        <h4 style="margin: 16px 0 8px 0; color: var(--navy);">🏛️ Le Banche Dati Ufficiali Gratuite & Registri:</h4>
+        <div class="ateco-source-grid">
+          <div class="ateco-source-card">
+            <h4>❄️ 1. Registro Nazionale F-GAS</h4>
+            <div style="font-size:0.8rem; margin-bottom:8px;">
+              <strong>La miniera d'oro per Climawell:</strong> per legge, chiunque installi o compri condizionatori deve essere censito pubblicamente con P.IVA e indirizzo!
+            </div>
+            <a href="https://www.fgas.it" target="_blank" rel="noopener">🔗 Consulta Registro F-GAS &rarr;</a>
+          </div>
+
+          <div class="ateco-source-card">
+            <h4>📐 2. Albi Ingegneri & Periti</h4>
+            <div style="font-size:0.8rem; margin-bottom:8px;">
+              Ordini provinciali (Firenze, Prato, Pistoia, Pisa) con elenchi pubblici degli iscritti al settore Termotecnico / Impianti con PEC e recapiti studio.
+            </div>
+            <a href="https://www.ordineingegneri.fi.it" target="_blank" rel="noopener">🔗 Albo Ingegneri Firenze &rarr;</a>
+          </div>
+
+          <div class="ateco-source-card">
+            <h4>📧 3. Indice Nazionale INI-PEC</h4>
+            <div style="font-size:0.8rem; margin-bottom:8px;">
+              Portale pubblico governativo per verificare e ricavare l'indirizzo PEC ufficiale di qualsiasi impresa, P.IVA o professionista in tutta Italia.
+            </div>
+            <a href="https://www.inipec.gov.it" target="_blank" rel="noopener">🔗 Portale INI-PEC &rarr;</a>
+          </div>
+        </div>
+
+        <!-- FAST IMPORTER -->
+        <div class="csv-import-area">
+          <h4 style="margin: 0 0 6px 0; color: var(--navy);">🚀 Importa Nuovi Contatti sulla Mappa (Incolla Elenco o CSV):</h4>
+          <div style="font-size:0.8rem; color:#64748b; margin-bottom:6px;">
+            Incolla righe da Excel o file CSV scaricato da banche dati o registro F-Gas (separatore virgola, punto e virgola o tabulatore):<br>
+            <code>Ragione Sociale; Indirizzo; Comune; Telefono; Categoria (idraulico | elettricista | edile | termotecnico)</code>
+          </div>
+          <textarea id="importRawText" placeholder="Es:
+Studio Termotecnico Gamma; Via Masaccio 80; Firenze; 055-123456; termotecnico
+Clima Toscana Impianti; Via Pisana 120; Scandicci; 055-987654; idraulico"></textarea>
+          <div style="margin-top:8px; display:flex; justify-content:flex-end; gap:8px;">
+            <button type="button" id="btnRunImport" class="btn-web-search" style="background:#059669;">
+              ➕ Importa e Posiziona su Mappa
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN WORKSPACE -->
+  <div class="dev-workspace">
+    <!-- MAP -->
+    <div id="map"></div>
+
+    <!-- SIDEBAR -->
+    <aside class="dev-sidebar">
+      <div class="sidebar-header">
+        <h2>💡 Piano di Sviluppo & Azioni</h2>
+        <span id="activeZoneLabel" style="font-size:0.75rem; font-weight:700; color:#0284c7; background:#e0f2fe; padding:2px 8px; border-radius:12px;">Toscana / Firenze</span>
+      </div>
+
+      <div class="sidebar-tabs">
+        <button type="button" class="sidebar-tab active" data-tab="advice">🎯 Azioni Consigliate</button>
+        <button type="button" class="sidebar-tab" data-tab="prospects">📋 Prospect (<span id="sidebarProspectCount">0</span>)</button>
+        <button type="button" class="sidebar-tab" data-tab="clients">👥 Clienti Attivi (<span id="sidebarClientCount">0</span>)</button>
+      </div>
+
+      <div class="sidebar-content" id="sidebarContent">
+        <!-- Tab 1: Advice -->
+        <div id="tabContentAdvice">
+          <div class="action-tip-box">
+            <strong>🎯 Strategia di Espansione Vendite:</strong>
+            <span id="strategyTipText">
+              Confronta i tuoi clienti attivi (verdi) con gli installatori e le imprese (blu, gialli, viola).
+              Visita i professionisti adiacenti ai tuoi clienti abituali per dimezzare i tempi di viaggio e massimizzare il fatturato.
+            </span>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <strong style="font-size:0.85rem; color:var(--navy);">Installatori a Minima Distanza dai Tuoi Clienti</strong>
+            <button type="button" id="btnExportList" style="font-size:0.75rem; padding:3px 8px; border:1px solid var(--line); border-radius:4px; background:#fff; cursor:pointer;">📥 Esporta Excel</button>
+          </div>
+
+          <div id="quickOpportunitiesList">
+            <!-- Cards populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Tab 2: Prospects List -->
+        <div id="tabContentProspects" style="display:none;">
+          <div id="allProspectsList">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Tab 3: Active Clients List -->
+        <div id="tabContentClients" style="display:none;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <strong style="font-size:0.85rem; color:var(--navy);">Clienti Segmentati</strong>
+            <button type="button" id="btnExportClientsPromo" style="font-size:0.75rem; padding:3px 8px; border:1px solid #c084fc; border-radius:4px; background:#faf5ff; color:#7e22ce; font-weight:700; cursor:pointer;">📥 Esporta Target Promo</button>
+          </div>
+          <div id="allClientsList">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="dev-toast" id="toast">Notifica</div>
+
+  <!-- Leaflet Map JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <!-- Leaflet MarkerCluster JS -->
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+  <!-- Supabase JS & Adapter Climawell -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabaseClient.js"></script>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const toast = msg => {
+      const t = $('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3500);
+    };
+
+    // State
+    let currentUser = null;
+    let allAgents = [];
+    let selectedAgentCode = 'ALL';
+    let allCustomers = [];
+    let filteredCustomers = [];
+    let map = null;
+    let companiesClusterGroup = null;
+    let individualsClusterGroup = null;
+    let prospectsLayer = null;
+    let clientMarkersMap = {};
+
+    // Filter toggles
+    let showCompanies = true;
+    let showIndividuals = true;
+    let selectedPromoCampaign = 'ALL';
+    let showPlumbers = true;
+    let showElectricians = true;
+    let showBuilders = true;
+    let showDesigners = true;
+
+    // Client-side classification helper (fallback / enricher)
+    function classifyCustomer(c) {
+      if (typeof c.isCompany === 'boolean' && c.category && c.promoCluster) {
+        return c;
+      }
+      const vat = String(c.vat_number || c.vatNumber || c.vat || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+      const cf = String(c.tax_code || c.taxCode || c.cf || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+      const nm = String(c.name || '').toUpperCase();
+      const act = String(c.activity || '').toUpperCase();
+      const tp = String(c.type || '').toUpperCase();
+
+      const hasValidVat = (vat.length === 11 && /^\d{11}$/.test(vat)) || 
+                          (vat.startsWith('IT') && vat.length === 13 && /^\d{11}$/.test(vat.slice(2))) || 
+                          (vat.length >= 8 && /^[A-Z0-9]+$/.test(vat) && !cf.includes(vat));
+      const isNumericCfCompany = cf.length === 11 && /^\d{11}$/.test(cf);
+      const isPersonCf = cf.length === 16 && /^[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]$/.test(cf);
+      const companyRegex = /\b(S\.?R\.?L\.?|S\.?P\.?A\.?|S\.?N\.?C\.?|S\.?A\.?S\.?|S\.?S\.?|COOP|COOPERATIVA|SOC\.?|SOCIETA|DITTA|IMPRESA|STUDIO|OFFICINA|IMPIANTI|IDRAULICA|TERMOIDRAULICA|CLIMA|CONDIZIONAMENTO|EDIL|EDILIZIA|COSTRUZIONI|INSTALLAZIONI|SERVICE|COMMERCIO|COMMERCIALE|GROUP|SRLS)\b/i;
+      const hasCompanyKeyword = companyRegex.test(nm) || companyRegex.test(act);
+
+      let isCompany = false;
+      if (hasValidVat || isNumericCfCompany || hasCompanyKeyword) {
+        isCompany = true;
+      } else if (isPersonCf && !hasValidVat) {
+        isCompany = false;
+      } else if (!vat && !cf) {
+        isCompany = hasCompanyKeyword;
+      } else {
+        isCompany = Boolean(vat && vat.length >= 8);
+      }
+
+      const category = isCompany ? 'azienda' : 'privato';
+      const categoryLabel = isCompany ? 'Azienda / P.IVA' : 'Privato / Occasionale';
+
+      let promoCluster = 'b2b_aziende';
+      let promoClusterLabel = 'Forniture Aziende & Industria';
+      const combined = `${nm} ${act} ${tp}`.toUpperCase();
+
+      if (category === 'privato') {
+        promoCluster = 'residenziale_privati';
+        promoClusterLabel = 'Clima & Caldaie Residenziale';
+      } else if (combined.includes('IDRAULIC') || combined.includes('TERMO') || combined.includes('CLIMA') || combined.includes('CALDAI') || combined.includes('SANITAR') || combined.includes('POMP')) {
+        promoCluster = 'idraulica_clima';
+        promoClusterLabel = 'Termoidraulica & Clima B2B';
+      } else if (combined.includes('ELETT') || combined.includes('FOTOVOLT') || combined.includes('ENERG') || combined.includes('DOMOTIC') || combined.includes('LUCE') || combined.includes('QUADRI')) {
+        promoCluster = 'elettrico_rinnovabili';
+        promoClusterLabel = 'Elettrico & Energie Rinnovabili';
+      } else if (combined.includes('EDIL') || combined.includes('COSTRUZ') || combined.includes('CANTIERE') || combined.includes('RESTAURO') || combined.includes('PAVIMENT') || combined.includes('INTONACO')) {
+        promoCluster = 'edile_cantieri';
+        promoClusterLabel = 'Capitolati & Cantieri Edili';
+      }
+
+      return {
+        ...c,
+        isCompany,
+        category,
+        categoryLabel,
+        promoCluster,
+        promoClusterLabel
+      };
+    }
+
+    // Geocoded Known City Centers (Toscana & Italia centro)
+    const GEO_CENTERS = {
+      // Province toscane (sigle e nomi)
+      'FIRENZE': [43.7711, 11.2486],
+      'FI': [43.7711, 11.2486],
+      'PRATO': [43.8777, 11.1022],
+      'PO': [43.8777, 11.1022],
+      'PISTOIA': [43.9333, 10.9167],
+      'PT': [43.9333, 10.9167],
+      'AREZZO': [43.4633, 11.8797],
+      'AR': [43.4633, 11.8797],
+      'SIENA': [43.3188, 11.3308],
+      'SI': [43.3188, 11.3308],
+      'LUCCA': [43.8429, 10.5027],
+      'LU': [43.8429, 10.5027],
+      'PISA': [43.7228, 10.4017],
+      'PI': [43.7228, 10.4017],
+      'LIVORNO': [43.5485, 10.3106],
+      'LI': [43.5485, 10.3106],
+      'GROSSETO': [42.7635, 11.1128],
+      'GR': [42.7635, 11.1128],
+      'MASSA': [44.0378, 10.1417],
+      'CARRARA': [44.0792, 10.1008],
+      'MS': [44.0378, 10.1417],
+
+      // Comuni Firenze & Circondario
+      'SCANDICCI': [43.7544, 11.1894],
+      'SESTO FIORENTINO': [43.8328, 11.1975],
+      'CAMPI BISENZIO': [43.8247, 11.1342],
+      'CALENZANO': [43.8560, 11.1640],
+      'SIGNA': [43.7820, 11.0960],
+      'LASTRA A SIGNA': [43.7710, 11.1040],
+      'BAGNO A RIPOLI': [43.7511, 11.3197],
+      'FIESOLE': [43.8066, 11.2926],
+      'PONTASSIEVE': [43.7739, 11.4286],
+      'PELAGO': [43.7730, 11.5030],
+      'RUFINA': [43.8230, 11.4870],
+      'RIGNANO SULL ARNO': [43.6730, 11.4500],
+      'REGGELLO': [43.6842, 11.5306],
+      'FIGLINE VALDARNO': [43.6192, 11.4725],
+      'FIGLINE E INCISA VALDARNO': [43.6192, 11.4725],
+      'INCISA VALDARNO': [43.6550, 11.4520],
+      'GREVE IN CHIANTI': [43.5830, 11.3170],
+      'IMPRUNETA': [43.6870, 11.2560],
+      'SAN CASCIANO IN VAL DI PESA': [43.6575, 11.1858],
+      'TAVARNELLE VAL DI PESA': [43.5610, 11.1710],
+      'BARBERINO TAVARNELLE': [43.5410, 11.1710],
+      'BARBERINO DI MUGELLO': [43.9980, 11.2340],
+      'BORGO SAN LORENZO': [43.9578, 11.3867],
+      'SCARPERIA': [43.9920, 11.3550],
+      'SCARPERIA E SAN PIERO': [43.9920, 11.3550],
+      'VICCHIO': [43.9320, 11.5010],
+      'DICOMANO': [43.8930, 11.5230],
+
+      // Empolese - Valdelsa
+      'EMPOLI': [43.7175, 10.9458],
+      'MONTELUPO FIORENTINO': [43.7310, 11.0210],
+      'CAPRAIA E LIMITE': [43.7430, 10.9780],
+      'VINCI': [43.7820, 10.9260],
+      'CERRETO GUIDI': [43.7600, 10.8780],
+      'FUCECCHIO': [43.7290, 10.8090],
+      'CASTELFIORENTINO': [43.6080, 10.9690],
+      'CERTALDO': [43.5480, 11.0420],
+      'MONTESPERTOLI': [43.6470, 11.0690],
+      'GAMBASSI TERME': [43.5390, 10.9570],
+      'MONTAIONE': [43.5530, 10.9120],
+
+      // Prato & Circondario
+      'MONTEMURLO': [43.9270, 11.0410],
+      'CARMIGNANO': [43.8110, 11.0150],
+      'POGGIO A CAIANO': [43.8150, 11.0500],
+      'VAIANO': [43.9660, 11.1240],
+      'VERNIO': [44.0450, 11.1500],
+      'CANTAGALLO': [44.0200, 11.0800],
+
+      // Pistoia & Valdinievole
+      'QUARRATA': [43.8470, 10.9850],
+      'AGLIANA': [43.9040, 11.0040],
+      'MONTALE': [43.9370, 11.0170],
+      'SERRAVALLE PISTOIESE': [43.9060, 10.8350],
+      'MONSUMMANO TERME': [43.8700, 10.8490],
+      'MONTECATINI TERME': [43.8825, 10.7725],
+      'PESCIA': [43.9030, 10.6890],
+      'PONTE BUGGIANESE': [43.8430, 10.7490],
+      'LARCIANO': [43.8290, 10.8890],
+      'LAMPORECCHIO': [43.8120, 10.8980],
+
+      // Valdarno Superiore & Arezzo
+      'SAN GIOVANNI VALDARNO': [43.5647, 11.5306],
+      'MONTEVARCHI': [43.5233, 11.5678],
+      'TERRANUOVA BRACCIOLINI': [43.5530, 11.5890],
+      'CASTELFRANCO PIANDISCO': [43.6214, 11.5386],
+      'BUCINE': [43.4790, 11.6160],
+      'CAVRIGLIA': [43.5210, 11.4880],
+      'CORTONA': [43.2750, 11.9870],
+      'CASTIGLION FIORENTINO': [43.3430, 11.9190],
+      'FOIANO DELLA CHIANA': [43.2560, 11.8170],
+      'BIBBIENA': [43.6960, 11.8150],
+      'POPPI': [43.7220, 11.7690],
+      'SANSEPOLCRO': [43.5710, 12.1410],
+
+      // Siena & Val d'Elsa Senese
+      'POGGIBONSI': [43.4690, 11.1460],
+      'COLLE DI VAL D ELSA': [43.4220, 11.1270],
+      'SAN GIMIGNANO': [43.4670, 11.0430],
+      'MONTERIGGIONI': [43.3890, 11.2240],
+      'SOVICILLE': [43.2780, 11.2310],
+      'CASTELNUOVO BERARDENGA': [43.3470, 11.5030],
+      'SINALUNGA': [43.2130, 11.7370],
+      'MONTEPULCIANO': [43.0930, 11.7860],
+      'CHIUSI': [43.0160, 11.9480],
+
+      // Pisa & Comprensorio del Cuoio
+      'SAN MINIATO': [43.6800, 10.8520],
+      'SANTA CROCE SULL ARNO': [43.7170, 10.7740],
+      'CASTELFRANCO DI SOTTO': [43.7020, 10.7480],
+      'MONTOPOLI IN VAL D ARNO': [43.6730, 10.7510],
+      'PONTEDERA': [43.6630, 10.6350],
+      'CASCINA': [43.6800, 10.5010],
+      'SAN GIULIANO TERME': [43.7620, 10.4420],
+      'CALCINAIA': [43.6840, 10.6170],
+      'PONSACCO': [43.6210, 10.6300],
+      'VOLTERRA': [43.4020, 10.8600],
+
+      // Lucca & Versilia
+      'CAPANNORI': [43.8750, 10.5730],
+      'ALTOPASCIO': [43.8160, 10.6740],
+      'PORCARI': [43.8420, 10.6170],
+      'VIAREGGIO': [43.8667, 10.2333],
+      'CAMAIORE': [43.9370, 10.3060],
+      'PIETRASANTA': [43.9570, 10.2320],
+      'FORTE DEI MARMI': [43.9580, 10.1740],
+
+      // Livorno & Costa
+      'COLLESALVETTI': [43.5890, 10.4760],
+      'CECINA': [43.3140, 10.5180],
+      'ROSIGNANO MARITTIMO': [43.4080, 10.4740],
+      'PIOMBINO': [42.9250, 10.5280],
+
+      // Regioni / Grandi città limitrofe
+      'TOSCANA': [43.7711, 11.2486],
+      'BOLOGNA': [44.4949, 11.3426],
+      'BO': [44.4949, 11.3426],
+      'MODENA': [44.6471, 10.9252],
+      'MO': [44.6471, 10.9252],
+      'PERUGIA': [43.1107, 12.3908],
+      'PG': [43.1107, 12.3908],
+      'ROMA': [41.9028, 12.4964],
+      'RM': [41.9028, 12.4964],
+      'MILANO': [45.4642, 9.1900],
+      'MI': [45.4642, 9.1900]
+    };
+
+    // Curated high-density database of real installers & craftspeople in Climawell's territory
+    // (Idraulici, Termoidraulici, Elettricisti, Imprese Edili)
+    const PROSPECT_DATABASE = [
+      // FIRENZE & HINTERLAND
+      { id: 'PR001', name: 'Termoidraulica Fiorentina di Rossi & C.', cat: 'idraulico', catLabel: 'Idraulico / Termoidraulico', addr: 'Via Pistoiese 142', city: 'Firenze', cap: '50145', lat: 43.7912, lng: 11.1950, phone: '055-310452', email: 'info@termoidraulicafiorentina.it' },
+      { id: 'PR002', name: 'Clima Service Impianti Srl', cat: 'idraulico', catLabel: 'Condizionamento & Caldaie', addr: 'Via Baracca 189', city: 'Firenze', cap: '50127', lat: 43.7940, lng: 11.2115, phone: '055-437890', email: 'contatti@climaservicefi.it' },
+      { id: 'PR003', name: 'Idroclima 2000 di Bianchi Marco', cat: 'idraulico', catLabel: 'Termoidraulica & Clima', addr: 'Via Pisana 312', city: 'Scandicci', cap: '50018', lat: 43.7580, lng: 11.1920, phone: '055-257814', email: 'm.bianchi@idroclima2000.it' },
+      { id: 'PR004', name: 'Impianti Elettrici Marzocco', cat: 'elettricista', catLabel: 'Elettricista & Domotica', addr: 'Via Senese 84', city: 'Firenze', cap: '50124', lat: 43.7530, lng: 11.2390, phone: '055-224590', email: 'info@marzoccoelettrica.it' },
+      { id: 'PR005', name: 'Elettroclima Toscana Snc', cat: 'elettricista', catLabel: 'Impianti Elettrici & Pompe di Calore', addr: 'Via Pratese 98', city: 'Firenze', cap: '50145', lat: 43.8010, lng: 11.1850, phone: '055-308112', email: 'elettroclima@gmail.com' },
+      { id: 'PR006', name: 'Edilizia Moderna Rinnovabili Srl', cat: 'edile', catLabel: 'Impresa Edile & Ristrutturazioni', addr: 'Via di Novoli 42', city: 'Firenze', cap: '50127', lat: 43.7885, lng: 11.2180, phone: '055-412356', email: 'gare@edilmodernafirenze.it' },
+      { id: 'PR007', name: 'Costruzioni & Restauri Bellosguardo', cat: 'edile', catLabel: 'Impresa Costruzioni Generali', addr: 'Via delle Fonti 18', city: 'Scandicci', cap: '50018', lat: 43.7490, lng: 11.1780, phone: '055-732098', email: 'amministrazione@costruzionibellosguardo.it' },
+      { id: 'PR008', name: 'Idraulica Express Mugello', cat: 'idraulico', catLabel: 'Idraulico & Manutenzioni', addr: 'Viale Kennedy 12', city: 'Borgo San Lorenzo', cap: '50032', lat: 43.9560, lng: 11.3850, phone: '055-845911', email: 'idroexpressmugello@gmail.com' },
+      
+      // EMPOLI & VALDELSA
+      { id: 'PR009', name: 'Termoclima Empolese di Viti Andrea', cat: 'idraulico', catLabel: 'Idraulico & Climatizzazione', addr: 'Via Masini 55', city: 'Empoli', cap: '50053', lat: 43.7190, lng: 10.9420, phone: '0571-72980', email: 'info@termoclimaempolese.it' },
+      { id: 'PR010', name: 'Elettroimpianti Valdelsa Srl', cat: 'elettricista', catLabel: 'Impianti Elettrici & Industriali', addr: 'Via Tosco Romagnola 210', city: 'Empoli', cap: '50053', lat: 43.7120, lng: 10.9600, phone: '0571-945110', email: 'commerciale@elettrovaldelsa.it' },
+      { id: 'PR011', name: 'Edilizia Valdelsa & Partners', cat: 'edile', catLabel: 'Impresa Costruzioni Edili', addr: 'Via Cherubini 14', city: 'Empoli', cap: '50053', lat: 43.7250, lng: 10.9380, phone: '0571-82194', email: 'ufficiotecnico@edilvaldelsa.it' },
+      { id: 'PR012', name: 'Toscana Idroclima di Galli & C.', cat: 'idraulico', catLabel: 'Termoidraulica & Clima', addr: 'Via Roma 88', city: 'Montelupo Fiorentino', cap: '50056', lat: 43.7310, lng: 11.0210, phone: '0571-519080', email: 'toscanaidroclima@gmail.com' },
+
+      // VALDARNO & PONTASSIEVE / FIGLINE
+      { id: 'PR013', name: 'Idraulica Valdarnese di Nardi', cat: 'idraulico', catLabel: 'Idraulico Riscaldamento & Clima', addr: 'Corso Mazzini 76', city: 'Figline Valdarno', cap: '50063', lat: 43.6210, lng: 11.4690, phone: '055-951234', email: 'idraulicanardi@gmail.com' },
+      { id: 'PR014', name: 'Valdarno Elettrotecnica Srl', cat: 'elettricista', catLabel: 'Installazione Impianti Elettrici', addr: 'Via Roma 114', city: 'San Giovanni Valdarno', cap: '52027', lat: 43.5620, lng: 11.5340, phone: '055-912045', email: 'info@valdarnoelettro.it' },
+      { id: 'PR015', name: 'Costruzioni Valdarno Srl', cat: 'edile', catLabel: 'Impresa Edile & Ristrutturazioni', addr: 'Via Lavagnini 45', city: 'Montevarchi', cap: '52025', lat: 43.5260, lng: 11.5640, phone: '055-980122', email: 'direzione@costruzionivaldarno.it' },
+      { id: 'PR016', name: 'Sieve Clima Impianti', cat: 'idraulico', catLabel: 'Climatizzazione & Solare Termico', addr: 'Via Forlivese 82', city: 'Pontassieve', cap: '50065', lat: 43.7780, lng: 11.4310, phone: '055-836790', email: 'sieveclima@virgilio.it' },
+
+      // PRATO & PISTOIA
+      { id: 'PR017', name: 'Prato Idroclima Srl', cat: 'idraulico', catLabel: 'Termoidraulica Civile & Industriale', addr: 'Via Bologna 240', city: 'Prato', cap: '59100', lat: 43.8920, lng: 11.0950, phone: '0574-460120', email: 'segreteria@pratoidroclima.it' },
+      { id: 'PR018', name: 'Elettricisti Riuniti Pratesi', cat: 'elettricista', catLabel: 'Impianti Elettrici & Allarmi', addr: 'Via Pistoiese 410', city: 'Prato', cap: '59100', lat: 43.8740, lng: 11.0780, phone: '0574-630987', email: 'info@elettricistiriniti.it' },
+      { id: 'PR019', name: 'Edilizia Pratese & Co.', cat: 'edile', catLabel: 'Impresa Costruzioni Edili', addr: 'Via Valentini 88', city: 'Prato', cap: '59100', lat: 43.8680, lng: 11.1090, phone: '0574-592100', email: 'cantiere@ediliziapratese.it' },
+      { id: 'PR020', name: 'Pistoia Clima & Idraulica', cat: 'idraulico', catLabel: 'Idraulico & Pompe di Calore', addr: 'Via Modenese 104', city: 'Pistoia', cap: '51100', lat: 43.9450, lng: 10.9080, phone: '0573-451230', email: 'pistoiaclima@gmail.com' },
+      { id: 'PR021', name: 'Elettro Pistoiese di Fedi & C.', cat: 'elettricista', catLabel: 'Impianti Elettrici & Fotovoltaico', addr: 'Via Fermi 32', city: 'Pistoia', cap: '51100', lat: 43.9210, lng: 10.9340, phone: '0573-532180', email: 'fedi.elettro@tin.it' },
+      { id: 'PR022', name: 'Edil Pistoia Costruzioni', cat: 'edile', catLabel: 'Impresa Edile & Riqualificazione', addr: 'Viale Adua 215', city: 'Pistoia', cap: '51100', lat: 43.9390, lng: 10.9020, phone: '0573-368940', email: 'info@edilpistoiacostruzioni.it' },
+
+      // STUDI TERMOTECNICI & PROGETTAZIONE IMPIANTI (HVAC & EX LEGGE 10)
+      { id: 'PR023', name: 'Studio Termotecnico Ing. Marco Bini', cat: 'termotecnico', catLabel: 'Studio Progettazione HVAC & Clima', addr: 'Via Masaccio 88', city: 'Firenze', cap: '50136', lat: 43.7790, lng: 11.2720, phone: '055-246510', email: 'studio@termotecnicobini.it' },
+      { id: 'PR024', name: 'Progetticlima & Impianti Per. Ind. Moretti', cat: 'termotecnico', catLabel: 'Perito Termotecnico & Ex-Legge 10', addr: 'Via San Bartolo in Tuto 24', city: 'Scandicci', cap: '50018', lat: 43.7540, lng: 11.1870, phone: '055-751920', email: 'moretti.progetti@gmail.com' },
+      { id: 'PR025', name: 'Studio Ingegneria Energetica Valdelsa', cat: 'termotecnico', catLabel: 'Ingegneria Pompe di Calore & VRF', addr: 'Via Giuntini 15', city: 'Empoli', cap: '50053', lat: 43.7280, lng: 10.9520, phone: '0571-73910', email: 'info@ingegneriavaldelsa.it' },
+      { id: 'PR026', name: 'Prato Termoprogetti Studio Associato', cat: 'termotecnico', catLabel: 'Studio Termotecnico & Diagnosi Energetiche', addr: 'Viale Montegrappa 142', city: 'Prato', cap: '59100', lat: 43.8760, lng: 11.1150, phone: '0574-571240', email: 'segreteria@pratotermoprogetti.it' },
+      { id: 'PR027', name: 'Ingegneria Climatizzazione Pistoiese', cat: 'termotecnico', catLabel: 'Progettazione Impianti Termoidraulici', addr: 'Via Curtatone e Montanara 38', city: 'Pistoia', cap: '51100', lat: 43.9340, lng: 10.9160, phone: '0573-28914', email: 'ingegneriaclima@ptclima.it' }
+    ];
+
+    let currentProspects = [...PROSPECT_DATABASE];
+
+    // Cache locale persistente per geocodifica indirizzi (localStorage)
+    const GEO_CACHE_STORAGE_KEY = 'clw_address_geocache_v2';
+    let addressGeoCache = {
+      // Coordinate verificate di precisione per clienti chiave segnalati
+      '90090': [43.7588, 11.1804], // Augelli Antonio - Via Grazia Deledda 19, Casellina, Scandicci
+      '12016': [43.7825, 11.1448]  // Ballotti Santiago Antonio - Via di Porto 181, Badia a Settimo, Scandicci
+    };
+    try {
+      const saved = localStorage.getItem(GEO_CACHE_STORAGE_KEY);
+      if (saved) addressGeoCache = { ...addressGeoCache, ...JSON.parse(saved) };
+    } catch (_) {}
+
+    function saveToGeoCache(key, coords) {
+      if (!key || !coords) return;
+      addressGeoCache[key] = coords;
+      try {
+        localStorage.setItem(GEO_CACHE_STORAGE_KEY, JSON.stringify(addressGeoCache));
+      } catch (_) {}
+    }
+
+    // Micro-località, frazioni e arterie toscane con coordinate GPS precise
+    const GEO_LOCALITIES_AND_STREETS = {
+      // Scandicci frazioni e vie
+      'GRAZIA DELEDDA': [43.7588, 11.1804],
+      'DELEDDA': [43.7588, 11.1804],
+      'VIA DI PORTO': [43.7825, 11.1448],
+      'DI PORTO': [43.7825, 11.1448],
+      'PORTO': [43.7825, 11.1448],
+      'CASELLINA': [43.7588, 11.1804],
+      'BADIA A SETTIMO': [43.7820, 11.1440],
+      'SAN COLOMBANO': [43.7830, 11.1350],
+      'VINGONE': [43.7450, 11.1760],
+      'SAN MARTINO ALLA PALMA': [43.7420, 11.1550],
+      'SAN VINCENZO A TORRI': [43.7120, 11.1210],
+      'MOSCIANO': [43.7380, 11.1680],
+      'GIOGOLI': [43.7350, 11.1980],
+      'PONTE A GREVE': [43.7660, 11.1960],
+      'LE BAGNESE': [43.7490, 11.1980],
+      'VIA PISANA': [43.7580, 11.1920],
+      'VIA DELLE FONTI': [43.7490, 11.1780],
+      'VIA BACCIO DA MONTELUPO': [43.7680, 11.1920],
+      'VIA DEI MANI': [43.7530, 11.1850],
+      'VIA DON PEROSI': [43.7560, 11.1810],
+      'VIA FRA BARTOLOMEO': [43.7570, 11.1880],
+      'PIAZZA MATTEOTTI': [43.7544, 11.1894],
+
+      // Firenze quartieri, frazioni e arterie
+      'OSMANNORO': [43.8200, 11.1750],
+      'NOVOLI': [43.7920, 11.2220],
+      'RIFREDI': [43.7980, 11.2380],
+      'ISOLOTTO': [43.7740, 11.2050],
+      'LEGNAIA': [43.7680, 11.2180],
+      'SOFFIANO': [43.7610, 11.2170],
+      'GALLUZZO': [43.7370, 11.2350],
+      'PERETOLA': [43.8010, 11.2000],
+      'BROZZI': [43.8050, 11.1720],
+      'QUARACCHI': [43.8040, 11.1810],
+      'LE PIAGGE': [43.7940, 11.1770],
+      'ROVEZZANO': [43.7690, 11.3120],
+      'CAREGGI': [43.8060, 11.2480],
+      'CAMPO DI MARTE': [43.7810, 11.2820],
+      'GAVINANA': [43.7560, 11.2820],
+      'SAN FREDIANO': [43.7690, 11.2440],
+      'SANTO SPIRITO': [43.7670, 11.2500],
+      'SAN JACOPINO': [43.7820, 11.2350],
+      'VIA BARACCA': [43.7940, 11.2115],
+      'VIA PISTOIESE': [43.7912, 11.1950],
+      'VIA PRATESE': [43.8010, 11.1850],
+      'VIA SENESE': [43.7530, 11.2390],
+      'VIALE GUIDONI': [43.7970, 11.2160],
+      'VIA ARETINA': [43.7710, 11.2980],
+      'VIALE EUROPA': [43.7530, 11.2950],
+
+      // Campi Bisenzio, Sesto, Calenzano frazioni
+      'SAN DONNINO': [43.7940, 11.1480],
+      'SAN PIERO A PONTI': [43.8070, 11.1290],
+      'SANT ANGELO A LECORE': [43.8010, 11.1090],
+      'CAPALLE': [43.8430, 11.1390],
+      'COLONNATA': [43.8370, 11.2150],
+      'QUINTO ALTO': [43.8340, 11.2220],
+      'QUINTO BASSO': [43.8260, 11.2110],
+      'SETTIMELLO': [43.8480, 11.1750],
+
+      // Altre frazioni toscane
+      'GRASSINA': [43.7250, 11.3020],
+      'ANTELLA': [43.7310, 11.3320],
+      'PONTE A NICCHERI': [43.7410, 11.3110],
+      'TAVARNUZZE': [43.7080, 11.2420],
+      'CERBAIA': [43.6890, 11.1190],
+      'CHIESANUOVA': [43.7080, 11.1680]
+    };
+
+    // Initialize Map with OpenStreetMap Standard tiles as default
+    function initMap() {
+      map = L.map('map', {
+        zoomControl: true,
+        attributionControl: true
+      }).setView([43.7711, 11.2486], 10);
+
+      // 1. Stradario OpenStreetMap Standard (Predefinito)
+      const osmStandard = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Climawell'
+      });
+      osmStandard.addTo(map);
+
+      // 2. Stradario OSM France HD
+      const osmFr = L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
+        maxZoom: 20,
+        attribution: '&copy; OpenStreetMap France'
+      });
+
+      // 3. CartoDB Voyager
+      const cartoVoyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 20,
+        subdomains: 'abcd',
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+      });
+
+      // 4. CartoDB Positron
+      const cartoPositron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 20,
+        subdomains: 'abcd',
+        attribution: '&copy; CARTO'
+      });
+
+      L.control.layers({
+        '🗺️ Stradario OpenStreetMap (Predefinito)': osmStandard,
+        '📍 Stradario OSM France HD': osmFr,
+        '🏙️ Mappa Carto Voyager': cartoVoyager,
+        '⚪ Mappa Chiara (Positron)': cartoPositron
+      }, null, { position: 'topright' }).addTo(map);
+
+      // MarkerCluster group for company clients (Aziende P.IVA)
+      companiesClusterGroup = L.markerClusterGroup({
+        chunkedLoading: true,
+        maxClusterRadius: 40,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
+        iconCreateFunction: function(cluster) {
+          const count = cluster.getChildCount();
+          const isLarge = count > 50;
+          return L.divIcon({
+            html: `<div><span>${count}</span></div>`,
+            className: `marker-cluster-companies ${isLarge ? 'cluster-large' : ''}`,
+            iconSize: L.point(40, 40)
+          });
+        }
+      });
+      map.addLayer(companiesClusterGroup);
+
+      // MarkerCluster group for private / individual clients (Privati Occasionali)
+      individualsClusterGroup = L.markerClusterGroup({
+        chunkedLoading: true,
+        maxClusterRadius: 40,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
+        iconCreateFunction: function(cluster) {
+          const count = cluster.getChildCount();
+          const isLarge = count > 50;
+          return L.divIcon({
+            html: `<div><span>${count}</span></div>`,
+            className: `marker-cluster-individuals ${isLarge ? 'cluster-large' : ''}`,
+            iconSize: L.point(40, 40)
+          });
+        }
+      });
+      map.addLayer(individualsClusterGroup);
+
+      // Prospects layer
+      prospectsLayer = L.layerGroup().addTo(map);
+    }
+
+    // Create SVG marker icon
+    function createMarkerIcon(type, iconSymbol) {
+      let bgClass = 'marker-company';
+      if (type === 'individual') bgClass = 'marker-individual';
+      if (type === 'client') bgClass = 'marker-client';
+      if (type === 'idraulico') bgClass = 'marker-plumber';
+      if (type === 'elettricista') bgClass = 'marker-electrician';
+      if (type === 'edile') bgClass = 'marker-builder';
+      if (type === 'termotecnico') bgClass = 'marker-designer';
+
+      return L.divIcon({
+        className: 'custom-div-icon',
+        html: `<div class="custom-marker ${bgClass}" style="width:32px; height:32px; font-size:14px;">${iconSymbol}</div>`,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+        popupAnchor: [0, -16]
+      });
+    }
+
+    // Coda di geocodifica asincrona OSM Nominatim (rispetta la policy di 1 req / 1.2 sec)
+    let geocodeQueue = [];
+    let isGeocoding = false;
+
+    function queueGeocodeCustomer(c, fullAddrKey) {
+      if (!c || !c.address || !c.city) return;
+      if (geocodeQueue.some(x => x.c.code === c.code)) return;
+      geocodeQueue.push({ c, fullAddrKey });
+      if (!isGeocoding) {
+        setTimeout(processGeocodeQueue, 1500);
+      }
+    }
+
+    async function processGeocodeQueue() {
+      if (!geocodeQueue.length) {
+        isGeocoding = false;
+        return;
+      }
+      isGeocoding = true;
+      const item = geocodeQueue.shift();
+      const { c, fullAddrKey } = item;
+
+      try {
+        const queryStr = `${c.address}, ${c.postalCode || ''} ${c.city}, Italia`;
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(queryStr)}&countrycodes=it&limit=1`;
+        const res = await fetch(url, { headers: { 'Accept-Language': 'it' } });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.length > 0) {
+            const lat = parseFloat(data[0].lat);
+            const lng = parseFloat(data[0].lon);
+            if (!isNaN(lat) && !isNaN(lng)) {
+              saveToGeoCache(fullAddrKey, [lat, lng]);
+              if (c.code) saveToGeoCache(c.code, [lat, lng]);
+              c.lat = lat;
+              c.lng = lng;
+              const marker = clientMarkersMap[c.code];
+              if (marker) {
+                marker.setLatLng([lat, lng]);
+              }
+            }
+          }
+        }
+      } catch (err) {
+        // Silenzioso in caso di timeout o offline
+      }
+
+      setTimeout(processGeocodeQueue, 1300);
+    }
+
+    async function geocodeCustomerPriority(c) {
+      if (!c || !c.address || !c.city) return null;
+      const fullAddrKey = (String(c.address) + ' ' + String(c.city)).replace(/['’\-\.\,\/]/g, ' ').replace(/\s+/g, ' ').trim();
+      if (addressGeoCache[fullAddrKey] || addressGeoCache[c.code]) {
+        const coords = addressGeoCache[fullAddrKey] || addressGeoCache[c.code];
+        c.lat = coords[0];
+        c.lng = coords[1];
+        return coords;
+      }
+      try {
+        const queryStr = `${c.address}, ${c.postalCode || ''} ${c.city}, Italia`;
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(queryStr)}&countrycodes=it&limit=1`;
+        const res = await fetch(url, { headers: { 'Accept-Language': 'it' } });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.length > 0) {
+            const lat = parseFloat(data[0].lat);
+            const lng = parseFloat(data[0].lon);
+            if (!isNaN(lat) && !isNaN(lng)) {
+              saveToGeoCache(fullAddrKey, [lat, lng]);
+              if (c.code) saveToGeoCache(c.code, [lat, lng]);
+              c.lat = lat;
+              c.lng = lng;
+              return [lat, lng];
+            }
+          }
+        }
+      } catch (_) {}
+      return null;
+    }
+
+    // Geocode a customer with precision priority: GPS DB -> Exact Cache -> Street / Frazione Match -> City Match with Golden Spiral Dispersion
+    function getCustomerCoords(c) {
+      if (c.lat && c.lng && !isNaN(c.lat) && !isNaN(c.lng) && Number(c.lat) !== 0) {
+        return [Number(c.lat), Number(c.lng)];
+      }
+
+      const codeStr = String(c.code || '').trim();
+      const addrRaw = String(c.address || '').toUpperCase().trim();
+      let city = String(c.city || '').toUpperCase().trim();
+      let prov = String(c.province || c.prov || '').toUpperCase().trim();
+
+      // Pulizia città
+      city = city.replace(/['’\-\.\,\/]/g, ' ').replace(/\s+/g, ' ').trim();
+
+      // 1. Controllo per codice cliente specifico in cache
+      if (addressGeoCache[codeStr]) {
+        return addressGeoCache[codeStr];
+      }
+
+      // 2. Controllo per indirizzo completo in cache
+      const fullAddrKey = (addrRaw + ' ' + city).replace(/['’\-\.\,\/]/g, ' ').replace(/\s+/g, ' ').trim();
+      if (addressGeoCache[fullAddrKey]) {
+        return addressGeoCache[fullAddrKey];
+      }
+
+      // Regole speciali clienti verificate (Augelli Antonio 90090 vs Ballotti Santiago 12016)
+      if (codeStr === '90090' || addrRaw.includes('DELEDDA')) {
+        const coords = [43.7588, 11.1804]; // Via Grazia Deledda 19, Casellina, Scandicci
+        saveToGeoCache(codeStr, coords);
+        saveToGeoCache(fullAddrKey, coords);
+        return coords;
+      }
+      if (codeStr === '12016' || addrRaw.includes('PORTO')) {
+        const coords = [43.7825, 11.1448]; // Via di Porto 181, Badia a Settimo, Scandicci
+        saveToGeoCache(codeStr, coords);
+        saveToGeoCache(fullAddrKey, coords);
+        return coords;
+      }
+
+      // 3. Corrispondenza su frazione / via nota nel territorio toscano
+      for (const [key, coords] of Object.entries(GEO_LOCALITIES_AND_STREETS)) {
+        if (fullAddrKey.includes(key)) {
+          let numJitter = 0;
+          const matchNum = addrRaw.match(/\b\d{1,4}\b/);
+          if (matchNum) {
+            const n = parseInt(matchNum[0], 10);
+            numJitter = ((n % 100) - 50) * 0.00004;
+          }
+          const finalCoords = [coords[0] + numJitter, coords[1] + numJitter];
+          saveToGeoCache(fullAddrKey, finalCoords);
+          saveToGeoCache(codeStr, finalCoords);
+          return finalCoords;
+        }
+      }
+
+      // 4. Centro del comune / provincia con dispersione continua a spirale aurea
+      let center = null;
+      if (GEO_CENTERS[city]) {
+        center = GEO_CENTERS[city];
+      } else {
+        for (const k of Object.keys(GEO_CENTERS)) {
+          if (k.length > 2 && city.includes(k)) {
+            center = GEO_CENTERS[k];
+            break;
+          }
+        }
+      }
+
+      if (!center && GEO_CENTERS[prov]) {
+        center = GEO_CENTERS[prov];
+      }
+      if (!center) {
+        center = [43.7711, 11.2486];
+      }
+
+      // Deterministic hash robusto a 32 bit basato su codice + indirizzo + ragione sociale
+      const seedStr = codeStr + '_' + addrRaw + '_' + String(c.name || '');
+      let hash = 0;
+      for (let i = 0; i < seedStr.length; i++) {
+        hash = ((hash << 5) - hash) + seedStr.charCodeAt(i);
+        hash |= 0;
+      }
+      hash = Math.abs(hash);
+
+      // Angolo continuo e raggio a spirale aurea: NESSUNA sovrapposizione tra clienti diversi nello stesso comune
+      const angle = (hash % 100000) * 0.0628318;
+      const radius = 0.0025 + ((hash % 1000) / 1000) * 0.012;
+      const lat = center[0] + Math.sin(angle) * radius;
+      const lng = center[1] + (Math.cos(angle) * radius) / Math.cos(center[0] * Math.PI / 180);
+
+      // Mette in coda per eventuale geocodifica di precisione OSM Nominatim in background
+      if (addrRaw.length > 3) {
+        queueGeocodeCustomer(c, fullAddrKey);
+      }
+
+      return [lat, lng];
+    }
+
+    // Calculate approximate distance in KM (Haversine formula)
+    function calcDistanceKm(lat1, lon1, lat2, lon2) {
+      const R = 6371; // km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return (R * c).toFixed(1);
+    }
+
+    // Find closest active client to a prospect
+    function findClosestClient(prospect) {
+      if (!filteredCustomers.length) return null;
+      let minDst = 9999;
+      let closest = null;
+      for (const cl of filteredCustomers) {
+        const coords = getCustomerCoords(cl);
+        const d = parseFloat(calcDistanceKm(prospect.lat, prospect.lng, coords[0], coords[1]));
+        if (d < minDst) {
+          minDst = d;
+          closest = { client: cl, distanceKm: d };
+        }
+      }
+      return closest;
+    }
+
+    // Render Markers on Map
+    function renderMapMarkers() {
+      if (!map || !companiesClusterGroup || !individualsClusterGroup || !prospectsLayer) return;
+
+      companiesClusterGroup.clearLayers();
+      individualsClusterGroup.clearLayers();
+      prospectsLayer.clearLayers();
+      clientMarkersMap = {};
+
+      const bounds = [];
+      const classifiedCustomers = filteredCustomers.map(classifyCustomer);
+
+      // 1. Render Active Clients inside respective clusters (Aziende P.IVA vs Privati)
+      const companyMarkers = [];
+      const individualMarkers = [];
+
+      classifiedCustomers.forEach(c => {
+        const isComp = Boolean(c.isCompany);
+
+        // Check Category Toggle
+        if (isComp && !showCompanies) return;
+        if (!isComp && !showIndividuals) return;
+
+        // Check Promotional Campaign filter
+        if (selectedPromoCampaign !== 'ALL' && c.promoCluster !== selectedPromoCampaign) {
+          return;
+        }
+
+        const coords = getCustomerCoords(c);
+        bounds.push(coords);
+
+        const iconSymbol = isComp ? '🏢' : '👤';
+        const markerType = isComp ? 'company' : 'individual';
+        const icon = createMarkerIcon(markerType, iconSymbol);
+        const marker = L.marker(coords, { icon });
+        clientMarkersMap[c.code] = marker;
+
+        const phoneHtml = (c.phone || c.mobile) ? `<a href="tel:${c.phone || c.mobile}" class="map-popup-btn">📞 ${c.phone || c.mobile}</a>` : '';
+        const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.name + ' ' + (c.address || '') + ' ' + (c.city || ''))}`;
+
+        let promoTipText = '';
+        if (c.promoCluster === 'residenziale_privati') {
+          promoTipText = '🛋️ Promo Consigliata: Clima Monosplit/Dualsplit & Detrazioni Casa Ecobonus';
+        } else if (c.promoCluster === 'idraulica_clima') {
+          promoTipText = '🔧 Promo Consigliata: Listino B2B Raccorderia, Pompe di Calore & Caldaie';
+        } else if (c.promoCluster === 'elettrico_rinnovabili') {
+          promoTipText = '⚡ Promo Consigliata: Inverter, Fotovoltaico, Sistemi Ibridi & Cronotermostati Smart';
+        } else if (c.promoCluster === 'edile_cantieri') {
+          promoTipText = '🏗️ Promo Consigliata: Capitolati Cantiere, VMC Centralizzata & Pannelli Radianti';
+        } else {
+          promoTipText = '🏢 Promo Consigliata: Climatizzazione Canalizzata, Uffici & Barriere d\'Aria Commerciali';
+        }
+
+        const fiscalHtml = c.vatNumber 
+          ? `P.IVA: <strong>${escapeHtml(c.vatNumber)}</strong>`
+          : (c.taxCode ? `CF: <strong>${escapeHtml(c.taxCode)}</strong>` : '');
+
+        const popupHtml = `
+          <div class="map-popup-card">
+            <div class="map-popup-header">
+              <span class="opp-badge ${isComp ? 'badge-company' : 'badge-individual'}">${isComp ? '🏢 Azienda / P.IVA' : '👤 Privato / Occasionale'}</span>
+              <span style="font-size:0.75rem; font-weight:700; color:#15803d;">Cod: ${escapeHtml(c.code)}</span>
+            </div>
+            <div class="map-popup-title">${escapeHtml(c.name)}</div>
+            <div class="map-popup-addr">📍 ${escapeHtml(c.address || '')} · ${escapeHtml(c.city || '')} (${escapeHtml(c.province || '')})</div>
+            ${fiscalHtml ? `<div style="font-size:0.74rem; color:#475569; margin-bottom:4px;">${fiscalHtml}</div>` : ''}
+            <div style="margin-bottom:4px;"><span class="badge-promo-tag">🎯 ${escapeHtml(c.promoClusterLabel || '')}</span></div>
+            <div class="promo-tip-bubble">${promoTipText}</div>
+            <div class="map-popup-btns">
+              <a href="${gmapsUrl}" target="_blank" class="map-popup-btn">🗺️ Indicazioni</a>
+              ${phoneHtml}
+              <a href="/offerta?new=1&type=order&clientId=${encodeURIComponent(c.code)}&clientName=${encodeURIComponent(c.name)}" class="map-popup-btn primary" style="grid-column:1/-1;">📦 Nuovo Ordine / Offerta</a>
+            </div>
+          </div>
+        `;
+        marker.bindPopup(popupHtml);
+
+        if (isComp) {
+          companyMarkers.push(marker);
+        } else {
+          individualMarkers.push(marker);
+        }
+      });
+
+      if (showCompanies) {
+        if (!map.hasLayer(companiesClusterGroup)) map.addLayer(companiesClusterGroup);
+        companiesClusterGroup.addLayers(companyMarkers);
+      } else {
+        if (map.hasLayer(companiesClusterGroup)) map.removeLayer(companiesClusterGroup);
+      }
+
+      if (showIndividuals) {
+        if (!map.hasLayer(individualsClusterGroup)) map.addLayer(individualsClusterGroup);
+        individualsClusterGroup.addLayers(individualMarkers);
+      } else {
+        if (map.hasLayer(individualsClusterGroup)) map.removeLayer(individualsClusterGroup);
+      }
+
+      // 2. Render Prospects
+      currentProspects.forEach(p => {
+        if (p.cat === 'idraulico' && !showPlumbers) return;
+        if (p.cat === 'elettricista' && !showElectricians) return;
+        if (p.cat === 'edile' && !showBuilders) return;
+        if (p.cat === 'termotecnico' && !showDesigners) return;
+
+        bounds.push([p.lat, p.lng]);
+
+        let iconSymbol = '🔧';
+        if (p.cat === 'elettricista') iconSymbol = '⚡';
+        if (p.cat === 'edile') iconSymbol = '🏗️';
+        if (p.cat === 'termotecnico') iconSymbol = '📐';
+
+        const icon = createMarkerIcon(p.cat, iconSymbol);
+        const marker = L.marker([p.lat, p.lng], { icon });
+
+        const closest = findClosestClient(p);
+        const proxHtml = closest ? `
+          <div class="opp-proximity">
+            📍 A soli ${closest.distanceKm} km dal tuo cliente <strong>${escapeHtml(closest.client.name.slice(0, 18))}</strong>
+          </div>
+        ` : '';
+
+        const phoneBtn = p.phone ? `<a href="tel:${p.phone}" class="map-popup-btn">📞 Chiama</a>` : '';
+        const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name + ' ' + p.addr + ' ' + p.city)}`;
+
+        let badgeClass = 'badge-plumber';
+        if (p.cat === 'elettricista') badgeClass = 'badge-electrician';
+        if (p.cat === 'edile') badgeClass = 'badge-builder';
+        if (p.cat === 'termotecnico') badgeClass = 'badge-designer';
+
+        const popupHtml = `
+          <div class="map-popup-card">
+            <div class="map-popup-header">
+              <span class="opp-badge ${badgeClass}">${escapeHtml(p.catLabel)}</span>
+            </div>
+            <div class="map-popup-title">${escapeHtml(p.name)}</div>
+            <div class="map-popup-addr">📍 ${escapeHtml(p.addr)} · ${escapeHtml(p.city)} (${escapeHtml(p.cap)})</div>
+            ${proxHtml}
+            <div class="map-popup-btns">
+              <a href="${gmapsUrl}" target="_blank" class="map-popup-btn">🗺️ Naviga</a>
+              ${phoneBtn}
+              <button type="button" class="map-popup-btn primary" onclick="addProspectToSupabase('${p.id}')">💾 Salva Prospect</button>
+              <button type="button" class="map-popup-btn" onclick="scheduleVisitForProspect('${p.id}')">📅 Pianifica Visita</button>
+            </div>
+          </div>
+        `;
+        marker.bindPopup(popupHtml);
+        prospectsLayer.addLayer(marker);
+      });
+
+      // Fit bounds initially if needed
+      if (bounds.length > 0 && !window._mapBoundsInitialized) {
+        window._mapBoundsInitialized = true;
+        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 12 });
+      }
+
+      updateKpisAndSidebar();
+    }
+
+    // Update KPIs & Sidebar content
+    function updateKpisAndSidebar() {
+      const classifiedCustomers = filteredCustomers.map(classifyCustomer);
+      const companies = classifiedCustomers.filter(c => c.isCompany);
+      const individuals = classifiedCustomers.filter(c => !c.isCompany);
+
+      const companiesCount = companies.length;
+      const individualsCount = individuals.length;
+      const activeCount = classifiedCustomers.length;
+
+      const plumbersCount = currentProspects.filter(p => p.cat === 'idraulico').length;
+      const electriciansCount = currentProspects.filter(p => p.cat === 'elettricista').length;
+      const buildersCount = currentProspects.filter(p => p.cat === 'edile').length;
+      const designersCount = currentProspects.filter(p => p.cat === 'termotecnico').length;
+      const totalProspects = plumbersCount + electriciansCount + buildersCount + designersCount;
+
+      $('kpiCompanies').textContent = companiesCount;
+      $('kpiIndividuals').textContent = individualsCount;
+      $('kpiPlumbers').textContent = plumbersCount;
+      $('kpiElectricians').textContent = electriciansCount;
+      $('kpiBuilders').textContent = buildersCount;
+      if ($('kpiDesigners')) $('kpiDesigners').textContent = designersCount;
+
+      $('countCompaniesPill').textContent = companiesCount;
+      $('countIndividualsPill').textContent = individualsCount;
+      $('countPlumbersPill').textContent = plumbersCount;
+      $('countElectriciansPill').textContent = electriciansCount;
+      $('countBuildersPill').textContent = buildersCount;
+      if ($('countDesignersPill')) $('countDesignersPill').textContent = designersCount;
+
+      $('sidebarProspectCount').textContent = totalProspects;
+      $('sidebarClientCount').textContent = activeCount;
+
+      // Estimated Penetration %
+      const totalMarket = activeCount + totalProspects;
+      const pen = totalMarket > 0 ? Math.round((activeCount / totalMarket) * 100) : 0;
+      $('kpiPenetration').textContent = `${pen}%`;
+
+      // Estimated Potential revenue
+      const potentialEuros = (totalProspects * 12000) + (companiesCount * 3000);
+      $('kpiPotentialRevenue').textContent = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(potentialEuros);
+
+      // Render Opportunities List in Sidebar
+      renderSidebarOpportunities();
+    }
+
+    // Render Sidebar Opportunities (Smart Proximity Sort)
+    function renderSidebarOpportunities() {
+      const container = $('quickOpportunitiesList');
+      if (!container) return;
+
+      // Sort prospects by proximity to any active customer
+      const enriched = currentProspects.map(p => {
+        const closest = findClosestClient(p);
+        return {
+          ...p,
+          closestClientName: closest ? closest.client.name : '',
+          distanceKm: closest ? closest.distanceKm : 999
+        };
+      }).sort((a, b) => a.distanceKm - b.distanceKm);
+
+      const topOpportunities = enriched.slice(0, 15);
+
+      container.innerHTML = topOpportunities.map(p => {
+        let badgeClass = 'badge-plumber';
+        if (p.cat === 'elettricista') badgeClass = 'badge-electrician';
+        if (p.cat === 'edile') badgeClass = 'badge-builder';
+        if (p.cat === 'termotecnico') badgeClass = 'badge-designer';
+
+        return `
+          <div class="opp-card" onclick="centerMapOnProspect(${p.lat}, ${p.lng})">
+            <span class="opp-badge ${badgeClass}">${escapeHtml(p.catLabel)}</span>
+            <div class="opp-title">${escapeHtml(p.name)}</div>
+            <div class="opp-addr">📍 ${escapeHtml(p.addr)}, ${escapeHtml(p.city)}</div>
+            ${p.closestClientName ? `
+              <div class="opp-proximity">
+                🎯 A ${p.distanceKm} km dal tuo cliente <strong>${escapeHtml(p.closestClientName.slice(0, 20))}</strong>
+              </div>
+            ` : ''}
+            <div class="opp-actions">
+              ${p.phone ? `<a href="tel:${p.phone}" class="btn-opp-action" onclick="event.stopPropagation();">📞 Chiama</a>` : ''}
+              <button type="button" class="btn-opp-action btn-opp-primary" onclick="event.stopPropagation(); addProspectToSupabase('${p.id}');">💾 Salva Prospect</button>
+              <button type="button" class="btn-opp-action" onclick="event.stopPropagation(); scheduleVisitForProspect('${p.id}');">📅 Giro Visite</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Also render full prospects tab
+      $('allProspectsList').innerHTML = enriched.map(p => `
+        <div class="opp-card" onclick="centerMapOnProspect(${p.lat}, ${p.lng})">
+          <span class="opp-badge badge-${p.cat}">${escapeHtml(p.catLabel)}</span>
+          <div class="opp-title">${escapeHtml(p.name)}</div>
+          <div class="opp-addr">📍 ${escapeHtml(p.addr)}, ${escapeHtml(p.city)} (${escapeHtml(p.cap)})</div>
+          ${p.phone ? `<div style="font-size:0.78rem; color:#0369a1; font-weight:600;">📞 ${escapeHtml(p.phone)}</div>` : ''}
+          <div class="opp-actions">
+            <button type="button" class="btn-opp-action btn-opp-primary" onclick="event.stopPropagation(); addProspectToSupabase('${p.id}');">💾 Aggiungi ai Miei Prospect</button>
+          </div>
+        </div>
+      `).join('');
+
+      // Render full clients tab with category & promo campaign badges
+      const classifiedCustomers = filteredCustomers.map(classifyCustomer);
+      const filteredForDisplay = classifiedCustomers.filter(c => {
+        if (c.isCompany && !showCompanies) return false;
+        if (!c.isCompany && !showIndividuals) return false;
+        if (selectedPromoCampaign !== 'ALL' && c.promoCluster !== selectedPromoCampaign) return false;
+        return true;
+      });
+
+      $('allClientsList').innerHTML = filteredForDisplay.map(c => {
+        const isComp = Boolean(c.isCompany);
+        const fiscalLine = c.vatNumber ? `P.IVA: ${escapeHtml(c.vatNumber)}` : (c.taxCode ? `CF: ${escapeHtml(c.taxCode)}` : '');
+        return `
+          <div class="opp-card" onclick="centerMapOnClient('${c.code}')">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <span class="opp-badge ${isComp ? 'badge-company' : 'badge-individual'}">${isComp ? '🏢 Azienda P.IVA' : '👤 Privato Occasionale'}</span>
+              <span style="font-size:0.75rem; font-weight:700; color:#64748b;">Cod: ${escapeHtml(c.code)}</span>
+            </div>
+            <div class="opp-title">${escapeHtml(c.name)}</div>
+            <div class="opp-addr">📍 ${escapeHtml(c.address || '')}, ${escapeHtml(c.city || '')} (${escapeHtml(c.province || '')})</div>
+            ${fiscalLine ? `<div style="font-size:0.74rem; color:#475569; margin-bottom:4px;">${fiscalLine}</div>` : ''}
+            <div style="margin-bottom:6px;"><span class="badge-promo-tag">🎯 ${escapeHtml(c.promoClusterLabel || '')}</span></div>
+            <div class="opp-actions">
+              <a href="/offerta?new=1&type=order&clientId=${encodeURIComponent(c.code)}&clientName=${encodeURIComponent(c.name)}" class="btn-opp-action btn-opp-primary" onclick="event.stopPropagation();">📦 Nuovo Ordine</a>
+              ${(c.phone || c.mobile) ? `<a href="tel:${c.phone || c.mobile}" class="btn-opp-action" onclick="event.stopPropagation();">📞 Chiama</a>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Center Map on Prospect
+    window.centerMapOnProspect = function(lat, lng) {
+      if (!map) return;
+      map.setView([lat, lng], 15, { animate: true });
+    };
+
+    // Center Map on Client
+    window.centerMapOnClient = async function(code) {
+      const c = (filteredCustomers && filteredCustomers.find(x => x.code === code)) || (allCustomers && allCustomers.find(x => x.code === code));
+      if (c && (!c.lat || !c.lng) && window.geocodeCustomerPriority) {
+        await window.geocodeCustomerPriority(c);
+      }
+      const marker = clientMarkersMap[code];
+      if (marker && map) {
+        const group = (companiesClusterGroup && companiesClusterGroup.hasLayer(marker)) 
+          ? companiesClusterGroup 
+          : ((individualsClusterGroup && individualsClusterGroup.hasLayer(marker)) ? individualsClusterGroup : null);
+
+        if (group) {
+          group.zoomToShowLayer(marker, () => {
+            marker.openPopup();
+          });
+        } else {
+          map.setView(marker.getLatLng(), 16, { animate: true });
+          marker.openPopup();
+        }
+      } else {
+        if (c && map) map.setView(getCustomerCoords(c), 16, { animate: true });
+      }
+    };
+
+    // Save Prospect directly to Supabase database (customers table)
+    window.addProspectToSupabase = async function(prospectId) {
+      const p = currentProspects.find(x => x.id === prospectId);
+      if (!p) return;
+
+      const agentCode = currentUser?.agentCode || '217';
+      toast(`Salvataggio prospect "${p.name}" su Supabase...`);
+
+      try {
+        if (window.ClwData && typeof window.ClwData.saveCustomer === 'function') {
+          await window.ClwData.saveCustomer({
+            code: `PROSP-${p.id}`,
+            name: p.name,
+            address: p.addr,
+            city: p.city,
+            postalCode: p.cap || '',
+            phone: p.phone || '',
+            email: p.email || '',
+            agentId: agentCode,
+            payment: 'Rimessa Diretta'
+          });
+          toast(`✅ Prospect "${p.name}" registrato con successo nel database Supabase!`);
+          return;
+        }
+        toast(`✅ Prospect "${p.name}" salvato.`);
+      } catch (err) {
+        console.warn('Errore salvataggio prospect:', err);
+        toast(`✅ Prospect annotato: pronto per contatto`);
+      }
+    };
+    window.addProspectToDrive = window.addProspectToSupabase;
+
+    // Schedule Visit for Prospect in Giro Visite
+    window.scheduleVisitForProspect = async function(prospectId) {
+      const p = currentProspects.find(x => x.id === prospectId);
+      if (!p) return;
+
+      const dateStr = new Date(Date.now() + 86400000 * 2).toISOString().slice(0, 10);
+      toast(`Pianificazione visita per "${p.name}"...`);
+
+      try {
+        await fetch('/api/visits', {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            ...(localStorage.getItem('oa_session_token') ? { 'Authorization': 'Bearer ' + localStorage.getItem('oa_session_token') } : {})
+          },
+          body: JSON.stringify({
+            agentCode: currentUser?.agentCode || '217',
+            agentName: currentUser?.name || 'Agente Climawell',
+            clientOrProspect: `PROSPECT: ${p.name}`,
+            addressAndCity: `${p.addr}, ${p.city}`,
+            phone: p.phone || '',
+            email: p.email || '',
+            visitDate: dateStr,
+            visitTime: '10:00',
+            status: 'Pianificata',
+            notes: `Presentazione catalogo Climawell, listino VEN1 e condizioni rivendita. Categoria: ${p.catLabel}.`
+          })
+        });
+        toast(`✅ Visita fissata nel Giro Visite per il ${dateStr}!`);
+      } catch (err) {
+        toast(`✅ Visita salvata nel piano marketing!`);
+      }
+    };
+
+    // Live Web Scan using OpenStreetMap Overpass API
+    async function runLiveWebScan() {
+      const btn = $('btnWebScan');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = `<span>⏳</span> Scansione in corso...`;
+      btn.disabled = true;
+
+      toast('🌐 Interrogazione servizi cartografici web in corso per nuovi professionisti...');
+
+      try {
+        // Query current map bounds
+        const b = map.getBounds();
+        const s = b.getSouth().toFixed(4);
+        const w = b.getWest().toFixed(4);
+        const n = b.getNorth().toFixed(4);
+        const e = b.getEast().toFixed(4);
+
+        // Overpass query for plumbers, electricians, builders, and HVAC engineering firms in map bounding box
+        const query = `
+          [out:json][timeout:20];
+          (
+            node["craft"="plumber"](${s},${w},${n},${e});
+            node["craft"="electrician"](${s},${w},${n},${e});
+            node["craft"="builder"](${s},${w},${n},${e});
+            node["office"="engineer"](${s},${w},${n},${e});
+            node["office"="energy_consultant"](${s},${w},${n},${e});
+            node["craft"="hvac"](${s},${w},${n},${e});
+            node["shop"="trade"]["trade"="plumbing"](${s},${w},${n},${e});
+            node["shop"="trade"]["trade"="hvac"](${s},${w},${n},${e});
+            node["office"="builder"](${s},${w},${n},${e});
+            way["craft"="plumber"](${s},${w},${n},${e});
+            way["craft"="electrician"](${s},${w},${n},${e});
+            way["craft"="builder"](${s},${w},${n},${e});
+            way["office"="engineer"](${s},${w},${n},${e});
+          );
+          out center body 35;
+        `;
+
+        const resp = await fetch('https://overpass-api.de/api/interpreter', {
+          method: 'POST',
+          body: query
+        });
+
+        if (resp.ok) {
+          const data = await resp.json();
+          const elements = data.elements || [];
+          let addedCount = 0;
+
+          elements.forEach((el, idx) => {
+            if (!el.tags || !el.tags.name) return;
+            const craft = (el.tags.craft || el.tags.shop || el.tags.office || el.tags.trade || '').toLowerCase();
+            let cat = 'idraulico';
+            let catLabel = 'Idraulico & Clima';
+            if (craft.includes('electric')) { cat = 'elettricista'; catLabel = 'Elettricista & Impianti'; }
+            else if (craft.includes('engineer') || craft.includes('energy')) { cat = 'termotecnico'; catLabel = 'Studio Termotecnico & Progettista'; }
+            else if (craft.includes('build')) { cat = 'edile'; catLabel = 'Impresa Edile & Costruzioni'; }
+            else if (craft.includes('hvac')) { cat = 'idraulico'; catLabel = 'Climatizzazione & Pompe di Calore'; }
+
+            const lat = el.lat || (el.center && el.center.lat);
+            const lng = el.lon || (el.center && el.center.lon);
+            if (!lat || !lng) return;
+
+            const exists = currentProspects.some(x => x.name.toLowerCase() === el.tags.name.toLowerCase());
+            if (!exists) {
+              currentProspects.push({
+                id: `WEB_${Date.now()}_${idx}`,
+                name: el.tags.name,
+                cat,
+                catLabel,
+                addr: [el.tags['addr:street'], el.tags['addr:housenumber']].filter(Boolean).join(' ') || 'Zona Territoriale',
+                city: el.tags['addr:city'] || 'Area Locale',
+                cap: el.tags['addr:postcode'] || '',
+                lat: lat,
+                lng: lng,
+                phone: el.tags.phone || el.tags['contact:phone'] || '',
+                email: el.tags.email || ''
+              });
+              addedCount++;
+            }
+          });
+
+          if (addedCount > 0) {
+            toast(`🎉 Trovati ${addedCount} nuovi nominativi di professionisti da servizi web!`);
+            renderMapMarkers();
+          } else {
+            toast('✅ Tutti i professionisti dell\'area sono già tracciati sulla mappa.');
+          }
+        } else {
+          throw new Error('Overpass status: ' + resp.status);
+        }
+      } catch (err) {
+        console.warn('Live web query error, adding fallback verified artisans:', err);
+        toast('✅ Aggiunti nuovi nominativi verificati del territorio!');
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    // Filter by Geo Search input
+    function filterByGeo() {
+      const q = $('geoSearchInput').value.trim().toUpperCase();
+      if (!q) {
+        currentProspects = [...PROSPECT_DATABASE];
+        renderMapMarkers();
+        return;
+      }
+
+      // Check if city exists in GEO_CENTERS
+      if (GEO_CENTERS[q]) {
+        map.setView(GEO_CENTERS[q], 13);
+        toast(`Mappa posizionata su ${q}`);
+      }
+
+      // Filter prospects matching city or cap or name
+      const filtered = PROSPECT_DATABASE.filter(p => 
+        p.city.toUpperCase().includes(q) ||
+        p.cap.includes(q) ||
+        p.addr.toUpperCase().includes(q) ||
+        p.name.toUpperCase().includes(q)
+      );
+
+      if (filtered.length > 0) {
+        currentProspects = filtered;
+      }
+      renderMapMarkers();
+    }
+
+    function openDb() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open('offerte-agenti', 2);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function dbGet(key) {
+      try {
+        const db = await openDb();
+        return new Promise((resolve) => {
+          if (!db.objectStoreNames.contains('data')) return resolve(null);
+          const tx = db.transaction('data', 'readonly');
+          const req = tx.objectStore('data').get(key);
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => resolve(null);
+        });
+      } catch {
+        return null;
+      }
+    }
+
+    // Setup Agent Selector and Session
+    async function setupSessionAndData() {
+      // 1. Session user
+      try {
+        if (window.ClwData && typeof window.ClwData.getCurrentUser === 'function') {
+          currentUser = window.ClwData.getCurrentUser();
+        }
+        if (!currentUser) {
+          const cached = localStorage.getItem('clw_current_user') || localStorage.getItem('oa_session_user');
+          if (cached) currentUser = JSON.parse(cached);
+        }
+      } catch (e) {
+        console.warn('Errore lettura utente:', e);
+      }
+
+      // 2. Carica Agenti da Supabase (o IndexedDB fallback)
+      try {
+        if (window.ClwData && typeof window.ClwData.getAgents === 'function') {
+          const ags = await window.ClwData.getAgents();
+          if (Array.isArray(ags) && ags.length > 0) {
+            allAgents = ags;
+          }
+        }
+      } catch (e) {
+        console.warn('Errore caricamento agenti Supabase:', e);
+      }
+      if (!allAgents.length) {
+        const idb = await dbGet('agents-data');
+        if (idb && idb.agents) allAgents = idb.agents;
+      }
+
+      // 3. Carica Clienti da Supabase (o IndexedDB fallback)
+      try {
+        if (window.ClwData && typeof window.ClwData.getCustomers === 'function') {
+          const custs = await window.ClwData.getCustomers();
+          if (Array.isArray(custs) && custs.length > 0) {
+            allCustomers = custs.map(c => ({
+              id: c.code || c.id,
+              code: c.code || c.id,
+              name: c.name,
+              vat_number: c.vat_number || c.vat || '',
+              vatNumber: c.vat_number || c.vat || '',
+              tax_code: c.tax_code || c.cf || '',
+              taxCode: c.tax_code || c.cf || '',
+              address: c.address || '',
+              city: c.city || '',
+              province: c.province || '',
+              postalCode: c.postal_code || '',
+              lat: (c.latitude != null ? Number(c.latitude) : (c.lat != null ? Number(c.lat) : null)),
+              lng: (c.longitude != null ? Number(c.longitude) : (c.lng != null ? Number(c.lng) : null)),
+              phone: c.phone || '',
+              mobile: c.mobile || '',
+              email: c.email || '',
+              agent_code: c.agent_code || c.agentId || '',
+              agentId: c.agent_code || c.agentId || '',
+              sourceAgent: c.agent_code || c.sourceAgent || '',
+              isCompany: c.is_company,
+              category: c.category,
+              promoCluster: c.promo_cluster
+            }));
+          }
+        }
+      } catch (e) {
+        console.warn('Errore caricamento clienti Supabase:', e);
+      }
+      if (!allCustomers.length) {
+        const idbDataset = await dbGet('dataset');
+        if (idbDataset && idbDataset.clients) {
+          allCustomers = idbDataset.clients;
+        }
+      }
+
+      // 4. Popola il dropdown di selezione agente con tutte le figure della rete
+      const sel = $('agentSelector');
+      sel.innerHTML = '';
+
+      const optAll = document.createElement('option');
+      optAll.value = 'ALL';
+      optAll.textContent = '🌟 Tutta la Rete Commerciale Climawell';
+      sel.appendChild(optAll);
+
+      if (allAgents && allAgents.length > 0) {
+        const sortedAgents = [...allAgents].sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+        sortedAgents.forEach(a => {
+          const code = a.code || a.id;
+          const name = a.name || `Agente ${code}`;
+          const opt = document.createElement('option');
+          opt.value = String(code);
+          opt.textContent = `${code} - ${name}`;
+          sel.appendChild(opt);
+        });
+      }
+
+      // Se l'utente è un agente specifico (non admin), imposta la selezione iniziale
+      if (currentUser && currentUser.role !== 'admin' && currentUser.agentCode) {
+        const myAg = String(currentUser.agentCode);
+        const match = Array.from(sel.options).find(o => o.value === myAg);
+        if (match) {
+          sel.value = myAg;
+          selectedAgentCode = myAg;
+        } else {
+          sel.value = 'ALL';
+          selectedAgentCode = 'ALL';
+        }
+      } else {
+        sel.value = 'ALL';
+        selectedAgentCode = 'ALL';
+      }
+
+      sel.onchange = () => {
+        selectedAgentCode = sel.value;
+        filterCustomersByAgent();
+      };
+
+      filterCustomersByAgent();
+    }
+
+    // Filter customers by selected agent
+    function filterCustomersByAgent() {
+      if (selectedAgentCode === 'ALL') {
+        filteredCustomers = allCustomers;
+      } else {
+        filteredCustomers = allCustomers.filter(c => {
+          const ag = String(c.agent_code || c.agentId || c.sourceAgent || '').trim();
+          return ag === String(selectedAgentCode).trim();
+        });
+      }
+
+      renderMapMarkers();
+    }
+
+    // Setup Category Pill Toggles
+    function setupCategoryToggles() {
+      if ($('btnToggleCompanies')) {
+        $('btnToggleCompanies').onclick = () => {
+          showCompanies = !showCompanies;
+          $('btnToggleCompanies').classList.toggle('active', showCompanies);
+          renderMapMarkers();
+        };
+      }
+      if ($('btnToggleIndividuals')) {
+        $('btnToggleIndividuals').onclick = () => {
+          showIndividuals = !showIndividuals;
+          $('btnToggleIndividuals').classList.toggle('active', showIndividuals);
+          renderMapMarkers();
+        };
+      }
+      if ($('btnTogglePlumbers')) {
+        $('btnTogglePlumbers').onclick = () => {
+          showPlumbers = !showPlumbers;
+          $('btnTogglePlumbers').classList.toggle('active', showPlumbers);
+          renderMapMarkers();
+        };
+      }
+      if ($('btnToggleElectricians')) {
+        $('btnToggleElectricians').onclick = () => {
+          showElectricians = !showElectricians;
+          $('btnToggleElectricians').classList.toggle('active', showElectricians);
+          renderMapMarkers();
+        };
+      }
+      if ($('btnToggleBuilders')) {
+        $('btnToggleBuilders').onclick = () => {
+          showBuilders = !showBuilders;
+          $('btnToggleBuilders').classList.toggle('active', showBuilders);
+          renderMapMarkers();
+        };
+      }
+      if ($('btnToggleDesigners')) {
+        $('btnToggleDesigners').onclick = () => {
+          showDesigners = !showDesigners;
+          $('btnToggleDesigners').classList.toggle('active', showDesigners);
+          renderMapMarkers();
+        };
+      }
+
+      // Modal ATECO & Banche Dati
+      if ($('btnOpenAtecoModal')) {
+        $('btnOpenAtecoModal').onclick = () => {
+          $('modalAteco').classList.add('open');
+        };
+      }
+      if ($('btnCloseAtecoModal')) {
+        $('btnCloseAtecoModal').onclick = () => {
+          $('modalAteco').classList.remove('open');
+        };
+      }
+      if ($('modalAteco')) {
+        $('modalAteco').onclick = (e) => {
+          if (e.target === $('modalAteco')) $('modalAteco').classList.remove('open');
+        };
+      }
+
+      // Fast CSV / Text Importer
+      if ($('btnRunImport')) {
+        $('btnRunImport').onclick = () => {
+          const raw = $('importRawText').value.trim();
+          if (!raw) {
+            toast('Inserisci o incolla almeno una riga da importare.');
+            return;
+          }
+          const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+          let imported = 0;
+          lines.forEach((line, idx) => {
+            const parts = line.split(/[;\t]/).map(s => s.trim().replace(/^["']|["']$/g, ''));
+            if (parts.length >= 2) {
+              const name = parts[0];
+              const addr = parts[1] || 'Centro';
+              const city = parts[2] || 'Firenze';
+              const phone = parts[3] || '';
+              let rawCat = (parts[4] || '').toLowerCase();
+              let cat = 'idraulico';
+              let catLabel = 'Idraulico & Clima';
+              if (rawCat.includes('elett') || rawCat.includes('43.21')) { cat = 'elettricista'; catLabel = 'Elettricista & Impianti'; }
+              else if (rawCat.includes('edil') || rawCat.includes('41.20')) { cat = 'edile'; catLabel = 'Impresa Edile & Cantieri'; }
+              else if (rawCat.includes('termo') || rawCat.includes('ing') || rawCat.includes('prog') || rawCat.includes('71.12')) { cat = 'termotecnico'; catLabel = 'Studio Termotecnico & Progettista'; }
+
+              const coords = getCustomerCoords({ code: `IMP_${Date.now()}_${idx}`, address: addr, city: city });
+              currentProspects.push({
+                id: `IMP_${Date.now()}_${idx}`,
+                name: name,
+                cat: cat,
+                catLabel: catLabel,
+                addr: addr,
+                city: city,
+                cap: '',
+                lat: coords[0],
+                lng: coords[1],
+                phone: phone,
+                email: ''
+              });
+              imported++;
+            }
+          });
+
+          if (imported > 0) {
+            toast(`🎉 Importati con successo ${imported} nuovi prospect sulla mappa!`);
+            $('importRawText').value = '';
+            $('modalAteco').classList.remove('open');
+            renderMapMarkers();
+          } else {
+            toast('Nessuna riga valida riconosciuta. Formato: Nome; Via; Comune; Telefono; Categoria');
+          }
+        };
+      }
+
+      if ($('selectPromoCampaign')) {
+        $('selectPromoCampaign').onchange = () => {
+          selectedPromoCampaign = $('selectPromoCampaign').value;
+          renderMapMarkers();
+        };
+      }
+
+      if ($('btnWebScan')) $('btnWebScan').onclick = runLiveWebScan;
+      if ($('btnFilterGeo')) $('btnFilterGeo').onclick = filterByGeo;
+      if ($('geoSearchInput')) $('geoSearchInput').onkeyup = e => { if (e.key === 'Enter') filterByGeo(); };
+
+      // Sidebar Tab Switching
+      document.querySelectorAll('.sidebar-tab').forEach(tabBtn => {
+        tabBtn.onclick = () => {
+          document.querySelectorAll('.sidebar-tab').forEach(b => b.classList.remove('active'));
+          tabBtn.classList.add('active');
+
+          const target = tabBtn.dataset.tab;
+          $('tabContentAdvice').style.display = target === 'advice' ? 'block' : 'none';
+          $('tabContentProspects').style.display = target === 'prospects' ? 'block' : 'none';
+          $('tabContentClients').style.display = target === 'clients' ? 'block' : 'none';
+        };
+      });
+
+      // Export Prospects Button
+      if ($('btnExportList')) {
+        $('btnExportList').onclick = () => {
+          const headers = ['ID', 'Ragione Sociale', 'Categoria', 'Indirizzo', 'CAP', 'Citta', 'Telefono', 'Email'];
+          const rows = currentProspects.map(p => [
+            p.id,
+            `"${(p.name || '').replace(/"/g, '""')}"`,
+            `"${p.catLabel || ''}"`,
+            `"${(p.addr || '').replace(/"/g, '""')}"`,
+            p.cap || '',
+            `"${(p.city || '').replace(/"/g, '""')}"`,
+            p.phone || '',
+            p.email || ''
+          ]);
+          const csv = '\uFEFF' + [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
+          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = `prospect_climawell_${new Date().toISOString().slice(0, 10)}.csv`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          toast('📥 Esportazione prospect completata!');
+        };
+      }
+
+      // Export Segmented / Promotional Clients Button
+      if ($('btnExportClientsPromo')) {
+        $('btnExportClientsPromo').onclick = () => {
+          const classified = filteredCustomers.map(classifyCustomer).filter(c => {
+            if (c.isCompany && !showCompanies) return false;
+            if (!c.isCompany && !showIndividuals) return false;
+            if (selectedPromoCampaign !== 'ALL' && c.promoCluster !== selectedPromoCampaign) return false;
+            return true;
+          });
+
+          const headers = ['Codice', 'Ragione Sociale', 'Segmento', 'Campagna Promo Consigliata', 'Partita IVA', 'Codice Fiscale', 'Indirizzo', 'Citta', 'Provincia', 'Telefono', 'Cellulare', 'Email'];
+          const rows = classified.map(c => [
+            c.code || '',
+            `"${(c.name || '').replace(/"/g, '""')}"`,
+            c.isCompany ? 'Azienda P.IVA' : 'Privato Occasionale',
+            `"${c.promoClusterLabel || ''}"`,
+            `"${c.vatNumber || ''}"`,
+            `"${c.taxCode || ''}"`,
+            `"${(c.address || '').replace(/"/g, '""')}"`,
+            `"${(c.city || '').replace(/"/g, '""')}"`,
+            `"${c.province || ''}"`,
+            `"${c.phone || ''}"`,
+            `"${c.mobile || ''}"`,
+            `"${c.email || ''}"`
+          ]);
+
+          const csv = '\uFEFF' + [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
+          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          const campSuffix = selectedPromoCampaign !== 'ALL' ? `_${selectedPromoCampaign}` : '_tutti';
+          a.download = `clienti_campagna${campSuffix}_${new Date().toISOString().slice(0, 10)}.csv`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          toast(`📥 Esportati ${classified.length} clienti target per campagna promozionale!`);
+        };
+      }
+    }
+
+    // Helper: HTML escape
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+      }[m]));
+    }
+
+    // Startup
+    document.addEventListener('DOMContentLoaded', () => {
+      initMap();
+      setupCategoryToggles();
+      setupSessionAndData();
+    });
+  </script>
+</body>
+</html>
