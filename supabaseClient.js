@@ -978,13 +978,12 @@
       const client = initClient();
       if (client) {
         try {
-          const [hubRes, custRes] = await Promise.all([
+          const [hubRes, custList] = await Promise.all([
             client.from('hub_customers').select('*').order('business_name', { ascending: true }),
-            client.from('customers').select('*')
+            this.getCustomers()
           ]);
 
           const hubList = hubRes.data || [];
-          const custList = custRes.data || [];
           const hubMap = new Map(hubList.map(h => [String(h.customer_code).trim(), h]));
           const merged = [];
           const toInsertInHub = [];
