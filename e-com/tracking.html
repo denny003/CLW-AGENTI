@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stato & Tracking Ordine — Climawell Forniture B2B</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* Stili specifici Dashboard Tracking */
+    .tracking-page {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      color: #0f172a;
+      padding-bottom: 60px;
+    }
+    .tracking-nav {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid #e2e8f0;
+      padding: 16px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+    }
+    .tracking-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .tracking-brand-badge {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      color: #ffffff;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+    }
+    .tracking-brand-title {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 17px;
+      color: #0f172a;
+    }
+    .tracking-hero {
+      max-width: 960px;
+      margin: 36px auto 24px;
+      padding: 0 20px;
+      text-align: center;
+    }
+    .tracking-hero h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 32px;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0 0 10px;
+      letter-spacing: -0.5px;
+    }
+    .tracking-hero p {
+      color: #64748b;
+      font-size: 15px;
+      margin: 0 0 24px;
+    }
+    .tracking-search-bar {
+      display: flex;
+      gap: 10px;
+      max-width: 580px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 8px;
+      border-radius: 12px;
+      border: 1px solid #cbd5e1;
+      box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+    }
+    .tracking-search-bar input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 15px;
+      padding: 8px 14px;
+      font-family: 'Inter', sans-serif;
+      color: #0f172a;
+    }
+    .tracking-search-bar button {
+      background: #0284c7;
+      color: white;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .tracking-search-bar button:hover {
+      background: #0369a1;
+    }
+    .tracking-card {
+      max-width: 960px;
+      margin: 28px auto;
+      background: #ffffff;
+      border-radius: 18px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+      padding: 32px;
+    }
+    .tracking-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 16px;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 24px;
+      margin-bottom: 28px;
+    }
+    .order-tag {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: #e0f2fe;
+      color: #0369a1;
+      margin-bottom: 8px;
+    }
+    .order-id-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0;
+    }
+    .order-date-label {
+      color: #64748b;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+    .order-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .order-status-pill.shipped {
+      background: #eff6ff;
+      color: #1e40af;
+      border-color: #bfdbfe;
+    }
+    .order-status-pill.preparing {
+      background: #fffbeb;
+      color: #92400e;
+      border-color: #fde68a;
+    }
+    
+    /* Stepper Progression */
+    .timeline-stepper {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin: 32px 0 36px;
+      position: relative;
+    }
+    .step-node {
+      text-align: center;
+      position: relative;
+    }
+    .step-circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      color: #94a3b8;
+      border: 2px solid #cbd5e1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0 auto 10px;
+      transition: all 0.3s;
+    }
+    .step-node.active .step-circle {
+      background: #0284c7;
+      color: #ffffff;
+      border-color: #0284c7;
+      box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.2);
+    }
+    .step-node.completed .step-circle {
+      background: #10b981;
+      color: #ffffff;
+      border-color: #10b981;
+    }
+    .step-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 3px;
+    }
+    .step-subtitle {
+      font-size: 11px;
+      color: #64748b;
+    }
+    .step-bar-line {
+      position: absolute;
+      top: 22px;
+      left: calc(-50% + 22px);
+      right: calc(50% + 22px);
+      height: 3px;
+      background: #e2e8f0;
+      z-index: 1;
+    }
+    .step-node:first-child .step-bar-line {
+      display: none;
+    }
+    .step-node.completed .step-bar-line {
+      background: #10b981;
+    }
+
+    /* Grid Informazioni */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 24px;
+      margin-top: 24px;
+    }
+    @media (max-width: 768px) {
+      .info-grid { grid-template-columns: 1fr; }
+      .timeline-stepper { grid-template-columns: 1fr; gap: 20px; text-align: left; }
+      .step-node { display: flex; align-items: center; gap: 14px; text-align: left; }
+      .step-circle { margin: 0; }
+      .step-bar-line { display: none !important; }
+    }
+    .info-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .info-box h3 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      margin: 0 0 14px;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .info-field {
+      margin-bottom: 10px;
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .info-field-label {
+      color: #64748b;
+      font-weight: 500;
+    }
+    .info-field-val {
+      color: #0f172a;
+      font-weight: 600;
+      text-align: right;
+    }
+    .support-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+    .btn-support-wa {
+      background: #10b981;
+      color: white;
+      text-decoration: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-support-phone {
+      background: #0284c7;
+      color: white;
+      text-decoration: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-back-catalog {
+      background: #f1f5f9;
+      color: #334155;
+      text-decoration: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body class="tracking-page">
+
+  <!-- Navigazione Superiore -->
+  <header class="tracking-nav">
+    <a href="index.html" class="tracking-brand">
+      <span class="tracking-brand-badge">CLIMAWELL</span>
+      <span class="tracking-brand-title">Area Clienti & Tracking Ordini</span>
+    </a>
+    <div>
+      <a href="index.html" class="btn-back-catalog">← Torna al Catalogo E-COM</a>
+    </div>
+  </header>
+
+  <!-- Hero & Barra Ricerca -->
+  <section class="tracking-hero">
+    <h1>Stato di Avanzamento dell'Ordine</h1>
+    <p>Visualizza in tempo reale la preparazione, l'evasione logistica e la spedizione del tuo materiale.</p>
+
+    <div class="tracking-search-bar">
+      <input type="text" id="trackSearchInput" placeholder="Inserisci Codice Ordine (es. ORD-ECOM-1136...) o la tua Email...">
+      <button type="button" id="btnSearchOrder">Cerca Ordine</button>
+    </div>
+  </section>
+
+  <!-- Card Dettagli Ordine -->
+  <main class="tracking-card" id="trackingResultBox">
+    <!-- Header Ordine -->
+    <div class="tracking-header-row">
+      <div>
+        <span class="order-tag">Stripe Direct Charge Autorizzato</span>
+        <h2 class="order-id-title" id="trackOrderNum">ORD-ECOM-1136-20261102-104500</h2>
+        <div class="order-date-label" id="trackOrderDate">Data ordine: 02 Novembre 2026 · Pagamento con Carta</div>
+      </div>
+      <div>
+        <span class="order-status-pill preparing" id="trackStatusPill">
+          <span>●</span> In Lavorazione / Magazzino Climawell
+        </span>
+      </div>
+    </div>
+
+    <!-- Timeline Avanzamento Ordine -->
+    <div class="timeline-stepper">
+      <!-- Step 1 -->
+      <div class="step-node completed" id="step1">
+        <div class="step-bar-line"></div>
+        <div class="step-circle">✓</div>
+        <div class="step-title">1. Ricevuto & Pagato</div>
+        <div class="step-subtitle">Stripe Direct Charge</div>
+      </div>
+      <!-- Step 2 -->
+      <div class="step-node active" id="step2">
+        <div class="step-bar-line"></div>
+        <div class="step-circle">2</div>
+        <div class="step-title">2. In Magazzino</div>
+        <div class="step-subtitle">Picking & Imballo</div>
+      </div>
+      <!-- Step 3 -->
+      <div class="step-node" id="step3">
+        <div class="step-bar-line"></div>
+        <div class="step-circle">3</div>
+        <div class="step-title">3. Spedito</div>
+        <div class="step-subtitle">Corriere Espresso</div>
+      </div>
+      <!-- Step 4 -->
+      <div class="step-node" id="step4">
+        <div class="step-bar-line"></div>
+        <div class="step-circle">4</div>
+        <div class="step-title">4. Consegnato</div>
+        <div class="step-subtitle">A Destinazione / Banco</div>
+      </div>
+    </div>
+
+    <!-- Dettagli Fornitura, Spedizione e Fiscale -->
+    <div class="info-grid">
+      <!-- Box 1: Articoli & Pagamento -->
+      <div class="info-box">
+        <h3>📦 Dettaglio Fornitura & Transazione</h3>
+        <div class="info-field">
+          <span class="info-field-label">Articolo Ordinato:</span>
+          <span class="info-field-val" id="trackItemDesc">Barriera d'aria pensile CYAL250</span>
+        </div>
+        <div class="info-field">
+          <span class="info-field-label">Quantità:</span>
+          <span class="info-field-val" id="trackItemQty">1 Pezzo</span>
+        </div>
+        <div class="info-field">
+          <span class="info-field-label">Totale Pagato (IVA incl.):</span>
+          <span class="info-field-val" style="color: #059669; font-size: 15px;" id="trackTotalPaid">€ 2.257,00</span>
+        </div>
+        <div class="info-field">
+          <span class="info-field-label">ID Transazione Bancaria:</span>
+          <span class="info-field-val" style="font-family: monospace;" id="trackChargeId">ch_direct_test_9k8a2b</span>
+        </div>
+        <div class="info-field">
+          <span class="info-field-label">Commerciante Destinatario:</span>
+          <span class="info-field-val">acct_climawell_b2b (Climawell S.r.l.)</span>
+        </div>
+        <div class="info-field">
+          <span class="info-field-label">Piattaforma Fornitrice:</span>
+          <span class="info-field-val">Quantun-Time SaaS Platform</span>
+        </div>
+      </div>
+
+      <!-- Box 2: Destinazione Spedizione & Fattura -->
+      <div class="info-box">
+        <h3>📍 Spedizione & Dati Fatturazione</h3>
+        <div class="info-field">
+          <span class="info-field-label">Intestatario / Rag. Sociale:</span>
+          <span class="info-field-val" id="trackCustomerName">Mario Rossi Termoidraulica</span>
+        </div>
+        <div class="info-field">
+          <span class="info-field-label">Codice Fiscale / P.IVA:</span>
+          <span class="info-field-val" id="trackTaxId">IT01234567890</span>
+        </div>
+        <div class="info-field">
+          <span class="info-field-label">Destinazione Consegna:</span>
+          <span class="info-field-val" id="trackAddress">Via Roma 12, 50123 Firenze (FI)</span>
+        </div>
+        <div class="info-field">
+          <span class="info-field-label">Email Ricevuta:</span>
+          <span class="info-field-val" id="trackEmail">mario.rossi@example.com</span>
+        </div>
+        <div class="info-field">
+          <span class="info-field-label">Telefono Corriere:</span>
+          <span class="info-field-val" id="trackPhone">+39 333 1234567</span>
+        </div>
+        <div class="info-field">
+          <span class="info-field-label">Agente Referente:</span>
+          <span class="info-field-val" id="trackAgent">1136 (Daniele Lupi)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pulsanti Assistenza Rapida -->
+    <div class="support-actions">
+      <a href="https://wa.me/393351234567?text=Richiesta%20informazioni%20su%20ordine%20" target="_blank" class="btn-support-wa" id="waSupportLink">
+        💬 Chatta con l'Agente su WhatsApp
+      </a>
+      <a href="tel:0554289074" class="btn-support-phone">
+        📞 Chiama Magazzino Climawell (055-4289074)
+      </a>
+      <a href="mailto:ordini@climawell.it" class="btn-back-catalog">
+        ✉️ Invia Email all'Ufficio Ordini
+      </a>
+    </div>
+  </main>
+
+  <!-- Script Supabase & Logica Tracking -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/data.js"></script>
+  <script>
+    (async function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryOrder = urlParams.get('order');
+      const queryEmail = urlParams.get('email');
+
+      const inputSearch = document.getElementById('trackSearchInput');
+      const btnSearch = document.getElementById('btnSearchOrder');
+
+      if (queryOrder) {
+        inputSearch.value = queryOrder;
+        await loadOrderTracking(queryOrder, queryEmail);
+      } else if (queryEmail) {
+        inputSearch.value = queryEmail;
+        await loadOrderTracking(null, queryEmail);
+      }
+
+      btnSearch.addEventListener('click', () => {
+        const val = inputSearch.value.trim();
+        if (!val) return alert('Inserisci un numero ordine o un indirizzo email.');
+        loadOrderTracking(val, val);
+      });
+
+      inputSearch.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') btnSearch.click();
+      });
+
+      async function loadOrderTracking(orderNum, email) {
+        let orderDoc = null;
+
+        // Prova a recuperare l'ordine da Supabase se disponibile
+        if (window.ClwData && window.ClwData.getDocuments) {
+          try {
+            const docs = await window.ClwData.getDocuments();
+            if (docs && docs.length > 0) {
+              orderDoc = docs.find(d => 
+                (orderNum && d.number && d.number.toLowerCase() === orderNum.toLowerCase()) ||
+                (email && d.notes && d.notes.toLowerCase().includes(email.toLowerCase())) ||
+                (orderNum && d.notes && d.notes.toLowerCase().includes(orderNum.toLowerCase()))
+              );
+            }
+          } catch (e) {
+            console.warn('[Tracking] Avviso lettura Supabase:', e);
+          }
+        }
+
+        // Se trovato l'ordine reale, popola la UI
+        if (orderDoc) {
+          populateUIWithDocument(orderDoc);
+        } else if (orderNum) {
+          // Fallback con dati ricavati dal parametro ordine
+          document.getElementById('trackOrderNum').textContent = orderNum;
+          if (email) document.getElementById('trackEmail').textContent = email;
+          updateWhatsAppLink(orderNum);
+        }
+      }
+
+      function populateUIWithDocument(doc) {
+        document.getElementById('trackOrderNum').textContent = doc.number || 'ORD-ECOM';
+        document.getElementById('trackOrderDate').textContent = `Data ordine: ${new Date(doc.created_at || Date.now()).toLocaleDateString('it-IT')} · Pagamento autorizzato`;
+
+        if (doc.customer && doc.customer.name) {
+          document.getElementById('trackCustomerName').textContent = doc.customer.name;
+        }
+
+        if (doc.lines && doc.lines.length > 0) {
+          const l = doc.lines[0];
+          document.getElementById('trackItemDesc').textContent = l.product?.description || 'Articolo Climawell B2B';
+          document.getElementById('trackItemQty').textContent = `${l.qty} Pezzo/i`;
+        }
+
+        if (doc.totals) {
+          const t = Number(doc.totals.total || 0).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          document.getElementById('trackTotalPaid').textContent = `€ ${t}`;
+        }
+
+        if (doc.agent && doc.agent.code) {
+          document.getElementById('trackAgent').textContent = `${doc.agent.code} (${doc.agent.name || 'Agente Climawell'})`;
+        }
+
+        // Estrai campi specifici dalle note strutturate
+        const notes = doc.notes || '';
+        const matchDest = notes.match(/Destinazione Spedizione:\s*(.+)/);
+        if (matchDest && matchDest[1]) document.getElementById('trackAddress').textContent = matchDest[1];
+
+        const matchTax = notes.match(/Cod\. Fiscale \/ P\.IVA:\s*(.+)/);
+        if (matchTax && matchTax[1]) document.getElementById('trackTaxId').textContent = matchTax[1];
+
+        const matchEmail = notes.match(/Email:\s*([^\s|]+)/);
+        if (matchEmail && matchEmail[1]) document.getElementById('trackEmail').textContent = matchEmail[1];
+
+        const matchPhone = notes.match(/Telefono:\s*(.+)/);
+        if (matchPhone && matchPhone[1]) document.getElementById('trackPhone').textContent = matchPhone[1];
+
+        const matchTx = notes.match(/ID Transazione:\s*(.+)/);
+        if (matchTx && matchTx[1]) document.getElementById('trackChargeId').textContent = matchTx[1];
+
+        // Gestione Step Timeline in base allo status
+        const status = (doc.status || '').toLowerCase();
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const step3 = document.getElementById('step3');
+        const step4 = document.getElementById('step4');
+        const pill = document.getElementById('trackStatusPill');
+
+        if (status.includes('consegn')) {
+          step1.className = 'step-node completed';
+          step2.className = 'step-node completed';
+          step3.className = 'step-node completed';
+          step4.className = 'step-node completed';
+          pill.className = 'order-status-pill';
+          pill.innerHTML = '<span>✓</span> Materiale Consegnato';
+        } else if (status.includes('spedit')) {
+          step1.className = 'step-node completed';
+          step2.className = 'step-node completed';
+          step3.className = 'step-node active';
+          step4.className = 'step-node';
+          pill.className = 'order-status-pill shipped';
+          pill.innerHTML = '<span>🚚</span> In Viaggio con Corriere Espresso';
+        } else {
+          // In preparazione / pagato
+          step1.className = 'step-node completed';
+          step2.className = 'step-node active';
+          step3.className = 'step-node';
+          step4.className = 'step-node';
+          pill.className = 'order-status-pill preparing';
+          pill.innerHTML = '<span>●</span> In Preparazione / Magazzino Climawell';
+        }
+
+        updateWhatsAppLink(doc.number);
+      }
+
+      function updateWhatsAppLink(orderNum) {
+        const wa = document.getElementById('waSupportLink');
+        if (wa) {
+          wa.href = `https://wa.me/393351234567?text=${encodeURIComponent(`Buongiorno, vorrei informazioni sull'ordine ${orderNum}`)}`;
+        }
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Climawell E-COM — Portale Ordini & Vetrina B2B</title>
+  <link rel="icon" href="/favicon.svg">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- TOP BAR CONTESTUALE B2B -->
+  <div class="ecom-topbar">
+    <div class="ecom-topbar-container">
+      <div class="agent-context-box" id="agentContextBadge">
+        <span class="pulse-dot"></span>
+        <span id="agentContextLabel">👤 Rete Commerciale Climawell: <strong>Agente 1136</strong></span>
+      </div>
+      <div class="topbar-links">
+        <span id="clientContextLabel" style="display:none; color:#93c5fd; font-size:0.75rem; margin-right:12px;"></span>
+        <a href="/commercial-hub/" class="topbar-link">💼 Commercial Hub</a>
+        <a href="/" class="topbar-link">📋 OrderSender</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- HEADER PRINCIPALE -->
+  <header class="ecom-header">
+    <div class="header-container">
+      <div class="brand-block">
+        <div class="brand-logo">CW</div>
+        <div class="brand-titles">
+          <h1>CLIMAWELL <span>E-COM</span></h1>
+          <p>Portale B2B Forniture Climatizzazione & Pompe di Calore</p>
+        </div>
+      </div>
+
+      <div class="header-search">
+        <div class="search-input-wrapper">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="ecomSearchInput" placeholder="Cerca per codice articolo, marca o descrizione..." autocomplete="off">
+          <button id="btnClearSearch" class="btn-clear" style="display:none;">✕</button>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="b2b-support-pill">
+          <span style="font-size:0.7rem; color:#94a3b8; display:block;">Assistenza Ordini Rapidi:</span>
+          <strong>055-4289074</strong>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- BANNER PROMOZIONALE ATTIVO -->
+  <section class="promo-banner" id="promoBannerSection">
+    <div class="promo-banner-content">
+      <div class="promo-tag">🔥 CAMPAGNA PROMOZIONALE 2026</div>
+      <h2 id="promoBannerTitle">Offerte Speciali Climatizzazione & Efficienza Energetica</h2>
+      <p id="promoBannerDesc">Prezzi netti riservati ad installatori e imprese partner. Disponibilità immediata da magazzino centrale con consegna rapida in cantiere.</p>
+      <div class="promo-highlights">
+        <span>⚡ Consegna 24/48h</span>
+        <span>🛡️ Garanzia Ufficiale Italia</span>
+        <span>💼 Assistenza Agente Dedicato</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- CATEGORIE & FILTRI RAPIDI -->
+  <div class="filter-bar-sticky">
+    <div class="filter-container">
+      <div class="category-pills" id="categoryPills">
+        <button class="cat-pill active" data-cat="ALL">Tutti gli Articoli</button>
+        <button class="cat-pill" data-cat="CLIMA">❄️ Climatizzatori</button>
+        <button class="cat-pill" data-cat="POMPE">🔥 Pompe di Calore</button>
+        <button class="cat-pill" data-cat="2B">🚿 Box Doccia & Termoidraulica</button>
+        <button class="cat-pill" data-cat="STOCK">🟢 Pronta Consegna</button>
+      </div>
+
+      <div class="filter-meta">
+        <span id="productCountLabel">Caricamento catalogo...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- GRIGLIA PRODOTTI -->
+  <main class="ecom-main">
+    <div class="products-grid" id="productsGrid">
+      <!-- Le schede prodotto vengono generate dinamicamente da ecom.js -->
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Caricamento articoli da PLUS2000 / Supabase Cloud...</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL ORDINE RAPIDO B2B (MODULO E-COM) -->
+  <div class="ecom-modal" id="orderModal">
+    <div class="ecom-modal-content">
+      <div class="modal-header">
+        <div>
+          <span class="modal-badge-b2b">RICHIESTA ORDINE B2B</span>
+          <h3 id="modalProdTitle">Titolo Articolo</h3>
+          <span id="modalProdCode" class="prod-code-sub">Cod. XYZ</span>
+        </div>
+        <button class="btn-close-modal" id="btnCloseOrderModal">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="order-prod-preview">
+          <img id="modalProdImg" src="" alt="Foto Articolo" class="modal-img">
+          <div class="order-prod-meta">
+            <div class="price-row">
+              <span class="price-label">Prezzo Netto Riservato:</span>
+              <strong class="price-val" id="modalProdPrice">€ 0,00</strong>
+            </div>
+            <div class="stock-info" id="modalProdStock">
+              Disponibilità: <span>Caricamento...</span>
+            </div>
+          </div>
+        </div>
+
+        <hr class="modal-divider">
+
+        <div class="order-form-sections">
+          <!-- SEZIONE A: QUANTITA E FORNITURA -->
+          <div class="form-section-box">
+            <div class="form-section-title">📦 1. Quantità & Modalità Fornitura</div>
+            <div class="order-form-grid">
+              <div class="form-group">
+                <label>Quantità da Ordinare:</label>
+                <div class="qty-control">
+                  <button type="button" class="btn-qty" id="btnQtyMinus">-</button>
+                  <input type="number" id="orderQtyInput" value="1" min="1" max="999">
+                  <button type="button" class="btn-qty" id="btnQtyPlus">+</button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Modalità di Fornitura:</label>
+                <select id="orderDeliveryType" class="ecom-select">
+                  <option value="SPEDIZIONE_SEDE">🚚 Spedizione presso sede / domicilio</option>
+                  <option value="SPEDIZIONE_CANTIERE">🏗️ Spedizione diretta in cantiere</option>
+                  <option value="RITIRO_BANCO">🏬 Ritiro a banco Magazzino Climawell</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- SEZIONE B: DATI INTESTATARIO & FATTURAZIONE -->
+          <div class="form-section-box">
+            <div class="form-section-title">🏢 2. Dati Acquirente & Fatturazione (Nuovo o Registrato)</div>
+            <div class="order-form-grid">
+              <div class="form-group full-width">
+                <label>Ragione Sociale o Nome & Cognome: <span class="req">*</span></label>
+                <input type="text" id="orderCustomerInput" placeholder="Es. Mario Rossi oppure Termoidraulica Rossi S.r.l.">
+              </div>
+
+              <div class="form-group">
+                <label>Codice Fiscale o Partita IVA: <span class="req">*</span></label>
+                <input type="text" id="orderTaxIdInput" placeholder="Es. RSSMRA80A01H501U o 01234567890">
+              </div>
+
+              <div class="form-group">
+                <label>Email per Conferma & Tracking: <span class="req">*</span></label>
+                <input type="email" id="orderEmailInput" placeholder="es. mario.rossi@gmail.com">
+              </div>
+
+              <div class="form-group">
+                <label>Telefono / Cellulare Corriere: <span class="req">*</span></label>
+                <input type="tel" id="orderPhoneInput" placeholder="Es. 3331234567">
+              </div>
+
+              <div class="form-group">
+                <label>Codice SDI o PEC (Opzionale aziende):</label>
+                <input type="text" id="orderSdiInput" placeholder="Es. 0000000 o aziendacliente@pec.it">
+              </div>
+            </div>
+          </div>
+
+          <!-- SEZIONE C: INDIRIZZO DI SPEDIZIONE -->
+          <div class="form-section-box">
+            <div class="form-section-title">📍 3. Indirizzo di Spedizione & Consegna</div>
+            <div class="order-form-grid">
+              <div class="form-group full-width">
+                <label>Indirizzo di Consegna (Via/Piazza e Civico): <span class="req">*</span></label>
+                <input type="text" id="orderAddressInput" placeholder="Es. Via Roma 45/A">
+              </div>
+
+              <div class="form-group">
+                <label>CAP: <span class="req">*</span></label>
+                <input type="text" id="orderCapInput" placeholder="Es. 50125" maxlength="5">
+              </div>
+
+              <div class="form-group">
+                <label>Località / Città: <span class="req">*</span></label>
+                <input type="text" id="orderCityInput" placeholder="Es. Firenze">
+              </div>
+
+              <div class="form-group">
+                <label>Provincia (Sigla): <span class="req">*</span></label>
+                <input type="text" id="orderProvinceInput" placeholder="Es. FI" maxlength="2" style="text-transform:uppercase;">
+              </div>
+
+              <div class="form-group">
+                <label>Codice Agente di Riferimento:</label>
+                <input type="text" id="orderAgentInput" value="1136" style="background:#f1f5f9; font-weight:700;">
+              </div>
+
+              <div class="form-group full-width">
+                <label>Note di Consegna / Riferimento Cantiere:</label>
+                <textarea id="orderNotesInput" rows="2" placeholder="Es. Chiamare 30 min prima, cantiere Villa Verdi, scarico piano terra..."></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIEPILOGO TOTALE -->
+        <div class="order-summary-box">
+          <div class="summary-line">
+            <span>Totale Imponibile:</span>
+            <strong id="summarySubtotal">€ 0,00</strong>
+          </div>
+          <div class="summary-line">
+            <span>IVA (22%):</span>
+            <span id="summaryVat">€ 0,00</span>
+          </div>
+          <div class="summary-line total">
+            <span>Totale Stimato Ordine:</span>
+            <strong id="summaryGrandTotal">€ 0,00</strong>
+          </div>
+        </div>
+
+        <!-- SELEZIONE MODALITÀ DI PAGAMENTO -->
+        <div class="checkout-method-tabs">
+          <button type="button" class="method-tab active" id="tabStripeMethod" data-target="stripe">
+            💳 Paga Online con Carta
+            <span class="tab-badge-test">STRIPE DIRECT CHARGE</span>
+          </button>
+          <button type="button" class="method-tab" id="tabAssistedMethod" data-target="assisted">
+            💬 / ✉️ Ordine Assistito Agente
+          </button>
+        </div>
+
+        <!-- 1. SEZIONE STRIPE DIRECT CHARGES -->
+        <div class="stripe-checkout-section" id="stripeCheckoutSection">
+          <div class="stripe-connect-banner">
+            <div class="stripe-badge-header">
+              <span class="stripe-logo-text">stripe <span>connect</span></span>
+              <span class="direct-charge-badge">⚡ DIRECT CHARGES</span>
+            </div>
+            <div class="stripe-account-info">
+              <span>Commerciante (Connected Account):</span>
+              <code id="stripeConnectedAccountLabel">acct_climawell_b2b</code>
+              <button type="button" class="btn-toggle-stripe-cfg" id="btnToggleStripeCfg">⚙️ Parametri SaaS</button>
+            </div>
+          </div>
+
+          <!-- PANNELLO CONFIGURAZIONE STRIPE CONNECT (TEST) -->
+          <div class="stripe-cfg-panel hidden" id="stripeCfgPanel">
+            <div class="cfg-panel-header">
+              <strong>Parametri Architettura SaaS (Daniele Lupi Platform ➔ Climawell)</strong>
+              <small>Direttiva Direct Charges: incasso diretto al Commerciante, trattenuta automatica fee SaaS</small>
+            </div>
+            <div class="cfg-inputs-grid">
+              <div class="cfg-group">
+                <label>Publishable Key (Piattaforma SaaS):</label>
+                <input type="text" id="cfgStripePubKey" value="pk_test_51P7DemoSaaSDanieleLupi00000000000000">
+              </div>
+              <div class="cfg-group">
+                <label>ID Commerciante Venditore (stripeAccount Climawell):</label>
+                <input type="text" id="cfgStripeAccount" value="acct_climawell_b2b" placeholder="acct_...">
+              </div>
+              <div class="cfg-group">
+                <label>Application Fee SaaS (% spettante a Daniele Lupi):</label>
+                <input type="number" id="cfgStripeFeePercent" value="2.5" step="0.1" min="0" max="20">
+              </div>
+            </div>
+          </div>
+
+          <!-- MODULO CARTA DI CREDITO -->
+          <div class="stripe-card-box">
+            <div class="card-box-header">
+              <label>Dati Carta di Credito / Debito:</label>
+              <div class="card-brand-icons">
+                <span class="brand-icon">VISA</span>
+                <span class="brand-icon">Mastercard</span>
+                <span class="brand-icon">Amex</span>
+                <span class="brand-icon">Apple Pay</span>
+              </div>
+            </div>
+
+            <!-- PILLS PER RIEMPIMENTO RAPIDO CARTE TEST STRIPE -->
+            <div class="quick-test-cards">
+              <span class="quick-test-label">Carte Test Stripe:</span>
+              <button type="button" class="btn-test-card" data-card="success">🟢 4242 (Successo)</button>
+              <button type="button" class="btn-test-card" data-card="3ds">🟡 3D Secure</button>
+              <button type="button" class="btn-test-card" data-card="declined">🔴 Rifiuto Fondi</button>
+            </div>
+
+            <div class="card-inputs-wrapper">
+              <div class="form-group full-width">
+                <label>Numero Carta:</label>
+                <div class="card-number-input-box">
+                  <input type="text" id="stripeCardNumber" placeholder="4242 •••• •••• 4242" maxlength="19" autocomplete="cc-number">
+                  <span class="card-type-icon" id="cardTypeIcon">💳</span>
+                </div>
+              </div>
+              <div class="card-row-half">
+                <div class="form-group">
+                  <label>Scadenza (MM/AA):</label>
+                  <input type="text" id="stripeCardExpiry" placeholder="12/28" maxlength="5" autocomplete="cc-exp">
+                </div>
+                <div class="form-group">
+                  <label>CVC / CVV:</label>
+                  <input type="text" id="stripeCardCvc" placeholder="123" maxlength="4" autocomplete="cc-csc">
+                </div>
+              </div>
+              <div class="form-group full-width">
+                <label>Nome Intestatario Carta:</label>
+                <input type="text" id="stripeCardHolder" placeholder="Es. Mario Rossi o Ragione Sociale">
+              </div>
+            </div>
+
+            <!-- RIPARTO DIRETTO (Fondi Commerciante Climawell vs Application Fee SaaS Daniele Lupi) -->
+            <div class="direct-charge-breakdown">
+              <div class="breakdown-item">
+                <span>Incasso netto Commerciante (Climawell):</span>
+                <strong id="breakdownNetToConnected">€ 0,00</strong>
+              </div>
+              <div class="breakdown-item">
+                <span>Fee Servizio Piattaforma SaaS (Daniele Lupi):</span>
+                <span id="breakdownFeeAmount">€ 0,00</span>
+              </div>
+            </div>
+
+            <button type="button" class="btn-stripe-pay" id="btnStripeDirectPay">
+              <span class="btn-pay-spinner hidden" id="stripePaySpinner"></span>
+              <span id="btnStripePayLabel">💳 Paga Subito € 0,00 (Direct Charge)</span>
+            </button>
+
+            <div class="stripe-security-notice">
+              🔒 <strong>Stripe Connect Direct Charge:</strong> I fondi della fornitura vengono incassati direttamente da <strong>Climawell</strong> (Commerciante), mentre l'Application Fee viene trattenuta dalla piattaforma software <strong>SaaS</strong>.
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. SEZIONE ORDINE ASSISTITO (WHATSAPP / EMAIL) -->
+        <div class="assisted-order-section hidden" id="assistedOrderSection">
+          <div class="order-completion-actions">
+            <button class="btn-complete-order wa" id="btnConfirmViaWhatsApp">
+              <span class="icon">💬</span>
+              <div>
+                <strong>Conferma Ordine via WhatsApp</strong>
+                <small>Invia riepilogo istantaneo all'Agente / Commerciale</small>
+              </div>
+            </button>
+
+            <button class="btn-complete-order email" id="btnConfirmViaEmail">
+              <span class="icon">✉️</span>
+              <div>
+                <strong>Invia Ordine via Email</strong>
+                <small>Notifica ufficiale a sales@climawell.it</small>
+              </div>
+            </button>
+          </div>
+
+          <div style="text-align:center; margin-top:12px;">
+            <button type="button" class="btn-save-crm" id="btnSaveToCrm">
+              💾 Registra Trattativa su Supabase / PLUS2000
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL RICEVUTA TRANSAZIONE COMPLETATA -->
+  <div class="ecom-modal" id="stripeReceiptModal">
+    <div class="ecom-modal-content receipt-modal-box">
+      <div class="receipt-header">
+        <div class="receipt-icon-circle">✓</div>
+        <h3>Pagamento Confermato con Successo!</h3>
+        <p>Transazione <strong>Direct Charge</strong>: Commerciante Climawell ⇄ Piattaforma SaaS</p>
+      </div>
+
+      <div class="receipt-details">
+        <div class="receipt-row">
+          <span>Codice Ordine:</span>
+          <strong id="receiptOrderNumber">ORD-ECOM-...</strong>
+        </div>
+        <div class="receipt-row">
+          <span>ID Transazione Stripe:</span>
+          <code id="receiptChargeId">ch_direct_test_...</code>
+        </div>
+        <div class="receipt-row">
+          <span>Commerciante Venditore:</span>
+          <code id="receiptConnectedAccount">acct_climawell_b2b</code>
+        </div>
+        <div class="receipt-row">
+          <span>Articolo Acquistato:</span>
+          <span id="receiptProductDesc">-</span>
+        </div>
+        <div class="receipt-row">
+          <span>Quantità:</span>
+          <span id="receiptQty">1</span>
+        </div>
+        <div class="receipt-row">
+          <span>Totale Pagato dal Cliente:</span>
+          <strong class="receipt-amount" id="receiptTotalAmount">€ 0,00</strong>
+        </div>
+        <div class="receipt-row fee">
+          <span>Fee Piattaforma SaaS (Daniele Lupi):</span>
+          <span id="receiptFeeAmount">€ 0,00</span>
+        </div>
+        <div class="receipt-row">
+          <span>Cliente & Fiscale:</span>
+          <span id="receiptCustomerName">-</span>
+        </div>
+        <div class="receipt-row">
+          <span>Destinazione Spedizione:</span>
+          <span id="receiptShippingDest" style="font-weight:600; color:#1e293b;">-</span>
+        </div>
+        <div class="receipt-row">
+          <span>Agente Riferimento:</span>
+          <span id="receiptAgentCode">1136</span>
+        </div>
+        <div class="receipt-row">
+          <span>Stato Registrazione:</span>
+          <strong style="color:#059669;">✅ Registrato su Supabase Cloud (Pronto per PLUS 2000)</strong>
+        </div>
+      </div>
+
+      <div class="receipt-actions" style="flex-direction: column; gap: 8px;">
+        <a id="btnGoToTracking" href="#" class="btn-track-order" style="text-align:center; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px;">
+          📦 Segui lo Stato dell'Ordine in Tempo Reale (Dashboard Cliente)
+        </a>
+        <div style="display:flex; gap:10px; width:100%;">
+          <button type="button" class="btn-print-receipt" id="btnPrintReceipt">🖨️ Stampa Ricevuta</button>
+          <button type="button" class="btn-close-receipt" id="btnCloseReceipt">Chiudi & Torna alla Vetrina</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICHE -->
+  <div class="ecom-toast" id="ecomToast">Notifica</div>
+
+  <!-- SCRIPT DI SISTEMA -->
+  <script src="https://js.stripe.com/v3/"></script>
+  <script src="/config/companyConfig.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabaseClient.js"></script>
+  <script src="ecom.js"></script>
+</body>
+</html>
