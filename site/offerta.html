@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="it">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,45 +10,743 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="stylesheet" href="/styles.css">
-  <link rel="stylesheet" href="/dense.css">
+  <link rel="stylesheet" href="/dense.css?v=20261026_v43_mobile">
   <link rel="stylesheet" href="/roles.css">
   <link rel="stylesheet" href="/data.css">
+  <style id="print-style">
+    @page {
+      size: A4 portrait;
+      margin: 12mm 15mm 12mm 15mm;
+    }
+
+    @media print {
+
+      html,
+      body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+        width: 100% !important;
+      }
+
+      .topbar,
+      .dense-shell,
+      dialog,
+      .toast,
+      footer,
+      .no-print {
+        display: none !important;
+      }
+
+      .print-offer {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      .print-sheet {
+        box-sizing: border-box !important;
+        width: 190mm !important;
+        max-width: 190mm !important;
+        min-width: 190mm !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+    }
+  </style>
+  <style id="mobile-responsive-style">
+    /* --- STILI HEADER E TOOLBAR PER DESKTOP & SCHERMI GRANDI --- */
+    .dense-title {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      gap: 16px !important;
+      background: #ffffff !important;
+      border: 1px solid #cbd5e1 !important;
+      border-radius: 10px !important;
+      padding: 10px 16px !important;
+      margin-bottom: 12px !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+    }
+
+    .dense-header-top {
+      display: flex !important;
+      align-items: center !important;
+      gap: 16px !important;
+      flex: 1 1 auto !important;
+      min-width: 0 !important;
+    }
+
+    .doc-badge-group {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      flex-shrink: 0 !important;
+    }
+
+    .doc-type-badge {
+      font-size: 0.68rem !important;
+      font-weight: 800 !important;
+      color: #0369a1 !important;
+      letter-spacing: 0.05em !important;
+    }
+
+    .dense-title h1 {
+      margin: 0 !important;
+      font-size: 1.12rem !important;
+      font-weight: 800 !important;
+      color: #0f172a !important;
+      white-space: nowrap !important;
+    }
+
+    /* Toolbar Navigazione Rapida (Desktop: Icona + Testo chiaro) */
+    .nav-icon-toolbar {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      background: #f8fafc !important;
+      padding: 4px 6px !important;
+      border-radius: 9px !important;
+      border: 1px solid #e2e8f0 !important;
+      box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.03) !important;
+    }
+
+    .nav-icon-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      padding: 6px 11px !important;
+      background: #ffffff !important;
+      border: 1px solid #cbd5e1 !important;
+      border-radius: 6px !important;
+      color: #334155 !important;
+      text-decoration: none !important;
+      cursor: pointer !important;
+      transition: all 0.16s ease !important;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+      font-size: 0.78rem !important;
+      font-weight: 700 !important;
+      line-height: 1 !important;
+      white-space: nowrap !important;
+    }
+
+    .nav-icon-btn:hover,
+    .nav-icon-btn:focus-visible {
+      background: #e0f2fe !important;
+      border-color: #0284c7 !important;
+      color: #0284c7 !important;
+      transform: translateY(-1px) !important;
+      box-shadow: 0 3px 6px rgba(2, 132, 199, 0.16) !important;
+    }
+
+    .nav-icon-btn:active {
+      transform: translateY(0) !important;
+      box-shadow: none !important;
+    }
+
+    .nav-icon-btn.hidden {
+      display: none !important;
+    }
+
+    .nav-icon {
+      width: 16px !important;
+      height: 16px !important;
+      stroke: currentColor !important;
+      stroke-width: 2 !important;
+      stroke-linecap: round !important;
+      stroke-linejoin: round !important;
+      flex-shrink: 0 !important;
+      pointer-events: none !important;
+    }
+
+    .nav-btn-label {
+      display: inline-block !important;
+      white-space: nowrap !important;
+      font-size: 0.78rem !important;
+      font-weight: 700 !important;
+      color: inherit !important;
+    }
+
+    /* Azioni Documento Desktop: bottoni compatti affiancati */
+    .doc-actions-bar {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      flex-shrink: 0 !important;
+    }
+
+    .action-btn {
+      padding: 7px 14px !important;
+      font-size: 0.8rem !important;
+      font-weight: 750 !important;
+      border-radius: 6px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      white-space: nowrap !important;
+      cursor: pointer !important;
+      transition: all 0.16s ease !important;
+    }
+
+    .action-submit {
+      background: linear-gradient(135deg, #0284c7, #0369a1) !important;
+      color: #fff !important;
+      border-color: #0284c7 !important;
+    }
+
+    /* Barra di Ricerca e Filtro Rapido Cliente */
+    .customer-search-bar {
+      position: relative;
+      display: flex;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .customer-search-bar input {
+      width: 100%;
+      padding: 6px 28px 6px 9px;
+      font-size: 0.82rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background: #f8fafc;
+      color: #0f172a;
+      transition: all 0.15s ease;
+      box-sizing: border-box;
+      outline: none;
+    }
+    .customer-search-bar input:focus {
+      background: #ffffff;
+      border-color: #0284c7;
+      box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.18);
+    }
+    .clear-search-btn {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      font-size: 1.1rem;
+      color: #94a3b8;
+      cursor: pointer;
+      padding: 0 4px;
+      line-height: 1;
+    }
+    .clear-search-btn:hover {
+      color: #ef4444;
+    }
+    .customer-filter-badge {
+      font-size: 0.68rem;
+      font-weight: 750;
+      color: #0284c7;
+      background: #e0f2fe;
+      padding: 2px 7px;
+      border-radius: 5px;
+      white-space: nowrap;
+    }
+
+    /* --- ADATTAMENTO SMARTPHONE (<= 768px) --- */
+    @media (max-width: 768px) {
+      /* Reset & Shell */
+      body {
+        padding-bottom: 70px !important;
+      }
+      .dense-shell {
+        padding: 8px 6px 80px !important;
+        margin: 0 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      /* Topbar compatta */
+      .topbar {
+        padding: 6px 10px !important;
+        min-height: 48px !important;
+        height: auto !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+      }
+      .topbar .brand small,
+      .topbar .sync span:last-child {
+        display: none !important;
+      }
+      .topbar .user-switch select {
+        max-width: 150px !important;
+        font-size: 0.78rem !important;
+        padding: 4px 6px !important;
+      }
+
+      /* Titolo su smartphone */
+      .dense-title {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+        padding: 10px !important;
+        margin-bottom: 8px !important;
+      }
+
+      .dense-header-top {
+        justify-content: space-between !important;
+        width: 100% !important;
+      }
+
+      .dense-title h1 {
+        font-size: 0.95rem !important;
+      }
+
+      /* Toolbar su smartphone: SOLO icone quadrate compatte 35x35px */
+      .nav-btn-label {
+        display: none !important;
+      }
+
+      .nav-icon-toolbar {
+        gap: 5px !important;
+        padding: 3px 5px !important;
+      }
+
+      .nav-icon-btn {
+        width: 35px !important;
+        height: 35px !important;
+        min-width: 35px !important;
+        min-height: 35px !important;
+        padding: 0 !important;
+        justify-content: center !important;
+        border-radius: 7px !important;
+      }
+
+      .nav-icon {
+        width: 18px !important;
+        height: 18px !important;
+      }
+
+      .nav-icon-btn:hover .nav-icon {
+        transform: scale(1.08) !important;
+      }
+
+      /* Micro-tooltip al tocco su smartphone */
+      .nav-icon-btn::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%) translateY(6px);
+        background: #0f172a;
+        color: #ffffff;
+        font-size: 0.68rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        padding: 3px 7px;
+        border-radius: 5px;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+      }
+
+      .nav-icon-btn:hover::after,
+      .nav-icon-btn:focus-visible::after {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(2px);
+      }
+
+      .nav-icon-toolbar .nav-icon-btn:nth-last-child(-n+2)::after {
+        left: auto;
+        right: 0;
+        transform: translateY(6px);
+      }
+      .nav-icon-toolbar .nav-icon-btn:nth-last-child(-n+2):hover::after {
+        transform: translateY(2px);
+      }
+
+      /* Barra azioni orizzontale a 4 colonne per smartphone */
+      .doc-actions-bar {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 5px !important;
+        width: 100% !important;
+        margin-top: 2px !important;
+      }
+      .action-btn {
+        padding: 7px 2px !important;
+        font-size: 0.72rem !important;
+        font-weight: 750 !important;
+        text-align: center !important;
+        justify-content: center !important;
+        border-radius: 6px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        white-space: nowrap !important;
+      }
+      .action-submit {
+        background: linear-gradient(135deg, #0284c7, #0369a1) !important;
+        color: #fff !important;
+        border-color: #0284c7 !important;
+      }
+
+      /* Box Cliente & Agente (Invertiti per priorità) */
+      .party-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 10px !important;
+        margin-bottom: 8px !important;
+        overflow: hidden !important;
+      }
+      .party-box.customer-box {
+        order: 1 !important;
+        padding: 10px !important;
+        background: #ffffff !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+      }
+      .party-box.customer-box .party-label {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin-bottom: 4px !important;
+      }
+      .party-box.customer-box select {
+        width: 100% !important;
+        font-size: 0.88rem !important;
+        padding: 8px !important;
+        border-radius: 6px !important;
+        font-weight: 600 !important;
+      }
+
+      .party-box.agent-box {
+        order: 2 !important;
+        padding: 6px 10px !important;
+        background: #f8fafc !important;
+        min-height: auto !important;
+        font-size: 0.72rem !important;
+      }
+      .agent-box .agent-box-header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+      }
+      .agent-box strong {
+        font-size: 0.8rem !important;
+        color: #334155 !important;
+      }
+      .agent-box #companyAddress,
+      .agent-box #companyContacts {
+        display: none !important;
+      }
+
+      /* Condizioni commerciali */
+      .commercial-table {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 10px !important;
+        margin-bottom: 8px !important;
+        overflow: hidden !important;
+      }
+      .commercial-table label {
+        padding: 6px 8px !important;
+        border-right: 1px solid #e2e8f0 !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+      }
+      .commercial-table label:nth-child(2),
+      .commercial-table label:nth-child(4) {
+        border-right: 0 !important;
+      }
+      .commercial-table label:nth-child(3),
+      .commercial-table label:nth-child(4) {
+        border-bottom: 0 !important;
+      }
+      .commercial-table select,
+      .commercial-table input {
+        font-size: 0.8rem !important;
+        font-weight: 600 !important;
+      }
+
+      /* Aggiunta articolo */
+      .article-panel {
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 10px !important;
+        margin-bottom: 8px !important;
+        overflow: hidden !important;
+      }
+      .article-tools {
+        padding: 8px !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+      }
+      .article-tools .product-picker {
+        flex: 1 1 100% !important;
+      }
+      .article-tools input {
+        font-size: 0.85rem !important;
+        padding: 7px 9px !important;
+      }
+
+      /* Tabella articoli trasformata in schede touch */
+      .table-scroll {
+        overflow-x: visible !important;
+        padding: 6px !important;
+        background: #f1f5f9 !important;
+      }
+      .edit-table {
+        min-width: 0 !important;
+        width: 100% !important;
+        display: block !important;
+      }
+      .edit-table thead {
+        display: none !important;
+      }
+      .edit-table tbody {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+        width: 100% !important;
+      }
+      .edit-table tr {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 5px !important;
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 10px !important;
+        padding: 9px !important;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.04) !important;
+        box-sizing: border-box !important;
+      }
+      .edit-table td {
+        border: 0 !important;
+        padding: 0 !important;
+        vertical-align: top !important;
+      }
+      .cell-label {
+        display: block !important;
+        font-size: 0.62rem !important;
+        font-weight: 750 !important;
+        color: #64748b !important;
+        text-transform: uppercase !important;
+        margin-bottom: 2px !important;
+      }
+      .product-cell {
+        grid-column: 1 / -1 !important;
+        margin-bottom: 4px !important;
+      }
+      .product-title {
+        font-size: 0.88rem !important;
+        font-weight: 750 !important;
+        color: #0f172a !important;
+        line-height: 1.25 !important;
+      }
+      .product-sub {
+        font-size: 0.72rem !important;
+        color: #475569 !important;
+      }
+      .price-cell {
+        grid-column: 1 / 3 !important;
+      }
+      .discount-cell {
+        grid-column: 3 / -1 !important;
+      }
+      .edit-table input,
+      .edit-table select {
+        width: 100% !important;
+        font-size: 0.8rem !important;
+        padding: 5px !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 6px !important;
+        box-sizing: border-box !important;
+      }
+      .net-cell {
+        grid-column: 1 / -1 !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        background: #f0f7fc !important;
+        border: 1px solid #bae6fd !important;
+        border-radius: 8px !important;
+        padding: 6px 10px !important;
+        margin-top: 4px !important;
+        font-size: 0.92rem !important;
+      }
+
+      /* Totali compatti */
+      .dense-footer {
+        display: flex !important;
+        flex-direction: column !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 10px !important;
+        margin-top: 8px !important;
+        overflow: hidden !important;
+      }
+      .totals-table {
+        border-left: 0 !important;
+        border-top: 1px solid #e2e8f0 !important;
+      }
+
+      /* Barra Sticky Inferiore */
+      .mobile-sticky-bar {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        height: 54px !important;
+        background: #0b2942 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 0 12px !important;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.25) !important;
+        z-index: 9999 !important;
+      }
+      .sticky-total-info {
+        display: flex !important;
+        flex-direction: column !important;
+      }
+      .sticky-total-info small {
+        font-size: 0.6rem !important;
+        font-weight: 750 !important;
+        color: #9cd3fc !important;
+        text-transform: uppercase !important;
+      }
+      .sticky-total-info strong {
+        font-size: 1.05rem !important;
+        font-weight: 800 !important;
+        color: #ffffff !important;
+      }
+      .sticky-actions-group {
+        display: flex !important;
+        gap: 6px !important;
+        align-items: center !important;
+      }
+      .sticky-btn {
+        padding: 7px 12px !important;
+        font-size: 0.8rem !important;
+        font-weight: 750 !important;
+        border-radius: 6px !important;
+      }
+      .sticky-btn.primary {
+        background: #0284c7 !important;
+        color: #ffffff !important;
+        border: 1px solid #0284c7 !important;
+      }
+    }
+  </style>
 </head>
+
 <body>
   <header class="topbar">
-    <div class="brand"><span class="brand-mark">OA</span><div><strong>Offerte Agenti</strong><small>Preventivi e catalogo offline</small></div></div>
+    <div class="brand"><span class="brand-mark">OA</span>
+      <div><strong>Offerte Agenti</strong><small>Preventivi e catalogo offline</small></div>
+    </div>
     <div class="user-switch"><label for="roleSelect">Vista operativa</label><select id="roleSelect"></select></div>
     <div class="sync"><span class="sync-dot"></span><span id="syncLabel">Salvato sul dispositivo</span></div>
   </header>
 
   <main class="dense-shell">
     <section class="dense-title">
-      <div><span id="documentTitle">OFFERTA CLIENTE</span><h1 id="offerCode">OFF-AG01-0001</h1></div>
-      <div class="heading-actions">
-        <a class="btn secondary" href="/">Pratiche</a>
-        <a class="btn secondary" href="/giro-visite.html">Giro Visite</a>
-        <a class="btn secondary admin-only hidden" href="/gestione-ordini.html">Ordini & Magazzino</a>
-        <a class="btn secondary admin-only hidden" href="/configurazione.html" title="Configura Google Drive e Fogli">Configurazione</a>
-        <button class="btn secondary admin-only hidden" id="dataBtn">Aggiorna dati</button>
-        <button class="btn secondary" id="saveBtn">Salva</button>
-        <button class="btn secondary" id="excelBtn">Excel</button>
-        <button class="btn secondary" id="printBtn">PDF / Stampa</button>
-        <button class="btn primary" id="submitBtn">Invia in azienda</button>
+      <div class="dense-header-top">
+        <div class="doc-badge-group">
+          <span id="documentTitle" class="doc-type-badge">OFFERTA CLIENTE</span>
+          <h1 id="offerCode">OFF-AG01-0001</h1>
+        </div>
+        <nav class="nav-icon-toolbar" aria-label="Menu navigazione rapida">
+          <a class="nav-icon-btn" href="/" data-tooltip="Elenco Pratiche" title="Elenco Pratiche" aria-label="Elenco Pratiche">
+            <svg viewBox="0 0 24 24" class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+              <rect x="9" y="3" width="6" height="4" rx="1" ry="1"/>
+              <path d="M9 12h6"/>
+              <path d="M9 16h6"/>
+            </svg>
+            <span class="nav-btn-label">Pratiche</span>
+          </a>
+          <a class="nav-icon-btn" href="/giro-visite.html" data-tooltip="Giro Visite" title="Giro Visite" aria-label="Giro Visite">
+            <svg viewBox="0 0 24 24" class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+              <path d="M8 14h.01"/>
+              <path d="M12 14h.01"/>
+              <path d="M16 14h.01"/>
+              <path d="M8 18h.01"/>
+              <path d="M12 18h.01"/>
+            </svg>
+            <span class="nav-btn-label">Giro Visite</span>
+          </a>
+          <a class="nav-icon-btn" href="/area-sviluppo.html" data-tooltip="Area Sviluppo" title="Area Sviluppo" aria-label="Area Sviluppo">
+            <svg viewBox="0 0 24 24" class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+            </svg>
+            <span class="nav-btn-label">Area Sviluppo</span>
+          </a>
+          <a class="nav-icon-btn admin-only hidden" href="/gestione-ordini.html" data-tooltip="Ordini & Magazzino" title="Ordini & Magazzino" aria-label="Ordini & Magazzino">
+            <svg viewBox="0 0 24 24" class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+              <line x1="12" y1="22.08" x2="12" y2="12"/>
+            </svg>
+            <span class="nav-btn-label">Ordini</span>
+          </a>
+          <a class="nav-icon-btn admin-only hidden" href="/configurazione.html" data-tooltip="Configurazione" title="Configurazione" aria-label="Configurazione">
+            <svg viewBox="0 0 24 24" class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+            <span class="nav-btn-label">Configurazione</span>
+          </a>
+          <button type="button" class="nav-icon-btn admin-only hidden" id="dataBtn" data-tooltip="Aggiorna Dati" title="Aggiorna Dati" aria-label="Aggiorna Dati">
+            <svg viewBox="0 0 24 24" class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 4 23 10 17 10"/>
+              <polyline points="1 20 1 14 7 14"/>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+            </svg>
+            <span class="nav-btn-label">Dati</span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="doc-actions-bar">
+        <button type="button" class="btn secondary action-btn" id="saveBtn">💾 Salva</button>
+        <button type="button" class="btn secondary action-btn" id="excelBtn">📊 Excel</button>
+        <button type="button" class="btn secondary action-btn" id="printBtn">📄 PDF / Stampa</button>
+        <button type="button" class="btn primary action-btn action-submit" id="submitBtn">🚀 Invia offerta</button>
       </div>
     </section>
 
     <section class="party-grid">
+      <div class="party-box customer-box">
+        <div class="party-label">
+          <small>CLIENTE</small>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <span id="customerFilterBadge" class="customer-filter-badge hidden"></span>
+            <button class="text-btn" id="newCustomerBtn">+ Nuovo</button>
+          </div>
+        </div>
+        <div class="customer-search-bar">
+          <input id="customerSearchInput" type="search" placeholder="🔍 Filtra per ragione sociale, codice o città…" autocomplete="off">
+          <button type="button" id="clearCustomerSearchBtn" class="clear-search-btn hidden" title="Azzera filtro">×</button>
+        </div>
+        <select id="customerSelect">
+          <option value="">Seleziona un cliente…</option>
+        </select>
+        <div id="customerDetails" class="customer-details compact hidden"></div>
+      </div>
       <div class="party-box agent-box">
-        <small>AGENTE / AZIENDA</small>
+        <div class="agent-box-header">
+          <small>AGENTE / AZIENDA</small>
+          <span class="agent-compact-badge" id="agentIdentityCompact">🏢 Climawell</span>
+        </div>
         <strong id="companyName">Caricamento dati aziendali…</strong>
         <span id="companyAddress"></span>
         <span id="companyContacts"></span>
         <span id="agentIdentity">Agente</span>
-      </div>
-      <div class="party-box customer-box">
-        <div class="party-label"><small>CLIENTE</small><button class="text-btn" id="newCustomerBtn">+ Nuovo</button></div>
-        <select id="customerSelect"><option value="">Seleziona un cliente…</option></select>
-        <div id="customerDetails" class="customer-details compact hidden"></div>
       </div>
     </section>
 
@@ -66,22 +765,65 @@
           <option>Da concordare</option>
           <option value="__custom__">✍️ Altro / Personalizzato…</option>
         </select>
-        <input id="customPaymentInput" class="hidden" style="margin-top:6px; font-size:.84rem; padding:6px 10px; border:1px solid #7dd3fc; border-radius:6px; background:#f0f9ff;" placeholder="Specifica condizione concordata…">
+        <input id="customPaymentInput" class="hidden"
+          style="margin-top:6px; font-size:.84rem; padding:6px 10px; border:1px solid #7dd3fc; border-radius:6px; background:#f0f9ff;"
+          placeholder="Specifica condizione concordata…">
       </label>
-      <label><span>Spedizione</span><select id="shipping"><option selected>Franco destino</option><option>Franco partenza</option><option>Ritiro presso magazzino</option></select></label>
-      <label><span>Validità</span><select id="validity"><option>15 giorni</option><option selected>30 giorni</option><option>60 giorni</option><option>90 giorni</option></select></label>
+      <label><span>Spedizione</span><select id="shipping">
+          <option selected>Franco destino</option>
+          <option>Franco partenza</option>
+          <option>Ritiro presso magazzino</option>
+        </select></label>
+      <label><span>Validità</span><select id="validity">
+          <option>15 giorni</option>
+          <option selected>30 giorni</option>
+          <option>60 giorni</option>
+          <option>90 giorni</option>
+        </select></label>
     </section>
 
     <section class="article-panel">
       <div class="article-tools">
-        <div class="product-picker"><input id="productSearch" type="search" placeholder="Cerca per codice, descrizione, marca o famiglia…" autocomplete="off"><div id="productResults" class="product-results hidden"></div></div>
+        <div class="product-picker"><input id="productSearch" type="search"
+            placeholder="Cerca per codice, descrizione, marca o famiglia…" autocomplete="off">
+          <div id="productResults" class="product-results hidden"></div>
+        </div>
         <button class="btn secondary compact-btn" id="catalogBtn">Catalogo fotografico</button>
+        <button class="btn secondary compact-btn" id="applyGlobalExtraBtn" title="Imposta una percentuale di Sconto Extra su tutte le righe">+ Sc. Extra</button>
         <span class="count-pill" id="itemCount">0 articoli</span>
       </div>
-      <div id="catalogPanel" class="catalog-panel hidden"><div class="catalog-head"><strong>Catalogo articoli</strong><div class="catalog-filters"><select id="sectorFilter"><option value="">Tutti i settori</option></select><select id="macroFilter"><option value="">Tutte le macrofamiglie</option></select><select id="familyFilter"><option value="">Tutte le famiglie</option></select><select id="brandFilter"><option value="">Tutte le marche</option></select><button class="icon-btn" id="closeCatalog" aria-label="Chiudi catalogo">×</button></div></div><div id="catalogGrid" class="catalog-grid"></div><button class="btn secondary load-more hidden" id="loadMoreCatalog">Mostra altri articoli</button></div>
+      <div id="catalogPanel" class="catalog-panel hidden">
+        <div class="catalog-head"><strong>Catalogo articoli</strong>
+          <div class="catalog-filters"><select id="sectorFilter">
+              <option value="">Tutti i settori</option>
+            </select><select id="macroFilter">
+              <option value="">Tutte le macrofamiglie</option>
+            </select><select id="familyFilter">
+              <option value="">Tutte le famiglie</option>
+            </select><select id="brandFilter">
+              <option value="">Tutte le marche</option>
+            </select><button class="icon-btn" id="closeCatalog" aria-label="Chiudi catalogo">×</button></div>
+        </div>
+        <div id="catalogGrid" class="catalog-grid"></div><button class="btn secondary load-more hidden"
+          id="loadMoreCatalog">Mostra altri articoli</button>
+      </div>
       <div class="table-scroll">
         <table class="edit-table">
-          <thead><tr><th>Codice / descrizione</th><th>Q.tà</th><th>Listino</th><th>Sc. 1</th><th>Sc. 2</th><th>Sc. 3</th><th>Sc. 4</th><th>Ric.</th><th>Netto</th><th></th></tr></thead>
+          <thead>
+            <tr>
+              <th>Codice / descrizione</th>
+              <th>Q.tà</th>
+              <th>Listino</th>
+              <th>Sc. 1</th>
+              <th>Sc. 2</th>
+              <th>Sc. 3</th>
+              <th>Sc. 4</th>
+              <th class="extra-discount-th" title="Sconto Extra concordato (Plus 2000)">Sc. Extra</th>
+              <th>Ric.</th>
+              <th>Netto</th>
+              <th></th>
+            </tr>
+          </thead>
           <tbody id="itemsList"></tbody>
         </table>
         <div id="emptyState" class="dense-empty">Nessun articolo inserito. Usa la ricerca qui sopra.</div>
@@ -89,17 +831,20 @@
     </section>
 
     <section class="dense-footer">
-      <label class="notes-box"><span>NOTE E CONDIZIONI</span><textarea id="notes" rows="3" placeholder="Tempi di consegna, esclusioni, condizioni particolari…"></textarea></label>
-      <aside class="totals-table"><div><span>Listino</span><strong id="listTotal">€ 0,00</strong></div><div><span>Sconti / ricarichi</span><strong id="discountTotal">€ 0,00</strong></div><div><span>Imponibile</span><strong id="netTotal">€ 0,00</strong></div><div><span>IVA</span><strong id="vatTotal">€ 0,00</strong></div><div class="grand"><span id="grandLabel">TOTALE OFFERTA</span><strong id="grandTotal">€ 0,00</strong></div><p id="validationStatus" class="validation neutral">Inserisci almeno un articolo</p></aside>
+      <label class="notes-box"><span>NOTE E CONDIZIONI</span><textarea id="notes" rows="3"
+          placeholder="Tempi di consegna, esclusioni, condizioni particolari…"></textarea></label>
+      <aside class="totals-table">
+        <div><span>Listino</span><strong id="listTotal">€ 0,00</strong></div>
+        <div><span>Sconti / ricarichi</span><strong id="discountTotal">€ 0,00</strong></div>
+        <div><span>Imponibile</span><strong id="netTotal">€ 0,00</strong></div>
+        <div><span>IVA</span><strong id="vatTotal">€ 0,00</strong></div>
+        <div class="grand"><span id="grandLabel">TOTALE OFFERTA</span><strong id="grandTotal">€ 0,00</strong></div>
+        <p id="validationStatus" class="validation neutral">Inserisci almeno un articolo</p>
+      </aside>
     </section>
   </main>
 
-  <footer style="text-align: center; padding: 20px 16px 28px; color: var(--muted); font-size: 0.82rem; border-top: 1px solid var(--line); margin-top: 24px;">
-    <div>© Climawell — Elaborazione Offerte & Ordini</div>
-    <div style="margin-top: 4px;">
-      <a href="/privacy.html" style="color: var(--blue); text-decoration: none; font-weight: 500;">🔒 Informativa Privacy & Protezione Dati (GDPR Reg. UE 2016/679)</a>
-    </div>
-  </footer>
+
 
   <dialog id="customerDialog">
     <form method="dialog" id="customerForm">
@@ -151,7 +896,7 @@
         <label class="field">
           <span>Cellulare (Marketing / WhatsApp)</span>
           <input type="tel" id="newCustomerMobile" placeholder="Es. 333 1234567">
-        </div>
+      </div>
       </div>
 
       <div class="two-cols">
@@ -182,10 +927,55 @@
     </form>
   </dialog>
 
-  <dialog id="dataDialog" class="data-dialog"><form method="dialog"><div class="dialog-head"><div><h2>Aggiornamento dati</h2><p>I file vengono elaborati sul dispositivo. Le bozze non vengono cancellate.</p></div><button value="cancel" class="icon-btn" aria-label="Chiudi">×</button></div><div class="data-summary"><div><span>Articoli disponibili</span><strong id="articleDataCount">—</strong></div><div><span>Clienti disponibili</span><strong id="clientDataCount">—</strong></div><div><span>Ultimo aggiornamento</span><strong id="dataUpdatedAt">—</strong></div></div><div class="import-grid"><label class="import-card"><strong>Articoli</strong><span>CSV UTF-8 con le intestazioni del file listino analizzato.</span><input id="articleImport" type="file" accept=".csv,text/csv"></label><label class="import-card"><strong>Clienti</strong><span>CSV UTF-8 con le intestazioni del foglio clienti analizzato.</span><input id="clientImport" type="file" accept=".csv,text/csv"></label></div><div id="importStatus" class="import-status">Seleziona uno o entrambi i file. L’aggiornamento avviene solo su richiesta.</div><details class="mapping-panel"><summary>Gerarchia agenti</summary><p>L’Agente 1 è impostato come capo area e vede i propri clienti più quelli degli agenti assegnati. L’amministrazione vede tutti i clienti, compresi quelli non associati agli 11 agenti operativi.</p><div id="agentMapList" class="agent-map-list"></div></details><div class="dialog-actions"><button value="cancel" class="btn secondary">Chiudi</button><button value="default" class="btn primary" id="applyImport">Applica aggiornamento</button></div></form></dialog>
+  <dialog id="dataDialog" class="data-dialog">
+    <form method="dialog">
+      <div class="dialog-head">
+        <div>
+          <h2>Aggiornamento dati</h2>
+          <p>I file vengono elaborati sul dispositivo. Le bozze non vengono cancellate.</p>
+        </div><button value="cancel" class="icon-btn" aria-label="Chiudi">×</button>
+      </div>
+      <div class="data-summary">
+        <div><span>Articoli disponibili</span><strong id="articleDataCount">—</strong></div>
+        <div><span>Clienti disponibili</span><strong id="clientDataCount">—</strong></div>
+        <div><span>Ultimo aggiornamento</span><strong id="dataUpdatedAt">—</strong></div>
+      </div>
+      <div class="import-grid"><label class="import-card"><strong>Articoli</strong><span>CSV UTF-8 con le intestazioni
+            del file listino analizzato.</span><input id="articleImport" type="file"
+            accept=".csv,text/csv"></label><label class="import-card"><strong>Clienti</strong><span>CSV UTF-8 con le
+            intestazioni del foglio clienti analizzato.</span><input id="clientImport" type="file"
+            accept=".csv,text/csv"></label></div>
+      <div id="importStatus" class="import-status">Seleziona uno o entrambi i file. L’aggiornamento avviene solo su
+        richiesta.</div>
+      <details class="mapping-panel">
+        <summary>Gerarchia agenti</summary>
+        <p>L’Agente 1 è impostato come capo area e vede i propri clienti più quelli degli agenti assegnati.
+          L’amministrazione vede tutti i clienti, compresi quelli non associati agli 11 agenti operativi.</p>
+        <div id="agentMapList" class="agent-map-list"></div>
+      </details>
+      <div class="dialog-actions"><button value="cancel" class="btn secondary">Chiudi</button><button value="default"
+          class="btn primary" id="applyImport">Applica aggiornamento</button></div>
+    </form>
   <section id="printOffer" class="print-offer" aria-hidden="true"></section>
   <div id="toast" class="toast" role="status"></div>
+
+  <!-- Barra rapida fissa in basso per smartphone -->
+  <div class="mobile-sticky-bar" id="mobileStickyBar">
+    <div class="sticky-total-info">
+      <small>TOTALE OFFERTA</small>
+      <strong id="stickyGrandTotal">€ 0,00</strong>
+    </div>
+    <div class="sticky-actions-group">
+      <button type="button" class="btn secondary sticky-btn" id="mobileStickySaveBtn">💾 Salva</button>
+      <button type="button" class="btn primary sticky-btn" id="mobileStickySubmitBtn">🚀 Invia offerta</button>
+    </div>
+  </div>
+
   <script src="/config/companyConfig.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabaseClient.js"></script>
+  <script src="/xlsx.full.min.js"></script>
   <script src="/offer-app.js"></script>
 </body>
+
 </html>

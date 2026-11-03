@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Magazzino & Logistica Mobile | Climawell</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- HTML5 QR Code / Barcode Scanner -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --primary-light: #e0f2fe;
+      --accent: #f59e0b;
+      --success: #10b981;
+      --danger: #ef4444;
+      --navy: #0f172a;
+      --card-bg: #ffffff;
+      --bg: #f8fafc;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 12px;
+      --shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding-bottom: 90px;
+    }
+
+    /* Topbar */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: var(--navy);
+      color: #fff;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    }
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -0.5px;
+    }
+    .brand-badge {
+      background: #0284c7;
+      color: #fff;
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+    }
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(255,255,255,0.1);
+      padding: 5px 10px;
+      border-radius: 20px;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      display: inline-block;
+    }
+    .dot.offline { background: var(--accent); }
+
+    /* Bottom Navigation Bar for Mobile One-Handed Operation */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 68px;
+      background: #ffffff;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 50;
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.05);
+    }
+    .nav-btn {
+      flex: 1;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: color 0.15s ease;
+    }
+    .nav-btn span.icon { font-size: 1.35rem; }
+    .nav-btn.active {
+      color: var(--primary);
+    }
+
+    /* Container Shell */
+    .shell {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 14px;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    /* Search & Barcode Bar */
+    .scan-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .scan-input {
+      flex: 1;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 12px 14px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--navy);
+      outline: none;
+    }
+    .scan-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+    }
+    .btn-camera {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 0 16px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      box-shadow: 0 3px 8px rgba(2, 132, 199, 0.25);
+    }
+
+    /* Scanner Viewport Modal */
+    #scannerModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    #scannerModal.active { display: flex; }
+    .scanner-box {
+      width: 100%;
+      max-width: 460px;
+      background: #fff;
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+    }
+    .scanner-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 18px;
+      background: var(--navy);
+      color: #fff;
+    }
+    .scanner-header h3 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .scanner-close {
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .scanner-close:hover { background: rgba(255,255,255,0.3); }
+    #reader {
+      width: 100%;
+      min-height: 240px;
+      background: #0f172a;
+    }
+    .scanner-footer {
+      padding: 14px 16px;
+      background: #f8fafc;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .scanner-perm-box {
+      display: none;
+      padding: 16px;
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 12px;
+      margin: 12px;
+      color: #92400e;
+      font-size: 0.85rem;
+      line-height: 1.45;
+    }
+    .scanner-perm-box.show { display: block; }
+    .scanner-perm-title {
+      font-weight: 800;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+      color: #b45309;
+    }
+    .scanner-perm-steps {
+      margin: 0;
+      padding-left: 18px;
+    }
+    .scanner-perm-steps li {
+      margin-bottom: 4px;
+    }
+
+    /* Location Badges */
+    .loc-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      border-radius: 6px;
+      padding: 4px 9px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+    .loc-chip.secondary {
+      background: #f8fafc;
+      color: #475569;
+      border-color: #cbd5e1;
+    }
+
+    /* Picking Checklist Items */
+    .pick-item {
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin-bottom: 12px;
+      transition: all 0.15s ease;
+    }
+    .pick-item.done {
+      border-color: #86efac;
+      background: #f0fdf4;
+      opacity: 0.85;
+    }
+    .pick-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+    .pick-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 800;
+      font-size: 1.05rem;
+      color: var(--navy);
+    }
+    .pick-desc {
+      font-size: 0.92rem;
+      color: #334155;
+      font-weight: 500;
+      margin-bottom: 8px;
+      line-height: 1.35;
+    }
+    .pick-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .pick-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+    .counter-control {
+      display: inline-flex;
+      align-items: center;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      background: #f8fafc;
+      overflow: hidden;
+    }
+    .btn-step {
+      background: #fff;
+      border: none;
+      padding: 8px 14px;
+      font-size: 1.1rem;
+      font-weight: 800;
+      cursor: pointer;
+      color: var(--navy);
+    }
+    .counter-val {
+      padding: 0 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.05rem;
+      font-weight: 800;
+      min-width: 50px;
+      text-align: center;
+    }
+    .btn-complete {
+      background: var(--success);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Buttons */
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+    }
+    .btn-secondary {
+      background: #f1f5f9;
+      color: var(--navy);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    /* Audit & Inventory Section */
+    .audit-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 14px 0;
+    }
+    .audit-stat {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+    .audit-stat small {
+      display: block;
+      color: var(--muted);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .audit-stat strong {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.35rem;
+      color: var(--navy);
+    }
+    .delta-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 800;
+      font-size: 0.95rem;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+    .delta-plus { background: #dcfce7; color: #15803d; }
+    .delta-minus { background: #fee2e2; color: #b91c1c; }
+    .delta-zero { background: #f1f5f9; color: #475569; }
+
+    /* Signature Canvas for Counter Sales */
+    #sigCanvas {
+      width: 100%;
+      height: 140px;
+      border: 2px dashed #94a3b8;
+      border-radius: 10px;
+      background: #ffffff;
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    /* Utility */
+    .hidden { display: none !important; }
+    .empty-state {
+      text-align: center;
+      padding: 32px 16px;
+      color: var(--muted);
+    }
+    .empty-icon { font-size: 2.5rem; margin-bottom: 8px; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      top: 65px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--navy);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      z-index: 999;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="brand-title">
+      <span>📦</span>
+      <span>Climawell</span>
+      <span class="brand-badge">Logistica</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span id="operatorBadge" style="font-size:0.8rem; font-weight:700; color:#e0f2fe; background:rgba(255,255,255,0.14); padding:4px 10px; border-radius:999px;">👤 Operatore</span>
+      <a href="/index.html" style="color:#e0f2fe; font-size:0.78rem; text-decoration:none; font-weight:600; padding:4px 8px; border:1px solid rgba(255,255,255,0.25); border-radius:6px; background:rgba(255,255,255,0.06);">🏠 Gestionale</a>
+      <div class="status-indicator" id="statusBadge" style="margin-left:4px;">
+        <span class="dot" id="statusDot"></span>
+        <span id="statusText">Live</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Scanner Viewport Modal -->
+  <div id="scannerModal">
+    <div class="scanner-box">
+      <button class="scanner-close" id="btnCloseScanner">✕</button>
+      <div id="reader"></div>
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast">Operazione completata</div>
+
+  <main class="shell">
+
+    <!-- TAB 1: PICKING & PREPARAZIONE ORDINI -->
+    <section id="tabPicking" class="tab-content">
+      <div class="card">
+        <h2 style="margin:0 0 10px; font-size:1.15rem; color:var(--navy);">🎯 Preparazione Ordine (Picking)</h2>
+        <p style="margin:0 0 14px; font-size:0.85rem; color:var(--muted);">
+          Gli articoli sono ordinati secondo il <strong>percorso ottico in magazzino</strong> per ubicazione.
+        </p>
+
+        <label style="display:block; font-size:0.8rem; font-weight:700; margin-bottom:6px;">Seleziona Ordine Cliente da Preparare:</label>
+        <select id="selOrderToPick" style="width:100%; padding:10px; border-radius:8px; border:2px solid var(--border); font-size:0.95rem; font-weight:600; background:#fff; margin-bottom:14px;">
+          <option value="">Caricamento ordini aperti…</option>
+        </select>
+
+        <div class="scan-bar">
+          <input type="text" id="pickBarcodeInput" class="scan-input" placeholder="Inquadra Barcode o digita codice…" autofocus>
+          <button class="btn-camera" id="btnScanPicking" title="Apri Fotocamera">📷</button>
+        </div>
+      </div>
+
+      <!-- Picking items checklist -->
+      <div id="pickingListContainer">
+        <div class="empty-state">
+          <div class="empty-icon">📋</div>
+          <strong>Nessun ordine selezionato</strong>
+          <div>Seleziona un ordine dal menu sopra per avviare il percorso di picking.</div>
+        </div>
+      </div>
+
+      <!-- Completa ordine footer button -->
+      <div id="pickingFooter" class="card hidden" style="margin-top:14px; text-align:center;">
+        <div style="font-size:0.95rem; font-weight:700; margin-bottom:10px;">Avanzamento: <span id="pickingProgress">0 / 0</span> articoli spuntati</div>
+        <button id="btnCompleteOrder" class="btn-primary" style="background:var(--success);">
+          ✅ Completa Preparazione & Segna Pronto per Spedizione
+        </button>
+      </div>
+    </section>
+
+    <!-- TAB 2: INVENTARIO & CONTEGGIO FISICO -->
+    <section id="tabInventory" class="tab-content hidden">
+      <div class="card">
+        <h2 style="margin:0 0 10px; font-size:1.15rem; color:var(--navy);">🔍 Controllo Inventario & Conteggio</h2>
+        <p style="margin:0 0 14px; font-size:0.85rem; color:var(--muted);">
+          Scansiona il barcode dell'articolo o dello scaffale per confrontare la giacenza di Plus 2000 con quella reale.
+        </p>
+
+        <div class="scan-bar">
+          <input type="text" id="invBarcodeInput" class="scan-input" placeholder="Scansiona EAN o Codice articolo…">
+          <button class="btn-camera" id="btnScanInv">📷</button>
+        </div>
+      </div>
+
+      <!-- Risultato Articolo Contato -->
+      <div id="invResultCard" class="card hidden">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div>
+            <div id="invArtCode" style="font-family:'JetBrains Mono', monospace; font-size:1.2rem; font-weight:800; color:var(--navy);">—</div>
+            <div id="invArtDesc" style="font-size:0.95rem; font-weight:600; color:#334155; margin-top:4px;">—</div>
+            <div id="invArtBrand" style="font-size:0.8rem; color:var(--muted); margin-top:2px;">—</div>
+          </div>
+          <div id="invLocationsList" style="text-align:right;">
+            <span class="loc-chip" id="invPrimaryLoc">📍 A-00-00</span>
+          </div>
+        </div>
+
+        <div class="audit-grid">
+          <div class="audit-stat">
+            <small>Giacenza Plus 2000</small>
+            <strong id="invBookStock">0</strong>
+          </div>
+          <div class="audit-stat">
+            <small>Delta Rilevato</small>
+            <span id="invDeltaBadge" class="delta-badge delta-zero">0 PZ</span>
+          </div>
+        </div>
+
+        <!-- Input conteggio fisico -->
+        <label style="display:block; font-size:0.85rem; font-weight:700; margin-bottom:6px;">Pezzi Contati Fisicamente a Scaffale:</label>
+        <div style="display:flex; gap:10px; align-items:center; margin-bottom:14px;">
+          <input type="number" id="invCountInput" class="scan-input" style="font-size:1.4rem; text-align:center;" value="0" min="0">
+          <button class="btn-secondary" id="btnInvAdd10" style="padding:14px 16px; font-weight:800;">+10</button>
+        </div>
+
+        <label style="display:block; font-size:0.85rem; font-weight:700; margin-bottom:6px;">Ubicazione Verificata:</label>
+        <input type="text" id="invLocationInput" class="scan-input" style="font-size:0.95rem; margin-bottom:14px;" placeholder="es. A-01-02 (o aggiungi scorta)">
+
+        <label style="display:block; font-size:0.85rem; font-weight:700; margin-bottom:6px;">Note / Motivo Discrepanza:</label>
+        <input type="text" id="invNotesInput" class="scan-input" style="font-size:0.9rem; margin-bottom:14px;" placeholder="es. Scatola integra, conteggio periodico">
+
+        <button id="btnSaveInventory" class="btn-primary">
+          💾 Salva Conteggio & Registra Rettifica
+        </button>
+      </div>
+    </section>
+
+    <!-- TAB 3: GIRO MAGAZZINO CON CLIENTE / PRELIEVO BANCO -->
+    <section id="tabCounter" class="tab-content hidden">
+      <div class="card">
+        <h2 style="margin:0 0 10px; font-size:1.15rem; color:var(--navy);">🛒 Giro Magazzino con Cliente</h2>
+        <p style="margin:0 0 14px; font-size:0.85rem; color:var(--muted);">
+          Accompagna l'installatore in corsia, scansiona i prodotti prelevati e genera un <strong>Preventivo</strong> o un <strong>DDT di Consegna Immediata</strong>.
+        </p>
+
+        <label style="display:block; font-size:0.82rem; font-weight:700; color:var(--navy); margin-bottom:6px;">👤 Cliente al Banco (Cerca per Iniziale o Numero Conto):</label>
+        <div style="display:flex; gap:8px; margin-bottom:8px;">
+          <input type="text" id="txtSearchCounterCustomer" class="scan-input" style="flex:1; padding:9px 12px; font-size:0.92rem; border:2px solid #0284c7; background:#f0f9ff;" placeholder="🔍 Digita iniziale o n° conto (es. 151, FORASASSI)..." autocomplete="off">
+          <button type="button" id="btnClearCounterCust" class="btn-step" style="padding:0 12px; font-size:0.9rem; border-radius:8px;" title="Azzera">✕</button>
+        </div>
+        <select id="selCounterCustomer" style="width:100%; padding:10px; border-radius:8px; border:2px solid var(--border); font-size:0.95rem; font-weight:600; background:#fff; margin-bottom:6px;">
+          <option value="">Seleziona cliente dall'anagrafica…</option>
+        </select>
+        <div id="counterCustFeedback" style="font-size:0.78rem; color:#0369a1; margin-bottom:14px; font-weight:600; min-height:16px;"></div>
+
+        <div class="scan-bar">
+          <input type="text" id="counterBarcodeInput" class="scan-input" placeholder="Scansiona prodotto dal ripiano…">
+          <button class="btn-camera" id="btnScanCounter">📷</button>
+        </div>
+      </div>
+
+      <!-- Carrello Spesa Live -->
+      <div class="card">
+        <h3 style="margin:0 0 10px; font-size:1rem; color:var(--navy);">Carrello Merce Prelevata (<span id="cartCount">0</span>)</h3>
+        <div id="counterCartContainer">
+          <div class="empty-state">
+            <div class="empty-icon">🛒</div>
+            <div>Scansiona gli articoli dal ripiano per aggiungerli al carrello.</div>
+          </div>
+        </div>
+
+        <div id="cartSummary" class="hidden" style="margin-top:14px; padding-top:14px; border-top:2px solid var(--border);">
+          <div style="display:flex; justify-content:space-between; font-size:1.15rem; font-weight:800; color:var(--navy); margin-bottom:14px;">
+            <span>Totale Stimato:</span>
+            <span id="cartTotal">€ 0,00</span>
+          </div>
+
+          <!-- Firma Cliente su Schermo -->
+          <label style="display:block; font-size:0.85rem; font-weight:700; margin-bottom:6px;">Firma del Cliente per Ritiro (Touchscreen):</label>
+          <canvas id="sigCanvas"></canvas>
+          <button class="btn-secondary" id="btnClearSig" style="font-size:0.75rem; padding:4px 10px; margin:6px 0 14px;">Cancella Firma</button>
+
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <button id="btnCreateOffer" class="btn-primary" style="background:#0284c7;">
+              📑 Genera Offerta
+            </button>
+            <button id="btnCreateDdt" class="btn-primary" style="background:var(--success);">
+              🚚 Emetti DDT Immediato
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: CONFIGURAZIONE & SINCRONIZZAZIONE -->
+    <section id="tabConfig" class="tab-content hidden">
+      <div class="card">
+        <h2 style="margin:0 0 10px; font-size:1.15rem; color:var(--navy);">⚙️ Connessione Supabase & Cache</h2>
+        <p style="margin:0 0 14px; font-size:0.85rem; color:var(--muted);">
+          Inserisci l'URL e la Anon Key del tuo progetto Supabase per attivare il database realtime ad altissima velocità.
+        </p>
+
+        <label style="display:block; font-size:0.85rem; font-weight:700; margin-bottom:6px;">Project URL Supabase:</label>
+        <input type="text" id="cfgSupabaseUrl" class="scan-input" style="font-size:0.9rem; margin-bottom:14px;" placeholder="https://xyzcompany.supabase.co">
+
+        <label style="display:block; font-size:0.85rem; font-weight:700; margin-bottom:6px;">API Key (Anon / Public):</label>
+        <input type="password" id="cfgSupabaseKey" class="scan-input" style="font-size:0.9rem; margin-bottom:14px;" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+
+        <button id="btnSaveConfig" class="btn-primary" style="margin-bottom:10px;">
+          💾 Salva & Testa Connessione
+        </button>
+
+        <button id="btnSyncLocalCache" class="btn-secondary" style="width:100%;">
+          🔄 Sincronizza Catalogo & Clienti in Memoria Locale
+        </button>
+      </div>
+
+      <div class="card" style="font-size:0.85rem; color:var(--muted);">
+        <strong style="color:var(--navy); display:block; margin-bottom:6px;">Schema SQL Iniziale:</strong>
+        Il file <code>supabase_schema.sql</code> è pronto nella cartella principale del progetto.
+        Copialo ed eseguilo nel <em>SQL Editor</em> della dashboard Supabase per creare le tabelle con indici e RLS attivi.
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Scanner Modal Viewport & Permission Assistant -->
+  <div id="scannerModal">
+    <div class="scanner-box">
+      <div class="scanner-header">
+        <h3><span>📷</span> Scansione Codice a Barre / EAN</h3>
+        <button id="btnCloseScanner" class="scanner-close" title="Chiudi scanner">✕</button>
+      </div>
+
+      <!-- Area Video Html5Qrcode -->
+      <div id="reader"></div>
+
+      <!-- Box Avviso Permessi Negati con guida passo-passo -->
+      <div id="scannerPermNotice" class="scanner-perm-box">
+        <div class="scanner-perm-title">
+          <span>🔒</span> Accesso Fotocamera Non Consentito
+        </div>
+        <p style="margin:0 0 8px;">Il browser ha bloccato l'apertura automatica della fotocamera. Come risolvere:</p>
+        <ol class="scanner-perm-steps">
+          <li>Tocca l'icona con le <strong>impostazioni / lucchetto</strong> 🔒 a sinistra nella barra degli indirizzi in alto.</li>
+          <li>Apri <strong>"Autorizzazioni"</strong> o <strong>"Impostazioni sito"</strong>.</li>
+          <li>Imposta la <strong>Fotocamera su "Consenti"</strong>.</li>
+          <li>Ricarica la pagina oppure clicca su <strong>Riprova Fotocamera</strong>.</li>
+        </ol>
+      </div>
+
+      <div class="scanner-footer">
+        <input type="file" id="barcodeFileCapture" accept="image/*" capture="environment" style="display:none;">
+        <button type="button" id="btnCaptureNative" class="btn-primary" style="background:var(--navy); font-size:0.95rem; width:100%; display:flex; align-items:center; justify-content:center; gap:8px;">
+          <span>📸</span> Scatta Foto Barcode (Fotocamera Nativa)
+        </button>
+        <button type="button" id="btnRetryCamera" class="btn-secondary" style="font-size:0.85rem; width:100%;">
+          🔄 Riprova Fotocamera Live
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-tab="tabPicking">
+      <span class="icon">📦</span>
+      <span>Picking</span>
+    </button>
+    <button class="nav-btn" data-tab="tabInventory">
+      <span class="icon">🔍</span>
+      <span>Inventario</span>
+    </button>
+    <button class="nav-btn" data-tab="tabCounter">
+      <span class="icon">🛒</span>
+      <span>Prelievo Banco</span>
+    </button>
+    <button class="nav-btn" data-tab="tabConfig">
+      <span class="icon">⚙️</span>
+      <span>Config</span>
+    </button>
+  </nav>
+
+  <!-- Script Logica Operativa -->
+  <script src="/supabaseClient.js"></script>
+  <script>
+    // --- Utilities & Audio/Haptic Feedback ---
+    function toast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 2800);
+    }
+
+    function soundBeep(success = true) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = success ? 'sine' : 'square';
+        osc.frequency.value = success ? 880 : 330;
+        gain.gain.value = 0.15;
+        osc.start();
+        setTimeout(() => { osc.stop(); ctx.close(); }, success ? 120 : 250);
+      } catch {}
+      if (navigator.vibrate) {
+        navigator.vibrate(success ? [60] : [100, 50, 100]);
+      }
+    }
+
+    const euro = v => new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(Number(v) || 0);
+
+    // --- State ---
+    let allProducts = [];
+    let allCustomers = [];
+    let activeOrders = [];
+    let currentPickingLines = [];
+    let counterCart = [];
+    let html5QrScanner = null;
+    let currentScanTarget = 'picking';
+
+    // --- Navigation Tabs ---
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.tab).classList.remove('hidden');
+      };
+    });
+
+    // --- Barcode Scanner Logic Avanzato ---
+    const permNotice = document.getElementById('scannerPermNotice');
+    const fileCaptureInput = document.getElementById('barcodeFileCapture');
+
+    async function openScanner(target) {
+      currentScanTarget = target;
+      document.getElementById('scannerModal').classList.add('active');
+      permNotice.classList.remove('show');
+
+      if (!html5QrScanner) {
+        html5QrScanner = new Html5Qrcode("reader");
+      }
+
+      try {
+        if (html5QrScanner.isScanning) {
+          await html5QrScanner.stop();
+        }
+        await html5QrScanner.start(
+          { facingMode: "environment" },
+          { 
+            fps: 15,
+            qrbox: { width: 280, height: 180 },
+            aspectRatio: 1.333334
+          },
+          (decodedText) => {
+            onBarcodeRead(decodedText);
+            closeScanner();
+          },
+          () => {} // frame non decodificato
+        );
+      } catch (err) {
+        console.warn('Errore apertura fotocamera live:', err);
+        const errStr = String(err || '').toLowerCase();
+        if (errStr.includes('notallowed') || errStr.includes('permission') || errStr.includes('denied')) {
+          permNotice.classList.add('show');
+          toast('⚠️ Permesso fotocamera non concesso. Segui le istruzioni o usa lo scatto nativo.');
+        } else {
+          toast('Avviso fotocamera: ' + (err.message || err));
+        }
+      }
+    }
+
+    async function closeScanner() {
+      document.getElementById('scannerModal').classList.remove('active');
+      permNotice.classList.remove('show');
+      if (html5QrScanner && html5QrScanner.isScanning) {
+        try {
+          await html5QrScanner.stop();
+        } catch {}
+      }
+    }
+
+    // Fallback Scatto Foto con Fotocamera Nativa (funziona sempre senza permessi browser WebRTC)
+    document.getElementById('btnCaptureNative').onclick = () => {
+      fileCaptureInput.click();
+    };
+
+    fileCaptureInput.onchange = async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      toast('Elaborazione barcode da foto in corso… ⏳');
+      try {
+        if (!html5QrScanner) {
+          html5QrScanner = new Html5Qrcode("reader");
+        }
+        const decodedText = await html5QrScanner.scanFile(file, true);
+        if (decodedText) {
+          toast('✅ Codice rilevato con successo!');
+          onBarcodeRead(decodedText);
+          closeScanner();
+        }
+      } catch (scanErr) {
+        console.warn('Impossibile decodificare barcode da immagine:', scanErr);
+        toast('❌ Barcode non rilevato nella foto. Inquadra più da vicino con buona luce.');
+        soundBeep(false);
+      } finally {
+        fileCaptureInput.value = '';
+      }
+    };
+
+    document.getElementById('btnRetryCamera').onclick = () => {
+      openScanner(currentScanTarget);
+    };
+
+    document.getElementById('btnCloseScanner').onclick = closeScanner;
+    document.getElementById('btnScanPicking').onclick = () => openScanner('picking');
+    document.getElementById('btnScanInv').onclick = () => openScanner('inventory');
+    document.getElementById('btnScanCounter').onclick = () => openScanner('counter');
+
+    async function onBarcodeRead(code) {
+      const term = code.trim();
+      soundBeep(true);
+
+      if (currentScanTarget === 'picking') {
+        document.getElementById('pickBarcodeInput').value = term;
+        handlePickingBarcode(term);
+      } else if (currentScanTarget === 'inventory') {
+        document.getElementById('invBarcodeInput').value = term;
+        await handleInventoryBarcode(term);
+      } else if (currentScanTarget === 'counter') {
+        document.getElementById('counterBarcodeInput').value = term;
+        await handleCounterBarcode(term);
+      }
+    }
+
+    // Input text Enter handlers
+    document.getElementById('pickBarcodeInput').onkeydown = (e) => {
+      if (e.key === 'Enter') handlePickingBarcode(e.target.value.trim());
+    };
+    document.getElementById('invBarcodeInput').onkeydown = async (e) => {
+      if (e.key === 'Enter') await handleInventoryBarcode(e.target.value.trim());
+    };
+    document.getElementById('counterBarcodeInput').onkeydown = async (e) => {
+      if (e.key === 'Enter') await handleCounterBarcode(e.target.value.trim());
+    };
+
+    // --- TAB 1: PICKING ---
+    function handlePickingBarcode(code) {
+      if (!currentPickingLines.length) {
+        toast('Seleziona prima un ordine');
+        return;
+      }
+      const match = currentPickingLines.find(l => {
+        if (l.product_code && l.product_code.toLowerCase() === code.toLowerCase()) return true;
+        if (!l.barcode) return false;
+        const bList = l.barcode.split(',').map(b => b.trim().toLowerCase());
+        return bList.includes(code.toLowerCase()) || l.barcode.toLowerCase() === code.toLowerCase();
+      });
+      if (match) {
+        match.picked_qty = Math.min(match.quantity, (match.picked_qty || 0) + 1);
+        if (match.picked_qty >= match.quantity) match.is_completed = true;
+        renderPickingLines();
+        toast(`Spuntato +1: ${match.product_code}`);
+        soundBeep(true);
+      } else {
+        toast(`⚠️ Articolo ${code} non presente in questo ordine!`);
+        soundBeep(false);
+      }
+      document.getElementById('pickBarcodeInput').value = '';
+    }
+
+    function renderPickingLines() {
+      const container = document.getElementById('pickingListContainer');
+      if (!currentPickingLines.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <div>Nessuna riga nell'ordine selezionato.</div>
+          </div>`;
+        document.getElementById('pickingFooter').classList.add('hidden');
+        return;
+      }
+
+      // Sort by warehouse location for walking path optimization
+      currentPickingLines.sort((a, b) => String(a.location || 'ZZZ').localeCompare(String(b.location || 'ZZZ')));
+
+      let completedCount = 0;
+      container.innerHTML = currentPickingLines.map((l, idx) => {
+        if (l.is_completed) completedCount++;
+        const loc = l.location || 'Magazzino';
+        return `
+          <div class="pick-item ${l.is_completed ? 'done' : ''}">
+            <div class="pick-header">
+              <span class="pick-code">${l.product_code}</span>
+              <span class="loc-chip">📍 ${loc}</span>
+            </div>
+            <div class="pick-desc">${l.description}</div>
+            <div class="pick-meta">
+              <span style="font-size:0.8rem; color:var(--muted);">Marca: <strong>${l.brand || '—'}</strong></span>
+              <span style="font-size:0.8rem; color:var(--muted);">Da prelevare: <strong>${l.quantity} PZ</strong></span>
+            </div>
+            <div class="pick-actions">
+              <div class="counter-control">
+                <button class="btn-step" onclick="stepPicking(${idx}, -1)">−</button>
+                <span class="counter-val">${l.picked_qty || 0}</span>
+                <button class="btn-step" onclick="stepPicking(${idx}, +1)">+</button>
+              </div>
+              <button class="btn-complete" onclick="togglePickCompleted(${idx})">
+                ${l.is_completed ? '✅ Spuntato' : 'Spunta'}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('pickingProgress').textContent = `${completedCount} / ${currentPickingLines.length}`;
+      document.getElementById('pickingFooter').classList.remove('hidden');
+    }
+
+    window.stepPicking = (idx, step) => {
+      const item = currentPickingLines[idx];
+      if (!item) return;
+      item.picked_qty = Math.max(0, Math.min(item.quantity, (item.picked_qty || 0) + step));
+      item.is_completed = (item.picked_qty >= item.quantity);
+      renderPickingLines();
+    };
+
+    window.togglePickCompleted = (idx) => {
+      const item = currentPickingLines[idx];
+      if (!item) return;
+      item.is_completed = !item.is_completed;
+      if (item.is_completed) item.picked_qty = item.quantity;
+      renderPickingLines();
+    };
+
+    document.getElementById('selOrderToPick').onchange = (e) => {
+      const ordNumber = e.target.value;
+      const ord = activeOrders.find(o => o.number === ordNumber || o.id === ordNumber);
+      if (!ord) {
+        currentPickingLines = [];
+        renderPickingLines();
+        return;
+      }
+      currentPickingLines = (ord.document_lines || ord.lines || []).map(l => ({
+        ...l,
+        picked_qty: Number(l.picked_qty) || 0,
+        is_completed: Boolean(l.is_completed)
+      }));
+      renderPickingLines();
+    };
+
+    document.getElementById('btnCompleteOrder').onclick = async () => {
+      const allDone = currentPickingLines.every(l => l.is_completed);
+      if (!allDone && !confirm('Alcune righe non sono state completate al 100%. Confermi la preparazione parziale?')) {
+        return;
+      }
+      toast('Ordine contrassegnato: Preparato per Spedizione! 📦');
+      soundBeep(true);
+    };
+
+    // --- TAB 2: INVENTARIO ---
+    let currentAuditedProduct = null;
+    async function handleInventoryBarcode(code) {
+      currentAuditedProduct = await window.ClwData.findProductByBarcodeOrCode(code);
+      if (!currentAuditedProduct) {
+        toast(`Articolo ${code} non trovato in anagrafica`);
+        soundBeep(false);
+        return;
+      }
+      soundBeep(true);
+      document.getElementById('invResultCard').classList.remove('hidden');
+      document.getElementById('invArtCode').textContent = currentAuditedProduct.code;
+      document.getElementById('invArtDesc').textContent = currentAuditedProduct.description;
+      document.getElementById('invArtBrand').textContent = currentAuditedProduct.brand || 'Climawell';
+      document.getElementById('invPrimaryLoc').textContent = `📍 ${currentAuditedProduct.primary_location || currentAuditedProduct.location || 'A-01-01'}`;
+      document.getElementById('invBookStock').textContent = currentAuditedProduct.stock_qty || currentAuditedProduct.stock || 0;
+      document.getElementById('invCountInput').value = currentAuditedProduct.stock_qty || currentAuditedProduct.stock || 0;
+      document.getElementById('invLocationInput').value = currentAuditedProduct.primary_location || currentAuditedProduct.location || '';
+      updateInventoryDelta();
+    }
+
+    function updateInventoryDelta() {
+      if (!currentAuditedProduct) return;
+      const book = Number(currentAuditedProduct.stock_qty || currentAuditedProduct.stock || 0);
+      const counted = Number(document.getElementById('invCountInput').value || 0);
+      const delta = counted - book;
+      const badge = document.getElementById('invDeltaBadge');
+      badge.textContent = `${delta > 0 ? '+' : ''}${delta} PZ`;
+      badge.className = `delta-badge ${delta > 0 ? 'delta-plus' : (delta < 0 ? 'delta-minus' : 'delta-zero')}`;
+    }
+
+    document.getElementById('invCountInput').oninput = updateInventoryDelta;
+    document.getElementById('btnInvAdd10').onclick = () => {
+      const inp = document.getElementById('invCountInput');
+      inp.value = Number(inp.value || 0) + 10;
+      updateInventoryDelta();
+    };
+
+    document.getElementById('btnSaveInventory').onclick = async () => {
+      if (!currentAuditedProduct) return;
+      const counted = Number(document.getElementById('invCountInput').value || 0);
+      const loc = document.getElementById('invLocationInput').value.trim();
+      const notes = document.getElementById('invNotesInput').value.trim();
+
+      await window.ClwData.saveInventoryCount({
+        productCode: currentAuditedProduct.code,
+        location: loc,
+        bookStock: currentAuditedProduct.stock_qty || currentAuditedProduct.stock || 0,
+        countedStock: counted,
+        notes: notes
+      });
+
+      toast(`✅ Conteggio salvato per ${currentAuditedProduct.code}!`);
+      soundBeep(true);
+      document.getElementById('invResultCard').classList.add('hidden');
+      document.getElementById('invBarcodeInput').value = '';
+    };
+
+    // --- TAB 3: PRELIEVO BANCO & GIRO CLIENTE ---
+    async function handleCounterBarcode(code) {
+      const prod = await window.ClwData.findProductByBarcodeOrCode(code);
+      if (!prod) {
+        toast(`Articolo ${code} non trovato`);
+        soundBeep(false);
+        return;
+      }
+      soundBeep(true);
+      const existingIdx = counterCart.findIndex(c => c.code === prod.code);
+      if (existingIdx >= 0) {
+        counterCart[existingIdx].quantity += 1;
+        const it = counterCart.splice(existingIdx, 1)[0];
+        counterCart.unshift(it); // Porta l'articolo in cima alla lista
+      } else {
+        counterCart.unshift({ // Inserisce il nuovo articolo in cima
+          code: prod.code,
+          description: prod.description,
+          brand: prod.brand,
+          location: prod.primary_location || prod.location || '',
+          price: Number(prod.price) || 0,
+          quantity: 1,
+          barcode: prod.barcode || ''
+        });
+      }
+      renderCounterCart();
+      document.getElementById('counterBarcodeInput').value = '';
+      toast(`Aggiunto a carrello: ${prod.code}`);
+    }
+
+    function renderCounterCart() {
+      const container = document.getElementById('counterCartContainer');
+      const summary = document.getElementById('cartSummary');
+      document.getElementById('cartCount').textContent = counterCart.reduce((acc, c) => acc + c.quantity, 0);
+
+      if (!counterCart.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">🛒</div>
+            <div>Scansiona gli articoli dal ripiano per aggiungerli al carrello.</div>
+          </div>`;
+        summary.classList.add('hidden');
+        return;
+      }
+
+      let grandTotal = 0;
+      container.innerHTML = counterCart.map((item, idx) => {
+        const lineTot = item.quantity * item.price;
+        grandTotal += lineTot;
+        return `
+          <div class="pick-item" style="padding:10px 12px; margin-bottom:8px;">
+            <div class="pick-header" style="margin-bottom:4px;">
+              <span class="pick-code" style="font-size:0.95rem;">${item.code}</span>
+              <span style="font-weight:700; color:var(--navy);">${euro(lineTot)}</span>
+            </div>
+            <div style="font-size:0.85rem; color:#475569; margin-bottom:6px;">${item.description}</div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:0.75rem; color:var(--muted);">${euro(item.price)} cad.</span>
+              <div class="counter-control">
+                <button class="btn-step" onclick="stepCart(${idx}, -1)" style="padding:4px 10px;">−</button>
+                <span class="counter-val" style="min-width:32px;">${item.quantity}</span>
+                <button class="btn-step" onclick="stepCart(${idx}, +1)" style="padding:4px 10px;">+</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('cartTotal').textContent = euro(grandTotal);
+      summary.classList.remove('hidden');
+    }
+
+    window.stepCart = (idx, step) => {
+      const item = counterCart[idx];
+      if (!item) return;
+      item.quantity += step;
+      if (item.quantity <= 0) counterCart.splice(idx, 1);
+      renderCounterCart();
+    };
+
+    // Signature Canvas setup
+    const sigCanvas = document.getElementById('sigCanvas');
+    const sigCtx = sigCanvas.getContext('2d');
+    let isDrawing = false;
+
+    function resizeCanvas() {
+      sigCanvas.width = sigCanvas.offsetWidth;
+      sigCanvas.height = sigCanvas.offsetHeight;
+      sigCtx.lineWidth = 2.5;
+      sigCtx.lineCap = 'round';
+      sigCtx.strokeStyle = '#0f172a';
+    }
+    window.addEventListener('resize', resizeCanvas);
+    setTimeout(resizeCanvas, 300);
+
+    const getPos = e => {
+      const rect = sigCanvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return { x: clientX - rect.left, y: clientY - rect.top };
+    };
+
+    const startDraw = e => { isDrawing = true; const p = getPos(e); sigCtx.beginPath(); sigCtx.moveTo(p.x, p.y); };
+    const draw = e => { if (!isDrawing) return; const p = getPos(e); sigCtx.lineTo(p.x, p.y); sigCtx.stroke(); };
+    const stopDraw = () => { isDrawing = false; };
+
+    sigCanvas.addEventListener('mousedown', startDraw);
+    sigCanvas.addEventListener('mousemove', draw);
+    window.addEventListener('mouseup', stopDraw);
+    sigCanvas.addEventListener('touchstart', startDraw, { passive: false });
+    sigCanvas.addEventListener('touchmove', draw, { passive: false });
+    window.addEventListener('touchend', stopDraw);
+
+    document.getElementById('btnClearSig').onclick = () => {
+      sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+    };
+
+    // Submit Counter Document
+    async function submitCounterDocument(type) {
+      if (!counterCart.length) return toast('Carrello vuoto!');
+      const custCode = document.getElementById('selCounterCustomer').value;
+      const cust = allCustomers.find(c => c.code === custCode || c.id === custCode) || {
+        name: 'Cliente al Banco',
+        code: custCode || 'BANCO'
+      };
+
+      const sigData = sigCanvas.toDataURL('image/png');
+
+      const res = await window.ClwData.createCounterSale({
+        documentType: type,
+        customer: cust,
+        lines: counterCart,
+        signatureData: sigData,
+        operatorName: 'Magazzino Climawell'
+      });
+
+      toast(`✅ Creato ${type} N. ${res.documentNumber}!`);
+      soundBeep(true);
+      counterCart = [];
+      renderCounterCart();
+      document.getElementById('btnClearSig').click();
+    }
+
+    document.getElementById('btnCreateOffer').onclick = () => submitCounterDocument('OFC');
+    document.getElementById('btnCreateDdt').onclick = () => submitCounterDocument('DDT');
+
+    // --- TAB 4: CONFIG ---
+    document.getElementById('btnSaveConfig').onclick = async () => {
+      const url = document.getElementById('cfgSupabaseUrl').value.trim();
+      const key = document.getElementById('cfgSupabaseKey').value.trim();
+      window.ClwData.setConfig(url, key);
+      toast('Configurazione Supabase salvata!');
+      await initData();
+    };
+
+    document.getElementById('btnSyncLocalCache').onclick = async () => {
+      toast('Sincronizzazione in corso…');
+      await initData(true);
+      toast('Cache locale aggiornata!');
+    };
+
+    // --- Init Application ---
+    async function initData(forceRefresh = false) {
+      const cfg = window.ClwData.getConfig();
+      document.getElementById('cfgSupabaseUrl').value = cfg.url || '';
+      document.getElementById('cfgSupabaseKey').value = cfg.key || '';
+
+      // Verifica utente loggato
+      const user = window.ClwData.getCurrentUser();
+      if (user) {
+        const rName = user.role === 'admin' ? 'Amministrazione' : (user.role === 'magazziniere' ? 'Magazzino' : 'Operatore');
+        document.getElementById('operatorBadge').textContent = `👤 ${user.name || user.username} (${rName})`;
+        const opInput = document.getElementById('invOperator');
+        if (opInput) opInput.value = user.name || user.username || 'Magazziniere';
+      } else {
+        document.getElementById('operatorBadge').textContent = '👤 Ospite Magazzino';
+      }
+
+      if (window.ClwData.isConfigured()) {
+        document.getElementById('statusDot').className = 'dot';
+        document.getElementById('statusText').textContent = 'Live';
+      } else {
+        document.getElementById('statusDot').className = 'dot offline';
+        document.getElementById('statusText').textContent = 'Offline';
+      }
+
+      // Load products & customers
+      allProducts = await window.ClwData.getProducts();
+      allCustomers = await window.ClwData.getCustomers();
+
+      // Popola e gestisce ricerca rapida clienti
+      const searchInp = document.getElementById('txtSearchCounterCustomer');
+      const custSelect = document.getElementById('selCounterCustomer');
+      const clearBtn = document.getElementById('btnClearCounterCust');
+      const feedback = document.getElementById('counterCustFeedback');
+
+      function filterCounterCustomers(query) {
+        const q = (query || '').trim().toLowerCase();
+        let matched = allCustomers;
+        if (q) {
+          matched = allCustomers.filter(c => {
+            const code = String(c.code || c.id || '').toLowerCase();
+            const name = String(c.name || '').toLowerCase();
+            const city = String(c.city || '').toLowerCase();
+            return code === q || code.startsWith(q) || code.includes(q) || name.includes(q) || city.includes(q);
+          });
+        }
+
+        custSelect.innerHTML = '<option value="">-- Seleziona cliente dall\'anagrafica --</option>' +
+          matched.map(c => `<option value="${c.code || c.id}">${c.code ? `[${c.code}] ` : ''}${c.name}${c.city ? ` (${c.city})` : ''}</option>`).join('');
+
+        if (q) {
+          feedback.textContent = `Trovati ${matched.length} clienti per "${q}"`;
+          if (matched.length === 1) {
+            custSelect.value = matched[0].code || matched[0].id;
+            feedback.textContent = `✅ Selezionato: [${matched[0].code}] ${matched[0].name}`;
+          } else if (matched.length > 1) {
+            const exactCode = matched.find(c => String(c.code).toLowerCase() === q);
+            if (exactCode) {
+              custSelect.value = exactCode.code || exactCode.id;
+              feedback.textContent = `✅ Trovato conto [${exactCode.code}]: ${exactCode.name}`;
+            }
+          }
+        } else {
+          feedback.textContent = `${allCustomers.length} clienti pronti per vendita a banco`;
+        }
+      }
+
+      filterCounterCustomers('');
+      if (searchInp) {
+        searchInp.oninput = (e) => filterCounterCustomers(e.target.value);
+        searchInp.onkeydown = (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            if (custSelect.options.length > 1) {
+              custSelect.selectedIndex = 1;
+              const opt = custSelect.options[1];
+              feedback.textContent = `✅ Selezionato: ${opt.text}`;
+              document.getElementById('counterBarcodeInput').focus();
+            }
+          }
+        };
+      }
+      if (clearBtn) {
+        clearBtn.onclick = () => {
+          searchInp.value = '';
+          filterCounterCustomers('');
+          searchInp.focus();
+        };
+      }
+
+      // Load warehouse orders
+      activeOrders = await window.ClwData.getWarehouseOrders();
+      const ordSelect = document.getElementById('selOrderToPick');
+      if (activeOrders.length) {
+        ordSelect.innerHTML = '<option value="">-- Seleziona ordine da preparare --</option>' +
+          activeOrders.map(o => `<option value="${o.number}">${o.number} - ${o.customer_name} (${o.status})</option>`).join('');
+      } else {
+        ordSelect.innerHTML = '<option value="">Nessun ordine aperto da preparare</option>';
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => initData());
+  </script>
+</body>
+</html>

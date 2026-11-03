@@ -6,6 +6,8 @@
   <title>Gestione Ordini & Magazzino — Offerte Agenti</title>
   <link rel="icon" href="/favicon.svg">
   <link rel="stylesheet" href="/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabaseClient.js"></script>
   <style>
     .workflow-shell { max-width: 1240px; margin: 0 auto; padding: 28px 20px 60px; }
     .workflow-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 14px; }
@@ -540,6 +542,175 @@
     .order-info-item label { display: block; font-size: .72rem; text-transform: uppercase; color: var(--muted); font-weight: 750; margin-bottom: 2px; }
     .order-info-item strong { color: #1e293b; font-size: .92rem; }
     .summary-box-grid { display: grid; grid-template-columns: 1fr auto; gap: 16px; background: #f1f5f9; border-radius: 10px; padding: 14px 18px; margin-top: 14px; align-items: center; }
+
+    /* Mobile Responsive Optimizations for Smartphones */
+    @media (max-width: 768px) {
+      .topbar {
+        height: auto !important;
+        min-height: 56px !important;
+        padding: 8px 12px !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+      }
+      .topbar .brand small {
+        display: none !important;
+      }
+      .topbar .heading-actions {
+        width: 100% !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        gap: 6px !important;
+      }
+      .topbar .heading-actions .btn {
+        flex: 1 !important;
+        padding: 7px 6px !important;
+        font-size: 0.74rem !important;
+        text-align: center !important;
+        justify-content: center !important;
+      }
+
+      .workflow-shell {
+        padding: 12px 10px 40px !important;
+      }
+      .workflow-header {
+        margin-bottom: 14px !important;
+      }
+      .workflow-title h1 {
+        font-size: 1.3rem !important;
+      }
+      .workflow-title p {
+        font-size: 0.8rem !important;
+      }
+
+      /* Mode switcher compact on mobile */
+      .mode-switch-bar {
+        margin-bottom: 14px !important;
+        padding: 3px !important;
+        gap: 4px !important;
+      }
+      .mode-switch-btn {
+        padding: 9px 8px !important;
+        font-size: 0.78rem !important;
+        gap: 4px !important;
+      }
+
+      /* Stats Row: Swipeable Horizontal Carousel on Mobile */
+      .stats-row {
+        display: flex !important;
+        overflow-x: auto !important;
+        gap: 8px !important;
+        margin-bottom: 16px !important;
+        padding-bottom: 6px !important;
+        -webkit-overflow-scrolling: touch !important;
+        scroll-snap-type: x mandatory !important;
+      }
+      .stat-pill {
+        flex: 0 0 130px !important;
+        padding: 10px 12px !important;
+        scroll-snap-align: start !important;
+      }
+      .stat-pill small {
+        font-size: 0.68rem !important;
+      }
+      .stat-pill .num {
+        font-size: 1.3rem !important;
+      }
+      .stat-pill .sub {
+        font-size: 0.74rem !important;
+      }
+
+      /* Filter tabs scrollable */
+      .filter-tabs {
+        gap: 4px !important;
+        padding-bottom: 4px !important;
+        margin-bottom: 14px !important;
+      }
+      .tab-btn {
+        padding: 8px 10px !important;
+        font-size: 0.8rem !important;
+      }
+
+      /* Search Bar */
+      .search-bar {
+        margin-bottom: 14px !important;
+      }
+      .search-input {
+        min-width: 0 !important;
+        width: 100% !important;
+        padding: 9px 12px !important;
+        font-size: 0.85rem !important;
+      }
+
+      /* Order Cards Compact */
+      .order-card {
+        padding: 14px !important;
+        border-radius: 12px !important;
+      }
+      .order-header {
+        flex-direction: column !important;
+        gap: 8px !important;
+        align-items: stretch !important;
+      }
+      .order-header > div:first-child {
+        width: 100% !important;
+      }
+      .order-main-info {
+        justify-content: space-between !important;
+        width: 100% !important;
+      }
+      .order-customer {
+        font-size: 0.95rem !important;
+      }
+      .order-agent {
+        font-size: 0.78rem !important;
+      }
+      .shipping-box {
+        padding: 8px 10px !important;
+        gap: 8px !important;
+        font-size: 0.78rem !important;
+      }
+
+      /* Actions full width grid */
+      .order-actions {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+      }
+      .order-total {
+        font-size: 1.15rem !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+      }
+      .btn-group {
+        width: 100% !important;
+        display: grid !important;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)) !important;
+        gap: 6px !important;
+      }
+      .btn-sm {
+        padding: 9px 6px !important;
+        font-size: 0.78rem !important;
+        text-align: center !important;
+        justify-content: center !important;
+      }
+
+      /* Dialogs on mobile */
+      dialog {
+        width: 95vw !important;
+        max-width: 95vw !important;
+        margin: 12px auto !important;
+        max-height: 90vh !important;
+      }
+      .order-info-grid {
+        grid-template-columns: 1fr !important;
+        padding: 10px !important;
+      }
+      .summary-box-grid {
+        grid-template-columns: 1fr !important;
+        padding: 10px 12px !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -565,7 +736,7 @@
         📦 Pipeline Ordini & DDT
       </button>
       <button type="button" id="btnModeProduction" class="mode-switch-btn" onclick="switchMainView('production')">
-        🏭 Piano Produzione & Scorte Intelligenti (Google Drive)
+        🏭 Piano Produzione & Scorte Intelligenti (Supabase)
       </button>
     </div>
 
@@ -637,12 +808,12 @@
         <div class="workflow-title">
           <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:4px;">
             <h1>Pianificazione Produzione & Scorte Intelligenti</h1>
-            <span class="source-badge"><span class="dot"></span> Dati Live Google Drive (Articoli & Ordini)</span>
+            <span class="source-badge"><span class="dot"></span> Dati Live Supabase & Plus 2000</span>
           </div>
           <p>Algoritmo auto-apprenditivo: calcola lead time reale storico dagli ordini evasi e ottimizza punto di riordino (ROP), scorta minima e lotti di fabbricazione</p>
         </div>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          <button type="button" id="btnRefreshProd" class="btn secondary">🔄 Ricalcola dati Google Drive</button>
+          <button type="button" id="btnRefreshProd" class="btn secondary">🔄 Ricalcola dati Supabase</button>
           <button type="button" id="btnExportProdCsv" class="btn secondary">📥 Esporta CSV</button>
           <button type="button" id="btnPrintProduction" class="btn primary">🖨️ Stampa Ordine Produzione</button>
         </div>
@@ -701,7 +872,7 @@
             <tr>
               <th style="width:105px;">Codice</th>
               <th>Descrizione & Famiglia</th>
-              <th style="text-align:center;">Giacenza Live (Drive)</th>
+              <th style="text-align:center;">Giacenza Live (Supabase)</th>
               <th style="text-align:center;">Impegnato Clienti</th>
               <th style="text-align:center;">Disp. Netta</th>
               <th style="text-align:center;">Lead Time Appreso</th>
@@ -718,7 +889,7 @@
           <tbody id="productionTableBody">
             <tr>
               <td colspan="14" style="text-align:center; padding:40px; color:var(--muted);">
-                Caricamento dati di produzione e calcolo algoritmo da Google Drive in corso…
+                Caricamento dati di produzione e calcolo algoritmo da Supabase in corso…
               </td>
             </tr>
           </tbody>
@@ -729,12 +900,12 @@
       <div class="info-card">
         <h3>💡 Come funziona l'algoritmo auto-apprenditivo di produzione</h3>
         <p style="margin:0; font-size:.85rem; color:#64748b;">
-          Tutti i parametri vengono calcolati esclusivamente estraendo lo storico ordini e le giacenze attuali presenti sui file Google Drive aziendali.
+          Tutti i parametri vengono calcolati esclusivamente estraendo lo storico ordini e le giacenze attuali presenti sul database Supabase.
         </p>
         <div class="info-grid">
           <div class="info-block">
             <strong>1. Apprendimento Tempo di Evasione / Produzione</strong>
-            L'algoritmo misura per ogni ordine evaso su Google Drive i giorni effettivi trascorsi tra <em>data inserimento ordine</em> e <em>data spedizione/DDT</em>.
+            L'algoritmo misura per ogni ordine evaso su Supabase i giorni effettivi trascorsi tra <em>data inserimento ordine</em> e <em>data spedizione/DDT</em>.
             <div class="formula-tag">L_reale = Data_Spedizione - Data_Ordine</div>
           </div>
           <div class="info-block">
@@ -780,7 +951,7 @@
       <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; margin-bottom:14px; font-size:.85rem;">
         <div>Codice: <strong id="modalProdCodeLabel">--</strong></div>
         <div>Descrizione: <strong id="modalProdNameLabel">--</strong></div>
-        <div>Giacenza attuale Google Drive: <strong id="modalProdStockLabel">--</strong></div>
+        <div>Giacenza attuale Supabase: <strong id="modalProdStockLabel">--</strong></div>
       </div>
 
       <div class="two-cols" style="margin-bottom:12px;">
@@ -995,7 +1166,7 @@
       <div class="dialog-actions">
         <button type="button" class="btn secondary" onclick="$('statusModal').close()">Annulla</button>
         <button type="button" id="btnSaveAndPrintDdt" class="btn secondary" style="background:#e0f2fe; color:#0369a1; border-color:#7dd3fc; font-weight:750;">🖨️ Salva & Stampa DDT</button>
-        <button type="submit" id="btnSaveStatus" class="btn primary">💾 Salva su Google Sheets</button>
+        <button type="submit" id="btnSaveStatus" class="btn primary">💾 Salva su Supabase</button>
       </div>
     </form>
   </dialog>
@@ -1108,26 +1279,21 @@
 
     async function loadAuxiliaryData() {
       try {
-        const [compRes, custRes, offRes, prodRes] = await Promise.all([
-          fetch('/api/company').then(r => r.json()).catch(() => ({})),
-          fetch('/api/customers').then(r => r.json()).catch(() => ({})),
-          fetch('/api/offers').then(r => r.json()).catch(() => ({})),
-          fetch('/api/products').then(r => r.json()).catch(() => ({}))
-        ]);
-        if (compRes?.company && Object.keys(compRes.company).length > 0) {
-          companyProfile = { ...companyProfile, ...compRes.company };
-          if ($('footerText')) {
-            $('footerText').textContent = compRes.company.footerText || `© ${compRes.company.displayName || compRes.company.companyName || 'Climawell'} — Gestione Ordini, Magazzino & DDT`;
+        if (window.ClwData && window.ClwData.isConfigured()) {
+          const [comp, custs, prods] = await Promise.all([
+            window.ClwData.getCompany().catch(() => null),
+            window.ClwData.getCustomers().catch(() => []),
+            window.ClwData.getProducts().catch(() => [])
+          ]);
+          if (comp) {
+            companyProfile = { ...companyProfile, ...comp };
+            if ($('footerText')) {
+              $('footerText').textContent = comp.footer_text || `© ${comp.display_name || comp.company_name || 'Climawell'} — Gestione Ordini, Magazzino & DDT`;
+            }
           }
-        }
-        if (custRes?.customers && Array.isArray(custRes.customers)) {
-          allCustomers = custRes.customers;
-        }
-        if (offRes?.offers && Array.isArray(offRes.offers)) {
-          allOffers = offRes.offers;
-        }
-        if (prodRes?.products && Array.isArray(prodRes.products)) {
-          window.catalogProductsMap = Object.fromEntries(prodRes.products.map(p => [p.code, p]));
+          if (custs && custs.length > 0) allCustomers = custs;
+          if (prods && prods.length > 0) window.catalogProductsMap = Object.fromEntries(prods.map(p => [p.code, p]));
+          return;
         }
       } catch (e) {
         console.warn('Caricamento dati ausiliari non bloccante:', e);
@@ -1137,17 +1303,59 @@
     async function loadOrders() {
       try {
         loadAuxiliaryData();
-        if (window.companyConfigPromise) {
-          try { await window.companyConfigPromise; } catch {}
+        
+        let loadedFromSupabase = false;
+        if (window.ClwData && window.ClwData.isConfigured()) {
+          try {
+            const client = window.clwSupabase || (window.supabase && window.supabase.createClient(window.ClwData.getConfig().url, window.ClwData.getConfig().key));
+            if (client) {
+              const { data: supOrders, error: supErr } = await client
+                .from('documents')
+                .select('*')
+                .eq('document_type', 'OCL')
+                .order('created_at', { ascending: false });
+
+              if (!supErr && Array.isArray(supOrders)) {
+                allOrders = supOrders.map(d => ({
+                  id: d.number,
+                  number: d.number,
+                  customer_name: d.customer_name,
+                  customer_code: d.customer_code,
+                  agent_name: d.agent_name,
+                  agent_code: d.agent_code,
+                  total: Number(d.total) || 0,
+                  subtotal: Number(d.subtotal) || 0,
+                  workflow_status: (d.status === 'In Preparazione' ? 'magazzino' : (d.status === 'Spedito' ? 'spedito' : (d.status === 'Approvato' ? 'approvato' : 'ricevuto'))),
+                  submitted_at: d.created_at || d.document_date,
+                  notes: d.notes || '',
+                  shipping_date: d.shipping_date || '',
+                  carrier: d.carrier || '',
+                  ddt_number: d.ddt_number || '',
+                  tracking_number: d.tracking_number || ''
+                }));
+                updateStats();
+                renderOrders();
+                loadedFromSupabase = true;
+              }
+            }
+          } catch (supErr) {
+            console.warn('[Supabase] Errore ordini in gestione-ordini, fallback su API:', supErr);
+          }
         }
-        const rawRepo = window.companyConfig?.repository?.spreadsheetId;
-        const repoId = (rawRepo && rawRepo.length >= 20 && !rawRepo.includes('1mnW')) ? rawRepo : '1Hi1Nppj4szI4UwfSeC632KkpF0dEQjqxnIVIenn-Fjc';
-        const res = await fetch(`/api/orders?id=${encodeURIComponent(repoId)}`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        allOrders = data.orders || [];
-        updateStats();
-        renderOrders();
+
+        if (!loadedFromSupabase) {
+          if (window.companyConfigPromise) {
+            try { await window.companyConfigPromise; } catch {}
+          }
+          const rawRepo = window.companyConfig?.repository?.spreadsheetId;
+          const repoId = (rawRepo && rawRepo.length >= 20 && !rawRepo.includes('1mnW')) ? rawRepo : '1Hi1Nppj4szI4UwfSeC632KkpF0dEQjqxnIVIenn-Fjc';
+          const res = await fetch(`/api/orders?id=${encodeURIComponent(repoId)}`);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          allOrders = data.orders || [];
+          updateStats();
+          renderOrders();
+        }
       } catch (err) {
         console.error(err);
         $('ordersContainer').innerHTML = `
@@ -1408,6 +1616,47 @@
 
     async function saveStatusUpdate(orderId, updateData) {
       try {
+        if (window.ClwData && window.ClwData.isConfigured()) {
+          const client = window.clwSupabase || (window.supabase && window.supabase.createClient(window.ClwData.getConfig().url, window.ClwData.getConfig().key));
+          if (client) {
+            const statusMap = {
+              'ricevuto': 'Inviato',
+              'approvato': 'Approvato',
+              'magazzino': 'In Preparazione',
+              'spedito': 'Spedito',
+              'fatturato': 'Fatturato',
+              'respinto': 'Respinto'
+            };
+            const supaPayload = {
+              updated_at: new Date().toISOString()
+            };
+            if (updateData.status) supaPayload.status = statusMap[updateData.status] || updateData.status;
+            if (updateData.ddtNumber !== undefined) supaPayload.ddt_number = updateData.ddtNumber;
+            if (updateData.ddtDate !== undefined) supaPayload.ddt_date = updateData.ddtDate;
+            if (updateData.carrier !== undefined) supaPayload.carrier = updateData.carrier;
+            if (updateData.trackingNumber !== undefined) supaPayload.tracking_number = updateData.trackingNumber;
+            if (updateData.shippingDate !== undefined) supaPayload.shipping_date = updateData.shippingDate;
+            if (updateData.notes !== undefined) supaPayload.notes = updateData.notes;
+
+            await client.from('documents').update(supaPayload).eq('number', orderId);
+            toast('Stato ordine e dati DDT salvati su Supabase!');
+
+            const ord = allOrders.find(o => o.id === orderId || o.number === orderId);
+            if (ord) {
+              if (updateData.status) ord.workflow_status = updateData.status;
+              if (updateData.ddtNumber !== undefined) ord.ddt_number = updateData.ddtNumber;
+              if (updateData.ddtDate !== undefined) ord.ddt_date = updateData.ddtDate;
+              if (updateData.carrier !== undefined) ord.carrier = updateData.carrier;
+              if (updateData.trackingNumber !== undefined) ord.tracking_number = updateData.trackingNumber;
+              if (updateData.shippingDate !== undefined) ord.shipping_date = updateData.shippingDate;
+              if (updateData.notes !== undefined) ord.notes = updateData.notes;
+            }
+            updateStats();
+            renderOrders();
+            return;
+          }
+        }
+
         const res = await fetch('/api/orders/update-status', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
@@ -1416,7 +1665,7 @@
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Errore aggiornamento');
 
-        toast('Stato ordine e dati DDT aggiornati su Google Sheets!');
+        toast('Stato ordine e dati DDT aggiornati!');
         // Update local object immediately
         const ord = allOrders.find(o => o.id === orderId || o.number === orderId);
         if (ord) {
@@ -1481,20 +1730,25 @@
       else if (!Array.isArray(rawDiscounts)) rawDiscounts = [];
 
       const discounts = rawDiscounts.map(d => Number(d) || 0).filter(d => d > 0);
+      const extraDiscount = Number(l.discount_extra ?? l.extra_discount ?? l.extraDiscount ?? 0);
       const markup = Number(l.markup ?? l.ricarico ?? 0);
       
-      const discountMultiplier = discounts.reduce((m, d) => m * (1 - d / 100), 1);
+      const discountMultiplier = discounts.reduce((m, d) => m * (1 - d / 100), 1) * (1 - extraDiscount / 100);
       const markupMultiplier = 1 + (markup / 100);
-      const unitNet = listPrice > 0 ? (listPrice * discountMultiplier * markupMultiplier) : 0;
+      const unitNet = listPrice > 0 ? (listPrice * discountMultiplier * markupMultiplier) : (l.net_price ? Number(l.net_price) : 0);
       
       const lineNetTotal = (l.net != null && !isNaN(Number(l.net))) 
         ? Number(l.net) 
-        : (unitNet * qty);
+        : (l.total != null && !isNaN(Number(l.total)))
+          ? Number(l.total)
+          : (unitNet * qty);
         
       const vatRate = Number(l.vat ?? l.product?.vat ?? catProd.vat ?? 22);
       const vatAmount = lineNetTotal * (vatRate / 100);
       
-      let discountStr = discounts.length > 0 ? discounts.map(d => `${d}%`).join(' + ') : '0%';
+      let discountParts = discounts.map(d => `${d}%`);
+      if (extraDiscount > 0) discountParts.push(`${extraDiscount}% ext.`);
+      let discountStr = discountParts.length > 0 ? discountParts.join(' + ') : '0%';
       if (markup > 0) discountStr += ` (+${markup}% ric.)`;
 
       const effDiscount = (1 - (discountMultiplier * markupMultiplier)) * 100;
@@ -2140,7 +2394,7 @@
       $('productionTableBody').innerHTML = `
         <tr>
           <td colspan="14" style="text-align:center; padding:40px; color:var(--muted);">
-            🔄 Connessione a Google Drive in corso… calcolo tempi reali e fabbisogni…
+            🔄 Connessione a Supabase in corso… calcolo tempi reali e fabbisogni…
           </td>
         </tr>
       `;
@@ -2371,7 +2625,7 @@
           </div>
           <div style="text-align:right;">
             <div><strong>Data Emissione:</strong> ${dateStr}</div>
-            <div><strong>Fonte Dati:</strong> Google Drive (Real-time)</div>
+            <div><strong>Fonte Dati:</strong> Supabase PostgreSQL (Real-time)</div>
           </div>
         </div>
 
@@ -2412,7 +2666,7 @@
     // Export Production CSV
     $('btnExportProdCsv').onclick = () => {
       if (!allProduction.length) return;
-      const headers = ['Codice', 'Descrizione', 'Marca', 'Famiglia', 'Giacenza_Drive', 'Impegnato_Ordini', 'Disponibile_Netto', 'Lead_Time_Appreso_gg', 'Consumo_Giornaliero', 'Scorta_Minima_SS', 'Punto_Riordino_ROP', 'Scorta_Massima', 'Lotto_Minimo', 'Quantita_Da_Produrre', 'Stato_Urgenza'];
+      const headers = ['Codice', 'Descrizione', 'Marca', 'Famiglia', 'Giacenza_Supabase', 'Impegnato_Ordini', 'Disponibile_Netto', 'Lead_Time_Appreso_gg', 'Consumo_Giornaliero', 'Scorta_Minima_SS', 'Punto_Riordino_ROP', 'Scorta_Massima', 'Lotto_Minimo', 'Quantita_Da_Produrre', 'Stato_Urgenza'];
       const rows = allProduction.map(x => [
         `"${x.code}"`,
         `"${(x.description || '').replace(/"/g, '""')}"`,

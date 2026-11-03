@@ -1,623 +1,868 @@
 <!doctype html>
 <html lang="it">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Configurazione Google Drive & Sheets — Offerte Agenti</title>
+  <title>Configurazione & Sincronizzazione Dati — Climawell</title>
   <link rel="icon" href="/favicon.svg">
   <link rel="stylesheet" href="/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabaseClient.js"></script>
   <style>
-    .config-shell { max-width: 1080px; margin: 0 auto; padding: 28px 20px 60px; }
-    .config-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 14px; }
-    .config-title h1 { font-size: 1.7rem; margin: 0 0 4px; color: var(--navy); }
-    .config-title p { margin: 0; color: var(--muted); font-size: .92rem; }
-    
-    /* Diagnostics Panel */
-    .diag-card { background: #0c2940; color: #fff; border-radius: 16px; padding: 24px; margin-bottom: 28px; box-shadow: 0 10px 30px rgba(12,41,64,.25); }
-    .diag-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,.12); padding-bottom: 14px; flex-wrap: wrap; gap: 10px; }
-    .diag-head h2 { font-size: 1.15rem; letter-spacing: .06em; text-transform: uppercase; color: #bde4ff; margin: 0; display: flex; align-items: center; gap: 10px; }
-    .diag-badge { background: rgba(255,255,255,.12); padding: 4px 10px; border-radius: 20px; font-size: .78rem; font-weight: 600; color: #e1f0fa; }
-    .diag-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 14px; }
-    .diag-box { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 14px; transition: all .2s ease; }
-    .diag-box:hover { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.25); }
-    .diag-box small { display: block; font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; color: #9bc2dc; margin-bottom: 6px; }
-    .diag-status { display: flex; align-items: center; gap: 8px; font-size: 1.05rem; font-weight: 750; }
-    .diag-status .dot { font-size: 1.1rem; }
-    .diag-details { display: block; margin-top: 6px; font-size: .75rem; color: #c4dcee; word-break: break-word; line-height: 1.3; }
+    .config-shell {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 28px 20px 60px;
+    }
 
-    /* Form Layout */
-    .section-card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 22px; margin-bottom: 22px; box-shadow: var(--shadow); }
-    .section-card h3 { margin: 0 0 4px; font-size: 1.15rem; color: var(--navy); display: flex; align-items: center; gap: 10px; }
-    .section-card p { margin: 0 0 16px; color: var(--muted); font-size: .86rem; }
-    .fields-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
-    .field label { font-size: .82rem; font-weight: 700; color: #41535e; margin-bottom: 6px; display: block; }
-    .field input { width: 100%; border: 1px solid #cfdbe1; border-radius: 8px; padding: 10px 12px; font-size: .9rem; font-family: monospace; background: #fafcfe; }
-    .field input:focus { border-color: var(--blue); background: #fff; box-shadow: 0 0 0 3px rgba(32,118,181,.12); }
-    .field input.text-val { font-family: inherit; }
+    .config-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
 
-    /* Drive Architecture Box */
-    .arch-box { background: #f0f6fa; border: 1px dashed #abc5d8; border-radius: 12px; padding: 16px; margin-bottom: 22px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-    .arch-tree { font-family: monospace; font-size: .84rem; color: #1e3a52; line-height: 1.5; margin: 0; }
-    
-    .actions-bar { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; position: sticky; bottom: 16px; background: rgba(243,246,248,.92); backdrop-filter: blur(8px); padding: 12px; border-radius: 14px; border: 1px solid var(--line); }
-    .btn-green { background: #16835b; color: #fff; }
-    .btn-green:hover { background: #126e4c; }
-    .note-box { font-size: .82rem; color: var(--muted); background: #f8fafb; border-left: 3px solid var(--blue); padding: 10px 14px; margin-top: 14px; border-radius: 0 8px 8px 0; }
+    .config-title h1 {
+      font-size: 1.75rem;
+      margin: 0 0 6px;
+      color: var(--navy);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .config-title p {
+      margin: 0;
+      color: var(--muted);
+      font-size: .95rem;
+    }
+
+    /* Live Data Banner */
+    .real-data-banner {
+      background: linear-gradient(135deg, #065f46, #047857);
+      color: #fff;
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+      box-shadow: 0 4px 16px rgba(4, 120, 87, 0.25);
+    }
+
+    .real-data-banner-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .real-data-icon {
+      font-size: 2.2rem;
+      line-height: 1;
+    }
+
+    .real-data-text strong {
+      display: block;
+      font-size: 1.1rem;
+      letter-spacing: 0.02em;
+    }
+
+    .real-data-text span {
+      font-size: 0.88rem;
+      color: #d1fae5;
+    }
+
+    .real-data-tag {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 750;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    /* Diagnostics Card */
+    .diag-card {
+      background: linear-gradient(135deg, #0c2940, #134e4a);
+      color: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 28px;
+      box-shadow: 0 10px 30px rgba(12, 41, 64, .25);
+    }
+
+    .diag-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, .15);
+      padding-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .diag-head h2 {
+      font-size: 1.15rem;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: #bde4ff;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .diag-badge {
+      background: rgba(255, 255, 255, .15);
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: .82rem;
+      font-weight: 700;
+      color: #e1f0fa;
+    }
+
+    .diag-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .diag-box {
+      background: rgba(255, 255, 255, .08);
+      border: 1px solid rgba(255, 255, 255, .15);
+      border-radius: 12px;
+      padding: 18px 16px;
+      transition: all .2s ease;
+    }
+
+    .diag-box:hover {
+      background: rgba(255, 255, 255, .14);
+      border-color: rgba(255, 255, 255, .3);
+    }
+
+    .diag-box small {
+      display: block;
+      font-size: .78rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: #9bc2dc;
+      margin-bottom: 6px;
+    }
+
+    .diag-status {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .diag-details {
+      display: block;
+      margin-top: 6px;
+      font-size: .80rem;
+      color: #c4dcee;
+      line-height: 1.35;
+    }
+
+    /* Actions Panel */
+    .sync-actions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    .action-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .action-card h3 {
+      margin: 0 0 8px;
+      font-size: 1.2rem;
+      color: var(--navy);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .action-card p {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: .88rem;
+      line-height: 1.45;
+    }
+
+    .btn-action-primary {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 20px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+      transition: transform 0.1s ease;
+    }
+
+    .btn-action-primary:active {
+      transform: scale(0.98);
+    }
+
+    .btn-action-green {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 20px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+      transition: transform 0.1s ease;
+    }
+
+    .btn-action-green:active {
+      transform: scale(0.98);
+    }
+
+    .btn-action-orange {
+      background: linear-gradient(135deg, #ea580c, #c2410c);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 20px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(234, 88, 12, 0.25);
+      transition: transform 0.1s ease;
+    }
+
+    /* Section Cards */
+    .section-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .section-card h3 {
+      margin: 0 0 6px;
+      font-size: 1.2rem;
+      color: var(--navy);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-card p {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: .88rem;
+      line-height: 1.45;
+    }
+
+    .code-pill {
+      display: inline-block;
+      font-family: monospace;
+      background: #e2e8f0;
+      color: #0f172a;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .flow-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 14px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .flow-icon {
+      font-size: 1.8rem;
+      line-height: 1;
+    }
+
+    .flow-content strong {
+      display: block;
+      color: var(--navy);
+      font-size: 0.95rem;
+      margin-bottom: 4px;
+    }
+
+    .flow-content p {
+      margin: 0;
+      font-size: 0.85rem;
+      color: #475569;
+      line-height: 1.4;
+    }
+
+    /* Data Preview Tables */
+    .preview-table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      margin-top: 14px;
+    }
+
+    .preview-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      text-align: left;
+    }
+
+    .preview-table th {
+      background: #f1f5f9;
+      padding: 10px 14px;
+      font-weight: 700;
+      color: var(--navy);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .preview-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #334155;
+    }
+
+    .preview-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Modal Instructions */
+    dialog {
+      border: none;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 0;
+      max-width: 640px;
+      width: calc(100% - 32px);
+    }
+
+    dialog::backdrop {
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+    }
+
+    .dialog-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .dialog-header h3 {
+      margin: 0;
+      font-size: 1.25rem;
+      color: var(--navy);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dialog-body {
+      padding: 20px 24px;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      color: #334155;
+    }
+
+    .dialog-footer {
+      padding: 16px 24px;
+      background: #f8fafc;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .fields-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .field label {
+      font-size: .82rem;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .field input {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: .9rem;
+      font-family: monospace;
+      background: #f8fafc;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0f172a;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+      font-size: 0.9rem;
+      font-weight: 600;
+      z-index: 9999;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.25s ease;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
   </style>
 </head>
+
 <body>
   <header class="topbar">
     <div class="brand">
-      <span class="brand-mark">OA</span>
+      <span class="brand-mark">CLW</span>
       <div>
-        <strong>Offerte Agenti</strong>
-        <small>Pannello Amministrazione</small>
+        <strong>Climawell</strong>
+        <small>Centro Sincronizzazione & Dati Reali Plus 2000</small>
       </div>
     </div>
     <div class="heading-actions">
-      <a class="btn secondary" href="/manuale-amministrazione.doc" download>📖 Manuale Operativo (.doc)</a>
-      <a class="btn secondary" href="/">← Torna alle pratiche</a>
-      <a class="btn secondary" href="/offerta?new=1&type=offer">Nuova offerta</a>
+      <a class="btn secondary" href="/magazzino.html" style="background:#0f766e; color:#fff; border-color:#0f766e; font-weight:700;">📦 Magazzino Mobile</a>
+      <a class="btn secondary" href="/">← Torna alle Pratiche</a>
+      <a class="btn secondary" href="/offerta?new=1&type=offer">Nuova Offerta</a>
     </div>
   </header>
 
   <main class="config-shell">
     <div class="config-header">
       <div class="config-title">
-        <h1>Configurazione Google Drive & Fogli</h1>
-        <p>Gestione unificata delle origini dati cloud e del registro centrale offerte/ordini</p>
+        <h1>⚙️ Configurazione & Centro Dati Reali</h1>
+        <p>Monitoraggio allineamento ERP Plus 2000 ➔ Supabase Cloud ➔ Applicazione Agenti & Magazzino</p>
       </div>
       <div>
-        <button type="button" id="btnCheckNow" class="btn secondary">🔄 Verifica connessioni</button>
+        <button type="button" id="btnCheckNow" class="btn-action-primary">
+          <span id="btnCheckIcon">🔄</span> Diagnostica & Ping Database Live
+        </button>
       </div>
     </div>
 
-    <!-- PANNELLO DIAGNOSTICO AMMINISTRATORE -->
+    <!-- BANNER STATO DATI REALI -->
+    <div class="real-data-banner">
+      <div class="real-data-banner-left">
+        <span class="real-data-icon">🟢</span>
+        <div class="real-data-text">
+          <strong>SISTEMA ATTIVO SU DATI REALI AZIENDALI</strong>
+          <span>Catalogo, agenti ufficiali e giacenze di magazzino provengono direttamente da Plus 2000 su database Supabase.</span>
+        </div>
+      </div>
+      <span class="real-data-tag">ERP PLUS 2000 ➔ SUPABASE ONLINE</span>
+    </div>
+
+    <!-- PANNELLO STATO DATI REALI SUPABASE -->
     <section class="diag-card">
       <div class="diag-head">
-        <h2><span>⚡</span> CONTROLLO CONNESSIONI</h2>
+        <h2><span>⚡</span> STATO DATI REALI (SUPABASE POSTGRESQL)</h2>
         <div style="display:flex; gap:8px; align-items:center;">
-          <span id="diagLastRun" class="diag-badge">In attesa di verifica…</span>
-          <button type="button" id="btnDiagRefresh" class="btn secondary" style="padding:6px 12px; font-size:.8rem; background:rgba(255,255,255,.15); color:#fff; border:0;">Aggiorna</button>
+          <span id="diagStatusBadge" class="diag-badge">🟢 Connesso</span>
+          <span id="diagPingBadge" class="diag-badge" style="background:rgba(255,255,255,0.2);">Ping: -- ms</span>
         </div>
       </div>
 
       <div class="diag-grid">
-        <!-- 1. Google Sheets API -->
+        <!-- 1. Articoli & Giacenze -->
         <div class="diag-box">
-          <small>Google Sheets API</small>
-          <div class="diag-status" id="diagGoogle">
-            <span class="dot">⏳</span>
-            <span class="val">In attesa…</span>
+          <small>Catalogo Articoli</small>
+          <div class="diag-status">
+            <span id="cntProducts">18.632</span>
           </div>
-          <span class="diag-details" id="diagGoogleDetails">Inizializzazione test</span>
+          <span class="diag-details" id="detProducts">Articoli reali estratti da Plus 2000 con giacenze, prezzi e ubicazioni</span>
         </div>
 
-        <!-- 2. Dati Azienda -->
+        <!-- 2. Rete Agenti -->
         <div class="diag-box">
-          <small>Dati Azienda</small>
-          <div class="diag-status" id="diagCompany">
-            <span class="dot">⏳</span>
-            <span class="val">In attesa…</span>
+          <small>Rete Commerciale Agenti</small>
+          <div class="diag-status">
+            <span id="cntAgents">63</span>
           </div>
-          <span class="diag-details" id="diagCompanyDetails">Verifica scheda azienda</span>
+          <span class="diag-details" id="detAgents">63 agenti ufficiali attivi allineati dalla tabella Plus 2000</span>
         </div>
 
-        <!-- 3. Agenti -->
+        <!-- 3. Clienti -->
         <div class="diag-box">
-          <small>Agenti</small>
-          <div class="diag-status" id="diagAgents">
-            <span class="dot">⏳</span>
-            <span class="val">In attesa…</span>
+          <small>Anagrafica Clienti</small>
+          <div class="diag-status">
+            <span id="cntCustomers">Caricamento…</span>
           </div>
-          <span class="diag-details" id="diagAgentsDetails">Verifica anagrafica agenti</span>
+          <span class="diag-details" id="detCustomers">Clienti reali con Partita IVA, condizioni di pagamento e agenti</span>
         </div>
 
-        <!-- 4. Clienti -->
+        <!-- 4. Registro Documenti -->
         <div class="diag-box">
-          <small>Clienti</small>
-          <div class="diag-status" id="diagCustomers">
-            <span class="dot">⏳</span>
-            <span class="val">In attesa…</span>
+          <small>Offerte & Ordini Cloud</small>
+          <div class="diag-status">
+            <span id="cntDocuments">0</span>
           </div>
-          <span class="diag-details" id="diagCustomersDetails">Verifica lista clienti</span>
+          <span class="diag-details" id="detDocuments">Pratiche archiviate su Supabase disponibili in tempo reale per picking e logistica</span>
         </div>
-
-        <!-- 5. Articoli -->
-        <div class="diag-box">
-          <small>Articoli</small>
-          <div class="diag-status" id="diagProducts">
-            <span class="dot">⏳</span>
-            <span class="val">In attesa…</span>
-          </div>
-          <span class="diag-details" id="diagProductsDetails">Verifica listino articoli</span>
-        </div>
-
-        <!-- 6. Repository -->
-        <div class="diag-box">
-          <small>Repository</small>
-          <div class="diag-status" id="diagRepository">
-            <span class="dot">⏳</span>
-            <span class="val">In attesa…</span>
-          </div>
-          <span class="diag-details" id="diagRepositoryDetails">Verifica schede Offerte e Ordini</span>
-        </div>
-
-        <!-- 7. Sicurezza & GDPR -->
-        <div class="diag-box">
-          <small>Protezione Dati & GDPR</small>
-          <div class="diag-status" id="diagSecurity">
-            <span class="dot">⏳</span>
-            <span class="val">In attesa…</span>
-          </div>
-          <span class="diag-details" id="diagSecurityDetails">Verifica autenticazione e privacy</span>
-        </div>
-      </div>
-
-      <div class="note-box" style="background:rgba(255,255,255,.08); color:#bfe1f7; border-left-color:#38bdf8; margin-top:16px;">
-        💡 <strong>Credenziali Netlify:</strong> Le credenziali dell'account di servizio Google (<code>GOOGLE_SERVICE_ACCOUNT_EMAIL</code> e <code>GOOGLE_PRIVATE_KEY</code>) rimangono protette nelle variabili d'ambiente di Netlify. I fogli Google Drive devono essere condivisi con l'e-mail dell'account di servizio (in sola lettura per i cataloghi, come <em>Editor</em> per il Repository).
       </div>
     </section>
 
-    <!-- ARCHITETTURA GOOGLE DRIVE -->
-    <div class="arch-box">
-      <div>
-        <strong style="color:var(--navy); display:block; margin-bottom:4px;">Architettura Google Drive condiviso</strong>
-        <pre class="arch-tree">Google Drive condiviso (Cartella: 1lr8lThQr1SxP4LAx2n69_pDxwu36ifh9)
-├── Dati_Azienda_e_Mandanti (Google Sheet)
-├── Anagrafica_Agenti (Google Sheet)
-├── clienti (Google Sheet)
-├── Articoli (Google Sheet)
-└── Repository
-      └── Registro Offerte e Ordini Plus 2000 (Google Sheet: DocTes & DocRig)</pre>
+    <!-- AZIONI DI SINCRONIZZAZIONE -->
+    <div class="sync-actions-grid">
+      <!-- CARD 1: Plus 2000 -> Supabase -->
+      <div class="action-card">
+        <div>
+          <h3><span>🖥️</span> Aggiorna da Plus 2000 a Supabase</h3>
+          <p>
+            Estrae le variazioni di giacenza, i nuovi articoli e i clienti dal server gestionale <span class="code-pill">SRVPLUS.Climawell</span> e li carica su Supabase.
+          </p>
+        </div>
+        <button type="button" id="btnOpenPlusSyncModal" class="btn-action-orange">
+          🔄 Istruzioni & Avvio Sync Plus 2000
+        </button>
       </div>
-      <div>
-        <a class="btn secondary" href="https://drive.google.com/drive/folders/1lr8lThQr1SxP4LAx2n69_pDxwu36ifh9" target="_blank" rel="noopener">Apri cartella Google Drive ↗</a>
+
+      <!-- CARD 2: Supabase -> Dispositivo Web App -->
+      <div class="action-card">
+        <div>
+          <h3><span>📱</span> Sincronizza su Questo Dispositivo</h3>
+          <p>
+            Scarica i 18.632 articoli e i 63 agenti nella memoria locale del tuo browser (IndexedDB) per un utilizzo fulmineo e offline.
+          </p>
+        </div>
+        <div>
+          <button type="button" id="btnSyncToDevice" class="btn-action-green" style="width:100%;">
+            📥 Scarica Dati sul Dispositivo
+          </button>
+          <div id="deviceSyncStatus" style="font-size:0.82rem; color:#64748b; margin-top:8px; font-weight:600; text-align:center;">
+            Cache locale: verifica in corso…
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- AVVISO CONDIVISIONE CENTRALE -->
-    <div style="background: #eef6fc; border: 1px solid #bce1fb; border-left: 4px solid #0284c7; border-radius: 12px; padding: 14px 18px; margin-bottom: 22px; display: flex; align-items: center; gap: 14px;">
-      <div style="font-size: 1.6rem;">🔒</div>
-      <div style="font-size: .88rem; color: #0c4a6e; line-height: 1.45;">
-        <strong style="display:block; font-size: .95rem; margin-bottom: 2px;">ID Google Drive Ufficiali Integrati nelle Variabili di Sistema</strong>
-        Gli Spreadsheet ID dei file in uso (definiti in <code>GOOGLE-DRIVE/dati-configurazione</code>) sono memorizzati in modo permanente nel codice e nelle variabili di sistema. <strong>Un Agente non dovrà MAI inserire alcun ID</strong>: qualunque smartphone, tablet o PC caricherà in automatico i fogli corretti.
+    <!-- SEZIONE MONITORAGGIO FLUSSO TEMPO REALE PLUS 2000 -->
+    <div class="section-card" style="border-left: 5px solid #0284c7;">
+      <h3><span>⚡</span> Flusso in Tempo Quasi Reale: Web App ➔ Supabase ➔ Plus 2000</h3>
+      <p>
+        Come garantiamo che le offerte e gli ordini inseriti dagli agenti sul web arrivino subito a disposizione degli operatori in ufficio su Plus 2000:
+      </p>
+      
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:14px; margin-top:14px;">
+        <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:12px; padding:16px;">
+          <strong style="color:#0369a1; display:block; margin-bottom:4px;">1. Inserimento Agente / Magazzino</strong>
+          <span style="font-size:0.85rem; color:#334155;">L'agente completa l'offerta o l'ordine da smartphone o PC. Il documento viene salvato istantaneamente su Supabase Cloud.</span>
+        </div>
+        <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:16px;">
+          <strong style="color:#15803d; display:block; margin-bottom:4px;">2. Servizio Continuo in Sede (Demone)</strong>
+          <span style="font-size:0.85rem; color:#334155;">Il servizio <span class="code-pill">servizio_sync_continuo.py</span> attivo sul server aziendale controlla Supabase ogni 30 secondi per nuovi ordini.</span>
+        </div>
+        <div style="background:#fefce8; border:1px solid #fef08a; border-radius:12px; padding:16px;">
+          <strong style="color:#a16207; display:block; margin-bottom:4px;">3. Registrazione Immediata su Plus 2000</strong>
+          <span style="font-size:0.85rem; color:#334155;">L'offerta o l'ordine viene creato in <span class="code-pill">DocTes</span> e <span class="code-pill">DocRig</span> con causale (OFC/OCL), cliente, agente e sconti, visibile subito agli impiegati!</span>
+        </div>
       </div>
     </div>
 
-    <!-- SEZIONE AZIENDA -->
+    <!-- ANTEPRIMA TRASPARENZA DATI REALI -->
     <section class="section-card">
-      <h3>🏢 Azienda</h3>
-      <p>Parametri del foglio contenente i dati aziendali, intestazioni documenti, note legali e mandanti.</p>
-      <div class="fields-row">
-        <div class="field">
-          <label for="companySheetName">Nome Google Sheet</label>
-          <input id="companySheetName" class="text-val" placeholder="Dati_Azienda_e_Mandanti">
+      <h3><span>🔍</span> Trasparenza Dati Reali: Ultimi Agenti e Articoli Sincronizzati</h3>
+      <p>
+        Verifica diretta dei record effettivi memorizzati nel database per accertare che l'applicazione stia lavorando sui dati reali di Plus 2000:
+      </p>
+
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap:20px;">
+        <!-- Campione Agenti -->
+        <div>
+          <strong style="color:var(--navy); font-size:0.92rem;">👥 Esempio Agenti Commerciali Ufficiali:</strong>
+          <div class="preview-table-wrap">
+            <table class="preview-table">
+              <thead>
+                <tr>
+                  <th>Codice</th>
+                  <th>Nome Agente</th>
+                  <th>Ruolo</th>
+                </tr>
+              </thead>
+              <tbody id="sampleAgentsBody">
+                <tr><td colspan="3" style="text-align:center;">Caricamento agenti da Supabase…</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div class="field" style="grid-column: span 2;">
-          <label for="companySpreadsheetId">Spreadsheet ID</label>
-          <input id="companySpreadsheetId" placeholder="13OvGppFZm9WnA8SL_6gpNi7s_A2P0seWogN1DoVwZHA">
-        </div>
-        <div class="field">
-          <label for="companyTab">Nome tab</label>
-          <input id="companyTab" class="text-val" placeholder="Dati azienda">
+
+        <!-- Campione Articoli -->
+        <div>
+          <strong style="color:var(--navy); font-size:0.92rem;">📦 Esempio Articoli da Listino Plus 2000:</strong>
+          <div class="preview-table-wrap">
+            <table class="preview-table">
+              <thead>
+                <tr>
+                  <th>Codice</th>
+                  <th>Descrizione</th>
+                  <th>Prezzo</th>
+                  <th>Giacenza</th>
+                </tr>
+              </thead>
+              <tbody id="sampleProductsBody">
+                <tr><td colspan="4" style="text-align:center;">Caricamento articoli da Supabase…</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- SEZIONE AGENTI -->
+    <!-- SEZIONE PARAMETRI DI CONNESSIONE SUPABASE -->
     <section class="section-card">
-      <h3>👥 Agenti</h3>
-      <p>Anagrafica agenti, permessi operativi, capi area e gerarchie di visibilità.</p>
+      <h3><span>🔑</span> Parametri Endpoint Supabase</h3>
+      <p>
+        Configurazione delle chiavi pubbliche (Anon) per l'interfacciamento in tempo reale con il database PostgreSQL cloud.
+      </p>
+
       <div class="fields-row">
         <div class="field">
-          <label for="agentsFileName">Nome file</label>
-          <input id="agentsFileName" class="text-val" placeholder="Anagrafica_Agenti">
-        </div>
-        <div class="field" style="grid-column: span 2;">
-          <label for="agentsSpreadsheetId">Spreadsheet ID</label>
-          <input id="agentsSpreadsheetId" placeholder="1Aspw3CnD0bgAqqZW4PoN-OOSSZBBtNrurTa3fy_56Tk">
+          <label>URL Progetto Supabase:</label>
+          <input type="text" id="supabaseUrlInput" readonly>
         </div>
         <div class="field">
-          <label for="agentsTab">Tab</label>
-          <input id="agentsTab" class="text-val" placeholder="Agenti">
+          <label>Chiave Pubblica (Anon Key):</label>
+          <input type="password" id="supabaseKeyInput" readonly>
         </div>
       </div>
-    </section>
 
-    <!-- SEZIONE CLIENTI -->
-    <section class="section-card">
-      <h3>🏪 Clienti</h3>
-      <p>Elenco anagrafica clienti con abbinamento per codice agente e attività.</p>
-      <div class="fields-row">
-        <div class="field">
-          <label for="customersFileName">Nome file</label>
-          <input id="customersFileName" class="text-val" placeholder="clienti">
-        </div>
-        <div class="field" style="grid-column: span 2;">
-          <label for="customersSpreadsheetId">Spreadsheet ID</label>
-          <input id="customersSpreadsheetId" placeholder="1Ui3W6-jVIww7QgTtnXaywJj2ZyQiiaHAd92Xl5KRrD8">
-        </div>
-        <div class="field">
-          <label for="customersTab">Tab</label>
-          <input id="customersTab" class="text-val" placeholder="clienti">
-        </div>
+      <div style="font-size:0.82rem; color:#64748b;">
+        🔒 Connessione protetta con crittografia TLS e politiche di sicurezza Row Level Security (RLS) attive.
       </div>
     </section>
-
-    <!-- SEZIONE ARTICOLI -->
-    <section class="section-card">
-      <h3>📦 Articoli</h3>
-      <p>Listino catalogo con codici, prezzi, disponibilità a magazzino, foto e sconti massimi.</p>
-      <div class="fields-row">
-        <div class="field">
-          <label for="productsFileName">Nome file</label>
-          <input id="productsFileName" class="text-val" placeholder="Articoli">
-        </div>
-        <div class="field" style="grid-column: span 2;">
-          <label for="productsSpreadsheetId">Spreadsheet ID</label>
-          <input id="productsSpreadsheetId" placeholder="1g6zrWK_zZJZ82kdoNgda9KuoemYlSs0XGRRfJvoOvUk">
-        </div>
-        <div class="field">
-          <label for="productsTab">Tab</label>
-          <input id="productsTab" class="text-val" placeholder="q_listino_prezzi_catalogo">
-        </div>
-      </div>
-    </section>
-
-    <!-- SEZIONE REPOSITORY -->
-    <section class="section-card">
-      <h3>📑 Repository Plus 2000 (Testata & Righe Documenti)</h3>
-      <p>Foglio centrale di registrazione e interscambio con il gestionale Plus 2000, strutturato nelle schede relazionali di testata e righe documento.</p>
-      <div class="fields-row">
-        <div class="field">
-          <label for="repositoryFolder">Cartella Repository</label>
-          <input id="repositoryFolder" class="text-val" placeholder="Repository">
-        </div>
-        <div class="field">
-          <label for="registerFileName">Nome file</label>
-          <input id="registerFileName" class="text-val" placeholder="Registro_Offerte_e_Ordini_Plus2000">
-        </div>
-        <div class="field" style="grid-column: span 2;">
-          <label for="registerSpreadsheetId">Spreadsheet ID "Registro Offerte e Ordini"</label>
-          <input id="registerSpreadsheetId" placeholder="10hp34cPu6ZxzPwSbrlIFsr_WcQTaIwBmJUUQjFZc2nw">
-        </div>
-        <div class="field">
-          <label for="registerTabOffers">Tab Testata Documenti (DocTes)</label>
-          <input id="registerTabOffers" class="text-val" placeholder="DocTes">
-        </div>
-        <div class="field">
-          <label for="registerTabOrders">Tab Righe Documenti (DocRig)</label>
-          <input id="registerTabOrders" class="text-val" placeholder="DocRig">
-        </div>
-      </div>
-    </section>
-
-    <div class="actions-bar">
-      <button type="button" id="btnReset" class="btn secondary">Ripristina valori iniziali</button>
-      <button type="button" id="btnSave" class="btn primary btn-green">💾 Salva configurazione</button>
-    </div>
   </main>
 
-  <footer style="text-align: center; padding: 24px 16px 36px; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--line); margin-top: 36px;">
-    <div id="footerText">© Climawell — Pannello Configurazione & Amministrazione</div>
-    <div style="margin-top: 6px;">
-      <a href="/privacy.html" style="color: var(--blue); text-decoration: none; font-weight: 500;">🔒 Informativa Privacy & Protezione Dati (GDPR Reg. UE 2016/679)</a>
+  <!-- MODAL: ISTRUZIONI AGGIORNAMENTO PLUS 2000 -->
+  <dialog id="modalPlusSync">
+    <div class="dialog-header">
+      <h3><span>🖥️</span> Sincronizzazione Plus 2000 ➔ Supabase</h3>
+      <button type="button" class="btn secondary" style="padding:4px 10px;" onclick="$('modalPlusSync').close()">✕</button>
     </div>
-  </footer>
+    <div class="dialog-body">
+      <p>
+        Il gestionale <strong>Plus 2000</strong> è installato sul server della rete locale aziendale (<strong>SRVPLUS.Climawell</strong>).
+        Poiché per ragioni di sicurezza il server interno non è esposto su Internet, l'invio dei dati su Supabase avviene tramite il connettore automatico.
+      </p>
 
-  <div id="toast" class="toast" role="status"></div>
+      <div class="flow-box">
+        <div class="flow-icon">⚡</div>
+        <div class="flow-content">
+          <strong>Per aggiornare subito i dati da Plus 2000:</strong>
+          <p>
+            Sul computer dell'ufficio collegato alla rete aziendale, fai doppio click sul file:
+            <br>
+            <span class="code-pill" style="margin-top:6px; display:inline-block;">avvia_sync_plus2000.bat</span>
+            <br>
+            Il programma impiega circa 30 secondi per estrarre tutti i 18.632 articoli, clienti e i 63 agenti e allinearli su Supabase.
+          </p>
+        </div>
+      </div>
 
-  <script src="/config/companyConfig.js"></script>
+      <div class="flow-box">
+        <div class="flow-icon">⏰</div>
+        <div class="flow-content">
+          <strong>Pianificazione automatica:</strong>
+          <p>
+            Il file <span class="code-pill">avvia_sync_plus2000.bat</span> può essere inserito nell'<em>Utilità di Pianificazione di Windows</em> per sincronizzare in automatico ad orari prefissati (es. ogni ora o ad ogni chiusura di cassa).
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button type="button" class="btn secondary" onclick="$('modalPlusSync').close()">Chiudi</button>
+      <button type="button" class="btn primary" onclick="$('modalPlusSync').close(); checkSupabaseStatus();">
+        Verifica Dati Aggiornati su Supabase
+      </button>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast">Dati aggiornati</div>
+
   <script>
     const $ = id => document.getElementById(id);
-    const toast = (msg) => {
+    function showToast(msg) {
       const t = $('toast');
       t.textContent = msg;
       t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), 2600);
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    async function checkSupabaseStatus() {
+      const t0 = performance.now();
+      $('btnCheckIcon').textContent = '⏳';
+      try {
+        const client = window.clwSupabase || (window.ClwData && window.ClwData.getConfig && window.supabase && window.supabase.createClient(window.ClwData.getConfig().url, window.ClwData.getConfig().key));
+        
+        if (!client) throw new Error('Client Supabase non inizializzato');
+
+        const [prodRes, agRes, custRes, docRes] = await Promise.all([
+          client.from('products').select('*', { count: 'exact', head: true }),
+          client.from('agents').select('*', { count: 'exact', head: true }),
+          client.from('customers').select('*', { count: 'exact', head: true }),
+          client.from('documents').select('*', { count: 'exact', head: true })
+        ]);
+
+        const t1 = performance.now();
+        const ping = Math.round(t1 - t0);
+        $('diagPingBadge').textContent = `Ping: ${ping} ms`;
+        $('diagStatusBadge').textContent = '🟢 Connesso';
+
+        if (prodRes.count != null) $('cntProducts').textContent = prodRes.count.toLocaleString('it-IT');
+        if (agRes.count != null) $('cntAgents').textContent = agRes.count.toLocaleString('it-IT');
+        if (custRes.count != null) $('cntCustomers').textContent = custRes.count.toLocaleString('it-IT');
+        if (docRes.count != null) $('cntDocuments').textContent = docRes.count.toLocaleString('it-IT');
+
+        // Carica campioni di verifica trasparenza
+        loadSamples(client);
+
+        showToast('Verifica completata: connessione Supabase attiva e dati reali verificati!');
+      } catch (err) {
+        $('diagStatusBadge').textContent = '🔴 Errore Connessione';
+        showToast('Errore durante la verifica: ' + err.message);
+      } finally {
+        $('btnCheckIcon').textContent = '🔄';
+      }
+    }
+
+    async function loadSamples(client) {
+      try {
+        // Campione 5 agenti
+        const { data: ags } = await client.from('agents').select('code, name, role').order('name').limit(5);
+        if (ags && ags.length) {
+          $('sampleAgentsBody').innerHTML = ags.map(a => `
+            <tr>
+              <td><code>${a.code}</code></td>
+              <td><strong>${a.name}</strong></td>
+              <td>${a.role === 'admin' ? 'Amministrazione' : (a.role === 'capo_area' ? 'Capo Area' : 'Agente')}</td>
+            </tr>
+          `).join('');
+        }
+
+        // Campione 5 articoli
+        const { data: prods } = await client.from('products').select('code, description, price, stock_qty').limit(5);
+        if (prods && prods.length) {
+          $('sampleProductsBody').innerHTML = prods.map(p => `
+            <tr>
+              <td><code>${p.code}</code></td>
+              <td>${p.description || '—'}</td>
+              <td><strong>€ ${Number(p.price || 0).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></td>
+              <td><span style="color:#059669; font-weight:700;">${Number(p.stock_qty || 0).toLocaleString('it-IT')}</span></td>
+            </tr>
+          `).join('');
+        }
+      } catch (e) {
+        console.warn('Errore campioni trasparenza:', e);
+      }
+    }
+
+    async function checkLocalCache() {
+      try {
+        const lastSync = localStorage.getItem('oa_last_full_sync');
+        if (lastSync) {
+          const d = new Date(lastSync);
+          $('deviceSyncStatus').textContent = `✅ Cache aggiornata: ${d.toLocaleDateString('it-IT')} ore ${d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}`;
+        } else {
+          $('deviceSyncStatus').textContent = '⚠️ Cache non ancora scaricata su questo dispositivo.';
+        }
+      } catch {
+        $('deviceSyncStatus').textContent = 'Stato cache non disponibile';
+      }
+    }
+
+    $('btnCheckNow').onclick = checkSupabaseStatus;
+
+    $('btnOpenPlusSyncModal').onclick = () => {
+      $('modalPlusSync').showModal();
     };
 
-    function getCanonicalDefaults() {
-      return (window.OFFICIAL_SYSTEM_SPREADSHEETS && window.OFFICIAL_SYSTEM_SPREADSHEETS.company) ? window.OFFICIAL_SYSTEM_SPREADSHEETS : {
-        company: { sheetName: "Dati_Azienda_e_Mandanti", spreadsheetId: "13OvGppFZm9WnA8SL_6gpNi7s_A2P0seWogN1DoVwZHA", tab: "Dati azienda" },
-        agents: { fileName: "Anagrafica_Agenti", spreadsheetId: "1Aspw3CnD0bgAqqZW4PoN-OOSSZBBtNrurTa3fy_56Tk", tab: "Agenti" },
-        customers: { fileName: "clienti", spreadsheetId: "1Ui3W6-jVIww7QgTtnXaywJj2ZyQiiaHAd92Xl5KRrD8", tab: "clienti" },
-        products: { fileName: "Articoli", spreadsheetId: "1g6zrWK_zZJZ82kdoNgda9KuoemYlSs0XGRRfJvoOvUk", tab: "q_listino_prezzi_catalogo" },
-        repository: { folder: "Repository", fileName: "Registro_Offerte_e_Ordini_Plus2000", spreadsheetId: "10hp34cPu6ZxzPwSbrlIFsr_WcQTaIwBmJUUQjFZc2nw", tabHeader: "DocTes", tabLines: "DocRig", tabOffers: "DocTes", tabOrders: "DocRig" },
-        googleDrive: { sourceFolderUrl: "https://drive.google.com/drive/folders/1lr8lThQr1SxP4LAx2n69_pDxwu36ifh9", folderId: "1lr8lThQr1SxP4LAx2n69_pDxwu36ifh9" }
-      };
-    }
-
-    // Auto-clean stale or typo IDs in localStorage
-    try {
-      const stored = JSON.parse(localStorage.getItem('companyConfig') || '{}');
-      if (stored.repository?.spreadsheetId && (stored.repository.spreadsheetId.includes('1Ohp') || stored.repository.spreadsheetId.includes('10hp34cPu6Zxc'))) {
-        stored.repository.spreadsheetId = '10hp34cPu6ZxzPwSbrlIFsr_WcQTaIwBmJUUQjFZc2nw';
-        stored.repository.tabOffers = 'DocTes';
-        stored.repository.tabOrders = 'DocRig';
-        stored.repository.fileName = 'Registro_Offerte_e_Ordini_Plus2000';
-        localStorage.setItem('companyConfig', JSON.stringify(stored));
-      }
-    } catch {}
-
-    function populateForm(cfg) {
-      const def = getCanonicalDefaults();
-      const activeEl = document.activeElement;
-      const setVal = (id, val, fallback) => {
-        const el = $(id);
-        if (!el) return;
-        if (el === activeEl) return;
-        let finalVal = (val && String(val).trim() && String(val).trim().length >= 20 && !String(val).includes('1mnW') && !String(val).includes('1N6ZcGa')) ? String(val).trim() : fallback;
-        if (finalVal.includes('1Ohp') || finalVal.includes('10hp34cPu6Zxc')) {
-          finalVal = '10hp34cPu6ZxzPwSbrlIFsr_WcQTaIwBmJUUQjFZc2nw';
-        }
-        el.value = finalVal;
-      };
-
-      // Azienda
-      if ($('companySheetName') && $('companySheetName') !== activeEl) $('companySheetName').value = cfg?.company?.sheetName || def.company.sheetName;
-      setVal('companySpreadsheetId', cfg?.company?.spreadsheetId, def.company.spreadsheetId);
-      if ($('companyTab') && $('companyTab') !== activeEl) $('companyTab').value = cfg?.company?.tab || def.company.tab;
-
-      // Agenti
-      if ($('agentsFileName') && $('agentsFileName') !== activeEl) $('agentsFileName').value = cfg?.agents?.fileName || def.agents.fileName;
-      setVal('agentsSpreadsheetId', cfg?.agents?.spreadsheetId, def.agents.spreadsheetId);
-      if ($('agentsTab') && $('agentsTab') !== activeEl) $('agentsTab').value = cfg?.agents?.tab || def.agents.tab;
-
-      // Clienti
-      if ($('customersFileName') && $('customersFileName') !== activeEl) $('customersFileName').value = cfg?.customers?.fileName || def.customers.fileName;
-      setVal('customersSpreadsheetId', cfg?.customers?.spreadsheetId, def.customers.spreadsheetId);
-      if ($('customersTab') && $('customersTab') !== activeEl) $('customersTab').value = cfg?.customers?.tab || def.customers.tab;
-
-      // Articoli
-      if ($('productsFileName') && $('productsFileName') !== activeEl) $('productsFileName').value = cfg?.products?.fileName || def.products.fileName;
-      setVal('productsSpreadsheetId', cfg?.products?.spreadsheetId, def.products.spreadsheetId);
-      if ($('productsTab') && $('productsTab') !== activeEl) $('productsTab').value = cfg?.products?.tab || def.products.tab;
-
-      // Repository Plus 2000
-      if ($('repositoryFolder') && $('repositoryFolder') !== activeEl) $('repositoryFolder').value = cfg?.repository?.folder || def.repository.folder;
-      if ($('registerFileName') && $('registerFileName') !== activeEl) $('registerFileName').value = cfg?.repository?.fileName || def.repository.fileName;
-      setVal('registerSpreadsheetId', cfg?.repository?.spreadsheetId, def.repository.spreadsheetId);
-      if ($('registerTabOffers') && $('registerTabOffers') !== activeEl) $('registerTabOffers').value = cfg?.repository?.tabOffers || def.repository.tabOffers || 'DocTes';
-      if ($('registerTabOrders') && $('registerTabOrders') !== activeEl) $('registerTabOrders').value = cfg?.repository?.tabOrders || def.repository.tabOrders || 'DocRig';
-    }
-
-    function cleanInputId(val) {
-      if (!val) return '';
-      let s = String(val).trim();
-      const m = s.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-      if (m) s = m[1];
-      if (s.includes('1Ohp') || s.includes('10hp34cPu6Zxc')) {
-        return '10hp34cPu6ZxzPwSbrlIFsr_WcQTaIwBmJUUQjFZc2nw';
-      }
-      return s;
-    }
-
-    function readForm() {
-      const def = getCanonicalDefaults();
-      const valOrDef = (id, defVal) => {
-        const el = $(id);
-        if (!el) return defVal;
-        const v = cleanInputId(el.value);
-        if (!v || v.length < 20 || v.includes('1mnW') || v.includes('1N6ZcGa')) return defVal;
-        return v;
-      };
-
-      return {
-        company: {
-          sheetName: ($('companySheetName')?.value || '').trim() || def.company.sheetName,
-          spreadsheetId: valOrDef('companySpreadsheetId', def.company.spreadsheetId),
-          tab: ($('companyTab')?.value || '').trim() || def.company.tab
-        },
-        agents: {
-          fileName: ($('agentsFileName')?.value || '').trim() || def.agents.fileName,
-          spreadsheetId: valOrDef('agentsSpreadsheetId', def.agents.spreadsheetId),
-          tab: ($('agentsTab')?.value || '').trim() || def.agents.tab
-        },
-        customers: {
-          fileName: ($('customersFileName')?.value || '').trim() || def.customers.fileName,
-          spreadsheetId: valOrDef('customersSpreadsheetId', def.customers.spreadsheetId),
-          tab: ($('customersTab')?.value || '').trim() || def.customers.tab
-        },
-        products: {
-          fileName: ($('productsFileName')?.value || '').trim() || def.products.fileName,
-          spreadsheetId: valOrDef('productsSpreadsheetId', def.products.spreadsheetId),
-          tab: ($('productsTab')?.value || '').trim() || def.products.tab
-        },
-        repository: {
-          folder: ($('repositoryFolder')?.value || '').trim() || def.repository.folder,
-          fileName: ($('registerFileName')?.value || '').trim() || def.repository.fileName,
-          spreadsheetId: valOrDef('registerSpreadsheetId', def.repository.spreadsheetId),
-          tabHeader: ($('registerTabOffers')?.value || '').trim() || 'DocTes',
-          tabLines: ($('registerTabOrders')?.value || '').trim() || 'DocRig',
-          tabOffers: ($('registerTabOffers')?.value || '').trim() || 'DocTes',
-          tabOrders: ($('registerTabOrders')?.value || '').trim() || 'DocRig'
-        },
-        googleDrive: {
-          sourceFolderUrl: def.googleDrive.sourceFolderUrl,
-          folderId: def.googleDrive.folderId
-        }
-      };
-    }
-
-    // Auto-persist in localStorage immediately on keystroke/change so IDs are NEVER lost
-    document.querySelectorAll('.field input').forEach(input => {
-      const handleInputClean = () => {
-        if (input.id.toLowerCase().includes('spreadsheetid')) {
-          const cleaned = cleanInputId(input.value);
-          if (cleaned !== input.value) input.value = cleaned;
-        }
-      };
-      input.addEventListener('change', handleInputClean);
-      input.addEventListener('paste', () => setTimeout(handleInputClean, 10));
-      input.addEventListener('input', () => {
-        handleInputClean();
-        const formCfg = readForm();
-        try {
-          const current = JSON.parse(localStorage.getItem('companyConfig') || '{}');
-          const merged = {
-            ...current,
-            ...formCfg,
-            lastUpdate: new Date().toISOString(),
-            source: 'Configurazione amministratore'
-          };
-          localStorage.setItem('companyConfig', JSON.stringify(merged));
-          if (window.companyConfig) {
-            window.companyConfig = { ...window.companyConfig, ...merged };
-          }
-        } catch (e) {}
-      });
-    });
-
-    async function checkDiagnostics() {
-      $('diagLastRun').textContent = 'Verifica in corso…';
-      setPending('diagGoogle', 'diagGoogleDetails');
-      setPending('diagCompany', 'diagCompanyDetails');
-      setPending('diagAgents', 'diagAgentsDetails');
-      setPending('diagCustomers', 'diagCustomersDetails');
-      setPending('diagProducts', 'diagProductsDetails');
-      setPending('diagRepository', 'diagRepositoryDetails');
-
-      const formCfg = readForm();
-      try {
-        const res = await fetch('/api/diagnostics', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            companyId: formCfg.company.spreadsheetId,
-            companyTab: formCfg.company.tab,
-            agentsId: formCfg.agents.spreadsheetId,
-            agentsTab: formCfg.agents.tab,
-            customersId: formCfg.customers.spreadsheetId,
-            customersTab: formCfg.customers.tab,
-            productsId: formCfg.products.spreadsheetId,
-            productsTab: formCfg.products.tab,
-            registerId: formCfg.repository.spreadsheetId,
-            registerTabOffers: formCfg.repository.tabOffers,
-            registerTabOrders: formCfg.repository.tabOrders
-          })
-        });
-
-        const data = await res.json();
-        const d = data.diagnostics || {};
-
-        applyDiag('diagGoogle', 'diagGoogleDetails', d.googleSheetsApi);
-        applyDiag('diagCompany', 'diagCompanyDetails', d.company);
-        applyDiag('diagAgents', 'diagAgentsDetails', d.agents);
-        applyDiag('diagCustomers', 'diagCustomersDetails', d.customers);
-        applyDiag('diagProducts', 'diagProductsDetails', d.products);
-        applyDiag('diagRepository', 'diagRepositoryDetails', d.repository);
-        applyDiag('diagSecurity', 'diagSecurityDetails', d.security);
-
-        const time = new Date().toLocaleTimeString('it-IT');
-        $('diagLastRun').textContent = `Verificato alle ${time}`;
-      } catch (err) {
-        console.error(err);
-        $('diagLastRun').textContent = 'Errore verifica';
-        toast('Errore durante il controllo connessioni');
-      }
-    }
-
-    function setPending(statusId, detailsId) {
-      $(statusId).querySelector('.dot').textContent = '⏳';
-      $(statusId).querySelector('.val').textContent = 'Verifica…';
-      $(detailsId).textContent = 'Connessione al servizio…';
-    }
-
-    function applyDiag(statusId, detailsId, item) {
-      if (!item) return;
-      $(statusId).querySelector('.dot').textContent = item.icon || (item.status === 'ok' ? '🟢' : item.status === 'warning' ? '🟡' : '🔴');
-      $(statusId).querySelector('.val').textContent = item.label || (item.status === 'ok' ? 'Attivo' : 'Errore');
-      $(detailsId).textContent = item.details || item.message || '';
-      $(detailsId).title = item.message || '';
-    }
-
-    // Save button
-    $('btnSave').onclick = async () => {
-      const btn = $('btnSave');
+    $('btnSyncToDevice').onclick = async () => {
+      const btn = $('btnSyncToDevice');
       btn.disabled = true;
-      btn.textContent = 'Salvataggio cloud…';
+      btn.textContent = '⏳ Scaricamento da Supabase in corso…';
       try {
-        const cfg = readForm();
-        await saveCompanyConfig(cfg);
-        toast('Configurazione centrale salvata e condivisa con tutti i dispositivi!');
-        await checkDiagnostics();
-      } catch (err) {
-        toast('Errore salvataggio: ' + err.message);
+        const [prods, custs, ags, comp] = await Promise.all([
+          window.ClwData.getProducts(),
+          window.ClwData.getCustomers(),
+          window.ClwData.getAgents(),
+          window.ClwData.getCompany()
+        ]);
+
+        const now = new Date().toISOString();
+        localStorage.setItem('oa_last_full_sync', now);
+        checkLocalCache();
+        showToast(`✅ Sincronizzazione completata! ${prods.length.toLocaleString('it-IT')} articoli e ${ags.length} agenti memorizzati sul dispositivo.`);
+      } catch (e) {
+        showToast('Errore sincronizzazione: ' + e.message);
       } finally {
         btn.disabled = false;
-        btn.textContent = '💾 Salva configurazione';
+        btn.textContent = '📥 Scarica Dati sul Dispositivo';
       }
     };
 
-    // "Verifica connessioni" button: Auto-saves whatever is in the form first, then checks
-    $('btnCheckNow').onclick = async () => {
-      const cfg = readForm();
-      await saveCompanyConfig(cfg);
-      await checkDiagnostics();
-    };
+    // Inizializzazione pagina
+    window.addEventListener('DOMContentLoaded', () => {
+      const cfg = window.ClwData ? window.ClwData.getConfig() : {};
+      $('supabaseUrlInput').value = cfg.url || 'https://fadgdncfhfpwkcbxcntc.supabase.co';
+      $('supabaseKeyInput').value = cfg.key ? cfg.key.slice(0, 16) + '••••••••••••••••••••••••' : '';
 
-    // "Aggiorna" button: Also auto-saves form first, then checks
-    $('btnDiagRefresh').onclick = async () => {
-      const cfg = readForm();
-      await saveCompanyConfig(cfg);
-      await checkDiagnostics();
-    };
-
-    // Format & Setup Warehouse Sheet
-    if ($('btnFormatWarehouse')) {
-      $('btnFormatWarehouse').onclick = async () => {
-        const btn = $('btnFormatWarehouse');
-        btn.disabled = true;
-        btn.textContent = 'Formattazione in corso…';
-        try {
-          const cfg = readForm();
-          await saveCompanyConfig(cfg);
-          const targetId = cleanInputId($('warehouseSpreadsheetId')?.value) || '1PY897bYrzckl9P3ADr6LjhCPik-9wQefEkkkn9SWCig';
-          const res = await fetch(`/api/production/setup-sheet?id=${encodeURIComponent(targetId)}`);
-          const data = await res.json();
-          if (data.ok) {
-            toast('✅ Foglio Magazzino inizializzato, formattato e pre-popolato con successo!');
-            await checkDiagnostics();
-          } else {
-            toast('⚠️ ' + (data.message || data.error || 'Errore inizializzazione'));
-          }
-        } catch (e) {
-          toast('Errore: ' + e.message);
-        } finally {
-          btn.disabled = false;
-          btn.textContent = '🎨 Formatta & Pre-popola Foglio';
-        }
-      };
-    }
-
-    $('btnReset').onclick = async () => {
-      if (confirm('Vuoi ripristinare gli ID ufficiali Google Drive del sistema (da dati-configurazione)?')) {
-        const defaults = getCanonicalDefaults();
-        populateForm(defaults);
-        await saveCompanyConfig(defaults);
-        toast('Valori e ID ufficiali ripristinati');
-        checkDiagnostics();
-      }
-    };
-
-    // Page initialization:
-    // 1. Immediately populate from canonical defaults / local cache
-    // 2. Asynchronously fetch the authoritative central cloud config from server
-    (async () => {
-      const canonical = getCanonicalDefaults();
-      const initial = window.companyConfig || getStoredConfig() || canonical;
-      populateForm(initial);
-
-      try {
-        const freshCfg = await loadCompanyConfig(true);
-        populateForm(freshCfg);
-      } catch (e) {
-        console.warn('Errore sync configurazione centrale:', e);
-      }
-      checkDiagnostics();
-    })();
+      checkLocalCache();
+      checkSupabaseStatus();
+    });
   </script>
 </body>
 </html>

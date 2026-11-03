@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Climawell Shop Online — Climatizzazione, Pompe di Calore & Termoidraulica Casa</title>
+  <meta name="description" content="Acquista online climatizzatori, pompe di calore, ricambi e forniture termoidrauliche con consegna a domicilio e garanzia ufficiale Italia.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- TOPBAR FIDUCIA CONSUMATORE -->
+  <aside class="shop-topbar">
+    <div class="topbar-container">
+      <div class="topbar-perks">
+        <span>🚚 Spedizione Rapida Assicurata in Tutta Italia</span>
+        <span>🛡️ Garanzia Ufficiale Produttore 24 Mesi</span>
+        <span>🔒 Pagamenti Protetti con Carta di Credito (Stripe)</span>
+      </div>
+      <div class="topbar-contacts">
+        <a href="tel:0554289074">📞 Assistenza Clienti: 055-4289074</a>
+        <a href="https://wa.me/393351234567" target="_blank">💬 WhatsApp Tecnico</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- HEADER PRINCIPALE -->
+  <header class="shop-header">
+    <div class="header-container">
+      <div class="header-brand">
+        <a href="index.html" class="brand-link">
+          <div class="brand-badge">CLIMAWELL</div>
+          <div class="brand-text">
+            <span class="brand-name">SHOP CASA</span>
+            <span class="brand-sub">Climatizzazione & Comfort Residenziale</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Barra di Ricerca Prodotti -->
+      <div class="header-search">
+        <input type="text" id="shopSearchInput" placeholder="Cerca climatizzatore, pompa di calore, marca (es. Daikin, Mitsubishi) o codice...">
+        <button type="button" id="btnClearSearch" class="btn-clear-search" style="display:none;">✕</button>
+        <span class="search-icon">🔍</span>
+      </div>
+
+      <!-- Azioni Utente & Carrello / Ordini -->
+      <div class="header-actions">
+        <a href="../e-com/tracking.html" class="action-btn" title="Verifica lo stato del tuo acquisto">
+          <span class="action-icon">📦</span>
+          <span class="action-label">I Miei Ordini</span>
+        </a>
+        <button type="button" class="action-btn cart-btn" id="btnOpenCart" title="Visualizza riepilogo">
+          <span class="action-icon">🛒</span>
+          <span class="action-label">Acquisto Rapido</span>
+          <span class="cart-count" id="cartCountBadge">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO BANNER PROMOZIONI & DETRAZIONI -->
+  <section class="shop-hero">
+    <div class="hero-container">
+      <div class="hero-content">
+        <span class="hero-tag">🌟 VENDITA DIRETTA AL CONSUMATORE · STAGIONE 2026</span>
+        <h1>Il Massimo del Comfort Termico per la Tua Casa</h1>
+        <p>Climatizzatori ad alta efficienza A+++, Pompe di Calore ibride e accessori termoidraulici. Prezzi IVA inclusa, consegna veloce a casa tua e supporto tecnico specializzato.</p>
+        <div class="hero-badges">
+          <div class="hero-badge-item">
+            <strong>✅ Pronta Consegna</strong>
+            <span>Magazzino centrale Firenze</span>
+          </div>
+          <div class="hero-badge-item">
+            <strong>💳 Acquisto Sicuro</strong>
+            <span>Stripe Direct Charges bancario</span>
+          </div>
+          <div class="hero-badge-item">
+            <strong>📜 Fattura / Ricevuta Fiscale</strong>
+            <span>Valida per garanzia e detrazioni</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NAVIGAZIONE CATEGORIE RETAIL -->
+  <nav class="categories-nav">
+    <div class="categories-container">
+      <button class="cat-chip active" data-cat="all">✨ Tutti i Prodotti (<span id="countAll">0</span>)</button>
+      <button class="cat-chip" data-cat="CLIMA">❄️ Climatizzatori & Split (<span id="countClima">0</span>)</button>
+      <button class="cat-chip" data-cat="POMPE">🔥 Pompe di Calore & Riscaldamento (<span id="countPompe">0</span>)</button>
+      <button class="cat-chip" data-cat="2B">🚿 Box Doccia & Bagno (<span id="countBox">0</span>)</button>
+      <button class="cat-chip" data-cat="RICAMBI">⚙️ Ricambi & Componenti (<span id="countRicambi">0</span>)</button>
+      <button class="cat-chip" data-cat="ACCESSORI">📦 Accessori & Trattamento Aria (<span id="countAccessori">0</span>)</button>
+    </div>
+  </nav>
+
+  <!-- CONTENITORE PRINCIPALE VETRINA PRODOTTI -->
+  <main class="shop-main">
+    <div class="main-container">
+      
+      <!-- Toolbar Filtri & Ordinamento -->
+      <div class="shop-toolbar">
+        <div class="toolbar-title">
+          <h2 id="currentCategoryTitle">Tutti i Prodotti Disponibili</h2>
+          <span class="product-counter" id="productsFoundCount">Caricamento catalogo in corso…</span>
+        </div>
+        <div class="toolbar-sort">
+          <label for="sortSelect">Ordina per:</label>
+          <select id="sortSelect">
+            <option value="featured">Più Popolari</option>
+            <option value="price-asc">Prezzo: dal più basso</option>
+            <option value="price-desc">Prezzo: dal più alto</option>
+            <option value="brand">Marca (A-Z)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Griglia Prodotti E-Commerce B2C -->
+      <div class="products-grid" id="productsGrid">
+        <!-- Generato dinamicamente da shop.js -->
+      </div>
+
+      <!-- Stato Vuoto (Nessun Prodotto) -->
+      <div class="empty-state hidden" id="emptyState">
+        <div class="empty-icon">🔍</div>
+        <h3>Nessun prodotto trovato</h3>
+        <p>Prova a modificare i termini di ricerca o seleziona una categoria differente.</p>
+        <button type="button" class="btn-reset-filters" id="btnResetFilters">Mostra tutti i prodotti</button>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- BANNER SUPPORTO PRIVATI -->
+  <section class="help-banner">
+    <div class="help-container">
+      <div class="help-text">
+        <h3>Hai bisogno di assistenza o vuoi verificare la compatibilità?</h3>
+        <p>I nostri tecnici termoidraulici qualificati sono a tua disposizione per consigliarti il modello giusto per i tuoi spazi.</p>
+      </div>
+      <div class="help-buttons">
+        <a href="https://wa.me/393351234567?text=Buongiorno%2C%20vorrei%20consigli%20su%20un%20climatizzatore" target="_blank" class="btn-wa-help">
+          💬 Chatta con un Tecnico
+        </a>
+        <a href="tel:0554289074" class="btn-phone-help">
+          📞 055-4289074
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODAL DI ACQUISTO DIRETTO AL CONSUMATORE (B2C CHECKOUT) -->
+  <div class="checkout-modal-backdrop hidden" id="checkoutModal">
+    <div class="checkout-modal">
+      <div class="checkout-modal-header">
+        <div>
+          <span class="modal-pretitle">ACQUISTO DIRETTO ONLINE SICURO</span>
+          <h3 class="modal-title" id="checkoutProductTitle">Daikin Monosplit Inverter 12000 BTU</h3>
+        </div>
+        <button type="button" class="btn-close-modal" id="btnCloseCheckoutModal">✕</button>
+      </div>
+
+      <div class="checkout-modal-body">
+
+        <!-- Riepilogo Prodotto & Quantità -->
+        <div class="product-summary-card">
+          <div class="product-summary-thumb" id="checkoutProductImg">
+            <span class="thumb-fallback">PRODOTTO</span>
+          </div>
+          <div class="product-summary-info">
+            <div class="product-brand-tag" id="checkoutProductBrand">DAIKIN</div>
+            <div class="product-code-label">Codice Articolo: <strong id="checkoutProductCode">CYAL250</strong></div>
+            <div class="product-price-box">
+              <span class="price-retail-label">Prezzo Consumatore (IVA incl.):</span>
+              <span class="price-retail-val" id="checkoutUnitPrice">€ 1.850,00</span>
+            </div>
+          </div>
+          <div class="product-summary-qty">
+            <label>Quantità:</label>
+            <div class="qty-stepper">
+              <button type="button" id="btnQtyMinus">−</button>
+              <input type="number" id="checkoutQtyInput" value="1" min="1" max="99">
+              <button type="button" id="btnQtyPlus">+</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- FORM DATI ACQUIRENTE PRIVATO & SPEDIZIONE -->
+        <form id="b2cCheckoutForm" class="b2c-checkout-form" onsubmit="return false;">
+          
+          <!-- 1. Dati Anagrafici & Fiscali Privato -->
+          <div class="form-box">
+            <h4 class="form-box-title">👤 1. Dati Acquirente (Ricevuta / Fattura Fiscale)</h4>
+            <div class="form-grid-2">
+              <div class="form-field">
+                <label for="custFirstName">Nome <span class="req">*</span></label>
+                <input type="text" id="custFirstName" placeholder="Mario" required>
+              </div>
+              <div class="form-field">
+                <label for="custLastName">Cognome / Ragione Sociale <span class="req">*</span></label>
+                <input type="text" id="custLastName" placeholder="Rossi" required>
+              </div>
+            </div>
+
+            <div class="form-grid-2">
+              <div class="form-field">
+                <label for="custTaxId">Codice Fiscale o P.IVA <span class="req">*</span></label>
+                <input type="text" id="custTaxId" placeholder="RSSMRA80A01F205X" style="text-transform:uppercase;" required>
+                <small class="field-hint">Indispensabile per l'emissione del documento fiscale e per la garanzia ufficiale</small>
+              </div>
+              <div class="form-field">
+                <label for="custEmail">Indirizzo Email <span class="req">*</span></label>
+                <input type="email" id="custEmail" placeholder="mario.rossi@email.it" required>
+                <small class="field-hint">Invieremo qui la conferma d'ordine e il link di tracking della consegna</small>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="custPhone">Telefono Cellulare per il Corriere <span class="req">*</span></label>
+              <input type="tel" id="custPhone" placeholder="+39 333 1234567" required>
+            </div>
+          </div>
+
+          <!-- 2. Indirizzo di Consegna -->
+          <div class="form-box">
+            <h4 class="form-box-title">📍 2. Indirizzo di Consegna a Domicilio</h4>
+            <div class="form-grid-3">
+              <div class="form-field full-width">
+                <label for="shipAddress">Via / Piazza e Numero Civico <span class="req">*</span></label>
+                <input type="text" id="shipAddress" placeholder="Via Roma 15, interno 3" required>
+              </div>
+            </div>
+
+            <div class="form-grid-3">
+              <div class="form-field">
+                <label for="shipCap">CAP <span class="req">*</span></label>
+                <input type="text" id="shipCap" placeholder="50123" maxlength="5" required>
+              </div>
+              <div class="form-field">
+                <label for="shipCity">Città / Località <span class="req">*</span></label>
+                <input type="text" id="shipCity" placeholder="Firenze" required>
+              </div>
+              <div class="form-field">
+                <label for="shipProv">Provincia (sigla) <span class="req">*</span></label>
+                <input type="text" id="shipProv" placeholder="FI" maxlength="2" style="text-transform:uppercase;" required>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="shipNotes">Istruzioni speciali per il corriere (opzionale)</label>
+              <input type="text" id="shipNotes" placeholder="Es. Citofono Rossi, scala B, consegnare al piano terra">
+            </div>
+          </div>
+
+          <!-- 3. Pagamento Diretto con Carta di Credito (Stripe Direct Charge) -->
+          <div class="form-box highlight">
+            <div class="stripe-box-header">
+              <h4 class="form-box-title" style="margin:0; border:none; padding:0;">💳 3. Pagamento Protetto con Carta di Credito</h4>
+              <div class="stripe-secured-badge">
+                <span>🛡️ Stripe 256-bit SSL</span>
+              </div>
+            </div>
+
+            <p class="stripe-info-note">
+              La transazione viene elaborata direttamente sul circuito bancario ufficiale di <strong>Climawell S.r.l.</strong> con tecnologia <strong>Stripe Connect Direct Charges</strong>.
+            </p>
+
+            <!-- Scorciatoie Carte Test per simulazione immediata -->
+            <div class="test-cards-bar">
+              <span class="test-cards-label">Carte di Prova Rapida:</span>
+              <button type="button" class="btn-test-card" data-card="success">✅ Carta Valida (4242)</button>
+              <button type="button" class="btn-test-card" data-card="3ds">🟡 3D Secure (3021)</button>
+              <button type="button" class="btn-test-card" data-card="declined">🔴 Rifiuto (0002)</button>
+            </div>
+
+            <div class="form-field">
+              <label for="stripeCardNumber">Numero Carta di Credito</label>
+              <div class="card-input-wrapper">
+                <input type="text" id="stripeCardNumber" placeholder="4242 4242 4242 4242" maxlength="19">
+                <span class="card-brand-icon" id="cardBrandIcon">💳</span>
+              </div>
+            </div>
+
+            <div class="form-grid-2">
+              <div class="form-field">
+                <label for="stripeCardExp">Scadenza (MM/AA)</label>
+                <input type="text" id="stripeCardExp" placeholder="12/28" maxlength="5">
+              </div>
+              <div class="form-field">
+                <label for="stripeCardCvc">Codice CVC / CVV</label>
+                <input type="password" id="stripeCardCvc" placeholder="123" maxlength="4">
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="stripeCardHolder">Nome e Cognome Titolare Carta</label>
+              <input type="text" id="stripeCardHolder" placeholder="MARIO ROSSI">
+            </div>
+          </div>
+
+          <!-- RIEPILOGO TOTALI FINALI ORDINE -->
+          <div class="checkout-total-summary">
+            <div class="summary-row">
+              <span>Totale Fornitura (IVA inclusa):</span>
+              <span id="summaryTotalProducts">€ 0,00</span>
+            </div>
+            <div class="summary-row">
+              <span>Spedizione con Corriere Espresso Assicurato:</span>
+              <span style="color:#059669; font-weight:700;">GRATIS</span>
+            </div>
+            <div class="summary-row total-row">
+              <span>Importo Totale da Saldare:</span>
+              <strong id="summaryGrandTotal">€ 0,00</strong>
+            </div>
+            <div class="summary-disclaimer">
+              Prezzo finale chiavi in mano. Riceverai fattura/ricevuta con indicazione dello scorporo IVA 22% valevole per la garanzia del costruttore.
+            </div>
+          </div>
+
+          <!-- PULSANTE ESECUZIONE PAGAMENTO -->
+          <div class="checkout-action-row">
+            <button type="button" class="btn-submit-order" id="btnSubmitB2cOrder">
+              <span class="btn-spinner hidden" id="paySpinner"></span>
+              <span id="btnPayLabel">💳 Paga e Conferma Ordine</span>
+            </button>
+          </div>
+
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL RICEVUTA UFFICIALE DI ACQUISTO (POST-TRANSAZIONE) -->
+  <div class="checkout-modal-backdrop hidden" id="receiptModal">
+    <div class="checkout-modal receipt-modal-box">
+      <div class="receipt-success-icon">✓</div>
+      <h3 class="receipt-success-title">Grazie per il tuo acquisto!</h3>
+      <p class="receipt-success-sub">Il pagamento è stato autorizzato con successo tramite circuito bancario sicuro.</p>
+
+      <div class="receipt-details-card">
+        <div class="receipt-line">
+          <span>Codice Ordine:</span>
+          <strong id="recOrderNum" style="font-family:monospace; color:#0284c7;">ORD-SHOP-...</strong>
+        </div>
+        <div class="receipt-line">
+          <span>ID Transazione Stripe:</span>
+          <code id="recChargeId">ch_direct_...</code>
+        </div>
+        <div class="receipt-line">
+          <span>Venditore E-Commerce:</span>
+          <span>Climawell S.r.l. (acct_climawell_b2b)</span>
+        </div>
+        <div class="receipt-line">
+          <span>Articolo Acquistato:</span>
+          <strong id="recItemDesc">-</strong>
+        </div>
+        <div class="receipt-line">
+          <span>Quantità:</span>
+          <span id="recQty">1 pezzo</span>
+        </div>
+        <div class="receipt-line total">
+          <span>Importo Pagato (IVA incl.):</span>
+          <strong id="recTotalAmount" style="color:#059669; font-size:18px;">€ 0,00</strong>
+        </div>
+        <div class="receipt-line">
+          <span>Intestatario / C.F.:</span>
+          <span id="recCustomerName">-</span>
+        </div>
+        <div class="receipt-line">
+          <span>Indirizzo di Spedizione:</span>
+          <span id="recShippingDest">-</span>
+        </div>
+      </div>
+
+      <div class="receipt-actions-group">
+        <a href="#" id="btnTrackMyOrder" class="btn-track-action">
+          📦 Segui lo Stato di Preparazione & Spedizione in Tempo Reale
+        </a>
+        <div class="receipt-sub-actions">
+          <button type="button" class="btn-print-action" id="btnPrintB2cReceipt">🖨️ Stampa Ricevuta A4</button>
+          <button type="button" class="btn-close-action" id="btnCloseReceiptModal">Torna al Negozio</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICHE -->
+  <div class="shop-toast" id="shopToast">Messaggio notifica</div>
+
+  <!-- SCRIPT DI SISTEMA & SUPABASE -->
+  <script src="https://js.stripe.com/v3/"></script>
+  <script src="/config/companyConfig.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabaseClient.js"></script>
+  <script src="shop.js"></script>
+</body>
+</html>

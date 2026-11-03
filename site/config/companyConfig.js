@@ -1,5 +1,5 @@
-// Unified company and Google Sheets configuration
-// ID fissi immutabili da GOOGLE-DRIVE/dati-configurazione: nessun agente deve mai inserirli a mano!
+// Unified company configuration
+// Base Dati Centrale Ufficiale: Supabase PostgreSQL (Plus 2000)
 
 const OFFICIAL_SYSTEM_SPREADSHEETS = Object.freeze({
   company: {
@@ -38,14 +38,8 @@ const OFFICIAL_SYSTEM_SPREADSHEETS = Object.freeze({
     tabMovements: "Movimenti_Magazzino",
     tabParameters: "Parametri_Produzione"
   },
-  googleDrive: {
-    sourceFolderUrl: "https://drive.google.com/drive/folders/1K4tkUVi_4w8FrpKanPGMDwMwqW8pfClq",
-    folderId: "1K4tkUVi_4w8FrpKanPGMDwMwqW8pfClq",
-    repositoryFolderUrl: "https://drive.google.com/drive/folders/1cxVlox1rdrAhPnDY3nToOs2XUZHWvFO_",
-    repositoryFolderId: "1cxVlox1rdrAhPnDY3nToOs2XUZHWvFO_"
-  },
   lastUpdate: "",
-  source: "Configurazione fissa di sistema (Google Drive)"
+  source: "Configurazione fissa di sistema (Supabase)"
 });
 
 const defaultConfig = JSON.parse(JSON.stringify(OFFICIAL_SYSTEM_SPREADSHEETS));
@@ -67,7 +61,6 @@ function sanitizeConfig(cfg) {
   c.products = c.products || {};
   c.repository = c.repository || {};
   c.warehouse = c.warehouse || {};
-  c.googleDrive = c.googleDrive || {};
 
   if (isInvalidSpreadsheetId(c.company?.spreadsheetId)) c.company.spreadsheetId = OFFICIAL_SYSTEM_SPREADSHEETS.company.spreadsheetId;
   if (!c.company.sheetName) c.company.sheetName = OFFICIAL_SYSTEM_SPREADSHEETS.company.sheetName;
@@ -98,9 +91,6 @@ function sanitizeConfig(cfg) {
   if (!c.warehouse.fileName) c.warehouse.fileName = OFFICIAL_SYSTEM_SPREADSHEETS.warehouse.fileName;
   if (!c.warehouse.tabMovements) c.warehouse.tabMovements = OFFICIAL_SYSTEM_SPREADSHEETS.warehouse.tabMovements;
   if (!c.warehouse.tabParameters) c.warehouse.tabParameters = OFFICIAL_SYSTEM_SPREADSHEETS.warehouse.tabParameters;
-
-  if (!c.googleDrive.folderId) c.googleDrive.folderId = OFFICIAL_SYSTEM_SPREADSHEETS.googleDrive.folderId;
-  if (!c.googleDrive.sourceFolderUrl) c.googleDrive.sourceFolderUrl = OFFICIAL_SYSTEM_SPREADSHEETS.googleDrive.sourceFolderUrl;
 
   return c;
 }
@@ -176,7 +166,7 @@ async function saveCompanyConfig(cfg) {
   const merged = deepMergeConfig(window.companyConfig || defaultConfig, {
     ...cfg,
     lastUpdate: new Date().toISOString(),
-    source: 'Configurazione centrale Google Drive'
+    source: 'Configurazione centrale Supabase'
   });
   window.companyConfig = sanitizeConfig(merged);
 

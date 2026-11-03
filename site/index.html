@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="it">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -49,8 +50,9 @@
       position: sticky;
       top: 0;
       z-index: 50;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
     }
+
     .topbar-content {
       max-width: 1100px;
       margin: 0 auto;
@@ -59,11 +61,13 @@
       justify-content: space-between;
       gap: 12px;
     }
+
     .brand-group {
       display: flex;
       align-items: center;
       gap: 10px;
     }
+
     .brand-badge {
       background: #ffffff;
       color: var(--navy-light);
@@ -73,11 +77,13 @@
       padding: 6px 10px;
       letter-spacing: .05em;
     }
+
     .brand-meta strong {
       font-size: 1rem;
       display: block;
       line-height: 1.2;
     }
+
     .brand-meta small {
       color: #9cd3fc;
       font-size: .75rem;
@@ -85,6 +91,7 @@
       align-items: center;
       gap: 5px;
     }
+
     .sync-indicator {
       display: inline-block;
       width: 7px;
@@ -92,15 +99,17 @@
       border-radius: 50%;
       background: #34d399;
     }
+
     .top-actions {
       display: flex;
       align-items: center;
       gap: 8px;
     }
+
     .btn-top {
-      background: rgba(255,255,255,0.12);
+      background: rgba(255, 255, 255, 0.12);
       color: #ffffff;
-      border: 1px solid rgba(255,255,255,0.2);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 8px;
       padding: 7px 12px;
       font-size: .82rem;
@@ -112,8 +121,9 @@
       gap: 6px;
       transition: background .15s ease;
     }
+
     .btn-top:hover {
-      background: rgba(255,255,255,0.22);
+      background: rgba(255, 255, 255, 0.22);
     }
 
     /* Main Container */
@@ -122,8 +132,11 @@
       margin: 0 auto;
       padding: 16px;
     }
+
     @media (min-width: 600px) {
-      .shell { padding: 24px; }
+      .shell {
+        padding: 24px;
+      }
     }
 
     /* Hero & Quick Actions */
@@ -133,8 +146,9 @@
       border-radius: var(--radius);
       padding: 18px;
       margin-bottom: 16px;
-      box-shadow: 0 4px 16px rgba(11,41,66,0.04);
+      box-shadow: 0 4px 16px rgba(11, 41, 66, 0.04);
     }
+
     .hero-welcome {
       display: flex;
       justify-content: space-between;
@@ -143,11 +157,13 @@
       flex-wrap: wrap;
       gap: 8px;
     }
+
     .hero-welcome h1 {
       font-size: 1.35rem;
       margin: 0 0 4px;
       color: var(--navy);
     }
+
     .user-pill {
       display: inline-flex;
       align-items: center;
@@ -167,11 +183,13 @@
       gap: 12px;
       margin-bottom: 8px;
     }
+
     @media (max-width: 480px) {
       .actions-grid {
         grid-template-columns: 1fr;
       }
     }
+
     .cta-card {
       display: flex;
       align-items: center;
@@ -183,28 +201,34 @@
       position: relative;
       overflow: hidden;
     }
+
     .cta-card:active {
       transform: scale(0.98);
     }
+
     .cta-card.offer {
       background: linear-gradient(135deg, #1b6ca8 0%, #0f4f80 100%);
       color: white;
-      box-shadow: 0 6px 18px rgba(27,108,168,0.25);
+      box-shadow: 0 6px 18px rgba(27, 108, 168, 0.25);
     }
+
     .cta-card.order {
       background: linear-gradient(135deg, #16835b 0%, #0e5b3f 100%);
       color: white;
-      box-shadow: 0 6px 18px rgba(22,131,91,0.25);
+      box-shadow: 0 6px 18px rgba(22, 131, 91, 0.25);
     }
+
     .cta-icon {
       font-size: 1.8rem;
       flex-shrink: 0;
     }
+
     .cta-info strong {
       display: block;
       font-size: 1.05rem;
       line-height: 1.2;
     }
+
     .cta-info small {
       opacity: 0.85;
       font-size: .78rem;
@@ -216,6 +240,7 @@
       margin-top: 12px;
       flex-wrap: wrap;
     }
+
     .btn-sub {
       background: #ffffff;
       border: 1px solid var(--line);
@@ -230,8 +255,115 @@
       align-items: center;
       gap: 6px;
     }
+
     .btn-sub:hover {
       background: var(--ice);
+    }
+
+    /* Sync Button & Status Badge */
+    .user-status-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .sync-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #e6f4ea;
+      color: #137333;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: .78rem;
+      font-weight: 600;
+      border: 1px solid rgba(19, 115, 51, 0.2);
+    }
+
+    .sync-pill.pending {
+      background: #fef7e0;
+      color: #b06000;
+      border-color: rgba(176, 96, 0, 0.2);
+    }
+
+    .btn-sync-all {
+      background: linear-gradient(135deg, #0b2942 0%, #1a4d75 100%);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: .88rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(11, 41, 66, 0.2);
+      transition: all .15s ease;
+    }
+
+    .btn-sync-all:hover {
+      background: linear-gradient(135deg, #123b5d 0%, #20689b 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(11, 41, 66, 0.26);
+    }
+
+    .btn-sync-all:active {
+      transform: translateY(0);
+    }
+
+    .btn-sync-all:disabled {
+      opacity: 0.75;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .spin-anim {
+      display: inline-block;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .sync-toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0b2942;
+      color: #ffffff;
+      padding: 14px 20px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+      z-index: 1000;
+      font-size: .88rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all .25s ease;
+      opacity: 0;
+      transform: translateY(20px);
+      pointer-events: none;
+    }
+
+    .sync-toast.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .sync-toast.error {
+      background: #c5221f;
     }
 
     /* Practices Section */
@@ -240,8 +372,9 @@
       border: 1px solid var(--line);
       border-radius: var(--radius);
       padding: 18px;
-      box-shadow: 0 4px 16px rgba(11,41,66,0.04);
+      box-shadow: 0 4px 16px rgba(11, 41, 66, 0.04);
     }
+
     .practices-header {
       display: flex;
       justify-content: space-between;
@@ -250,6 +383,7 @@
       flex-wrap: wrap;
       gap: 10px;
     }
+
     .practices-header h2 {
       font-size: 1.15rem;
       margin: 0;
@@ -258,6 +392,7 @@
       align-items: center;
       gap: 8px;
     }
+
     .counter-badge {
       background: var(--ice);
       color: var(--navy-light);
@@ -274,6 +409,7 @@
       gap: 10px;
       margin-bottom: 16px;
     }
+
     @media (min-width: 600px) {
       .filter-bar {
         flex-direction: row;
@@ -281,10 +417,12 @@
         align-items: center;
       }
     }
+
     .search-box {
       position: relative;
       flex: 1;
     }
+
     .search-box input {
       width: 100%;
       box-sizing: border-box;
@@ -295,11 +433,13 @@
       background: #fafcfe;
       outline: none;
     }
+
     .search-box input:focus {
       border-color: var(--blue);
       background: #fff;
-      box-shadow: 0 0 0 3px rgba(32,118,181,0.12);
+      box-shadow: 0 0 0 3px rgba(32, 118, 181, 0.12);
     }
+
     .search-icon {
       position: absolute;
       left: 12px;
@@ -309,6 +449,7 @@
       color: var(--muted);
       pointer-events: none;
     }
+
     .search-clear {
       position: absolute;
       right: 10px;
@@ -329,6 +470,7 @@
       border-radius: 10px;
       gap: 2px;
     }
+
     .tab-btn {
       border: 0;
       background: none;
@@ -340,10 +482,11 @@
       cursor: pointer;
       transition: all .15s ease;
     }
+
     .tab-btn.active {
       background: #ffffff;
       color: var(--navy);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
     }
 
     /* Practice Item Card */
@@ -351,6 +494,7 @@
       display: grid;
       gap: 10px;
     }
+
     .practice-item {
       border: 1px solid #dbe4ea;
       border-radius: 12px;
@@ -362,10 +506,12 @@
       flex-direction: column;
       gap: 8px;
     }
+
     .practice-item:hover {
       border-color: #b2c9d8;
-      box-shadow: 0 4px 12px rgba(11,41,66,0.06);
+      box-shadow: 0 4px 12px rgba(11, 41, 66, 0.06);
     }
+
     .practice-item:active {
       transform: scale(0.995);
     }
@@ -377,12 +523,14 @@
       gap: 8px;
       flex-wrap: wrap;
     }
+
     .item-doc-info {
       display: flex;
       align-items: center;
       gap: 8px;
       flex-wrap: wrap;
     }
+
     .doc-pill {
       font-size: .72rem;
       font-weight: 750;
@@ -390,14 +538,17 @@
       border-radius: 6px;
       letter-spacing: .02em;
     }
+
     .doc-pill.offer {
       background: #e1f0fa;
       color: #1b6ca8;
     }
+
     .doc-pill.order {
       background: #e3f7ed;
       color: #12794e;
     }
+
     .doc-num {
       font-weight: 750;
       font-size: .95rem;
@@ -414,10 +565,26 @@
       align-items: center;
       gap: 4px;
     }
-    .status-green { background: var(--green-bg); color: var(--green-text); }
-    .status-amber { background: var(--amber-bg); color: var(--amber-text); }
-    .status-red { background: var(--red-bg); color: var(--red-text); }
-    .status-purple { background: var(--purple-bg); color: var(--purple-text); }
+
+    .status-green {
+      background: var(--green-bg);
+      color: var(--green-text);
+    }
+
+    .status-amber {
+      background: var(--amber-bg);
+      color: var(--amber-text);
+    }
+
+    .status-red {
+      background: var(--red-bg);
+      color: var(--red-text);
+    }
+
+    .status-purple {
+      background: var(--purple-bg);
+      color: var(--purple-text);
+    }
 
     .item-customer {
       font-size: 1.05rem;
@@ -436,23 +603,28 @@
       padding-top: 8px;
       margin-top: 2px;
     }
+
     .item-meta {
       font-size: .78rem;
       color: var(--muted);
       line-height: 1.4;
     }
+
     .item-meta span {
       display: inline-block;
     }
+
     .item-total-group {
       text-align: right;
     }
+
     .item-total {
       font-size: 1.15rem;
       font-weight: 800;
       color: var(--navy);
       display: block;
     }
+
     .item-storage-note {
       font-size: .72rem;
       color: #16835b;
@@ -484,13 +656,15 @@
       border-radius: 16px;
       padding: 0;
       width: min(520px, calc(100vw - 32px));
-      box-shadow: 0 20px 60px rgba(11,41,66,0.28);
+      box-shadow: 0 20px 60px rgba(11, 41, 66, 0.28);
       background: #ffffff;
     }
+
     dialog#detailModal::backdrop {
-      background: rgba(11,41,66,0.6);
+      background: rgba(11, 41, 66, 0.6);
       backdrop-filter: blur(3px);
     }
+
     .modal-head {
       background: var(--navy);
       color: white;
@@ -499,12 +673,14 @@
       justify-content: space-between;
       align-items: center;
     }
+
     .modal-head h3 {
       margin: 0;
       font-size: 1.05rem;
     }
+
     .modal-close {
-      background: rgba(255,255,255,0.15);
+      background: rgba(255, 255, 255, 0.15);
       border: 0;
       color: white;
       border-radius: 50%;
@@ -515,26 +691,31 @@
       display: grid;
       place-items: center;
     }
+
     .modal-body {
       padding: 20px;
       font-size: .9rem;
       display: grid;
       gap: 12px;
     }
+
     .detail-row {
       display: flex;
       justify-content: space-between;
       border-bottom: 1px solid #f0f4f7;
       padding-bottom: 8px;
     }
+
     .detail-row span {
       color: var(--muted);
       font-size: .82rem;
     }
+
     .detail-row strong {
       color: var(--navy);
       text-align: right;
     }
+
     .modal-actions {
       padding: 16px 20px;
       background: #f8fafc;
@@ -553,18 +734,21 @@
       border: 1px solid var(--line);
       border-radius: 16px;
       padding: 28px;
-      box-shadow: 0 12px 36px rgba(11,41,66,0.08);
+      box-shadow: 0 12px 36px rgba(11, 41, 66, 0.08);
     }
+
     .login-box h1 {
       margin: 0 0 6px;
       font-size: 1.5rem;
       color: var(--navy);
     }
+
     .login-box p {
       margin: 0 0 20px;
       color: var(--muted);
       font-size: .88rem;
     }
+
     .login-box label {
       display: block;
       font-size: .84rem;
@@ -572,6 +756,7 @@
       color: #3b4e5c;
       margin-bottom: 14px;
     }
+
     .login-box input {
       width: 100%;
       box-sizing: border-box;
@@ -581,11 +766,13 @@
       border-radius: 10px;
       font-size: .95rem;
     }
+
     .login-box input:focus {
       border-color: var(--blue);
-      box-shadow: 0 0 0 3px rgba(32,118,181,0.12);
+      box-shadow: 0 0 0 3px rgba(32, 118, 181, 0.12);
       outline: none;
     }
+
     .btn-submit {
       width: 100%;
       background: var(--blue);
@@ -598,6 +785,7 @@
       cursor: pointer;
       margin-top: 10px;
     }
+
     .error-msg {
       color: #c5221f;
       font-size: .85rem;
@@ -605,9 +793,177 @@
       font-weight: 600;
     }
 
-    .hidden { display: none !important; }
+    /* Modal Gestione Utenti & Accessi */
+    .users-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .users-modal-card {
+      background: #ffffff;
+      border-radius: 16px;
+      max-width: 960px;
+      width: 100%;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+      animation: modalFadeIn 0.2s ease-out;
+    }
+
+    @keyframes modalFadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.96);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .users-modal-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8fafc;
+    }
+
+    .users-modal-close {
+      background: none;
+      border: none;
+      font-size: 1.4rem;
+      cursor: pointer;
+      color: #64748b;
+      padding: 4px 8px;
+      border-radius: 6px;
+      line-height: 1;
+    }
+
+    .users-modal-close:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    .users-modal-body {
+      padding: 20px 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .role-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 750;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .role-badge.admin {
+      background: #ede9fe;
+      color: #6d28d9;
+    }
+
+    .role-badge.agente {
+      background: #e0f2fe;
+      color: #0369a1;
+    }
+
+    .role-badge.magazziniere {
+      background: #ccfbf1;
+      color: #0f766e;
+    }
+
+    .role-badge.capo_area {
+      background: #fef3c7;
+      color: #b45309;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Mobile Responsive Optimizations for Smartphones */
+    @media (max-width: 768px) {
+      .topbar-main {
+        padding: 8px 10px !important;
+      }
+      .topbar-content {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+      }
+      .brand-group {
+        width: 100% !important;
+      }
+      .top-actions {
+        display: flex !important;
+        overflow-x: auto !important;
+        gap: 6px !important;
+        padding-bottom: 4px !important;
+        -webkit-overflow-scrolling: touch !important;
+        width: 100% !important;
+      }
+      .btn-top {
+        flex-shrink: 0 !important;
+        padding: 6px 10px !important;
+        font-size: 0.76rem !important;
+        white-space: nowrap !important;
+      }
+      .shell {
+        padding: 12px 10px 40px !important;
+      }
+      .hero-card {
+        padding: 14px 12px !important;
+        border-radius: 12px !important;
+      }
+      .hero-welcome h1 {
+        font-size: 1.3rem !important;
+      }
+      .user-status-bar {
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+      }
+      .btn-sync-all {
+        padding: 8px 12px !important;
+        font-size: 0.8rem !important;
+      }
+      .hero-action {
+        width: 100% !important;
+      }
+      .btn-new-offer {
+        width: 100% !important;
+        justify-content: center !important;
+      }
+      .filter-bar {
+        flex-direction: column !important;
+        gap: 10px !important;
+      }
+      .search-box {
+        width: 100% !important;
+      }
+    }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabaseClient.js"></script>
 </head>
+
 <body>
   <!-- Header -->
   <header class="topbar-main">
@@ -616,14 +972,21 @@
         <span class="brand-badge">OA</span>
         <div class="brand-meta">
           <strong>Offerte Agenti</strong>
-          <small><span class="sync-indicator" id="statusDot"></span> Google Drive & Sheets</small>
+          <small><span class="sync-indicator" id="statusDot"></span> Supabase & Plus 2000 Live</small>
         </div>
       </div>
       <div class="top-actions">
-        <a id="devAreaTop" class="btn-top" href="/area-sviluppo.html" style="background:#0284c7; color:#fff; border-color:#0284c7; font-weight:700;">🚀 Area di Sviluppo</a>
+        <a id="commercialHubTop" class="btn-top" href="/commercial-hub/index.html"
+          style="background:linear-gradient(135deg, #0284c7, #4f46e5); color:#fff; border-color:#0284c7; font-weight:700;">💼 Commercial Hub</a>
+        <a id="devAreaTop" class="btn-top" href="/area-sviluppo.html"
+          style="background:#0284c7; color:#fff; border-color:#0284c7; font-weight:700;">🚀 Area di Sviluppo</a>
+        <a id="warehouseTop" class="btn-top" href="/magazzino.html"
+          style="background:#0f766e; color:#fff; border-color:#0f766e; font-weight:700;">📦 Magazzino Mobile</a>
+        <button id="adminUsersTop" class="btn-top hidden"
+          style="background:#4f46e5; color:#fff; border-color:#4f46e5; font-weight:700;">👥 Utenti & Password</button>
         <a id="adminOrdersTop" class="btn-top hidden" href="/gestione-ordini.html">📦 Ordini & Spedizioni</a>
         <a id="visitsTop" class="btn-top" href="/giro-visite.html">📅 Giro Visite</a>
-        <a id="adminConfigTop" class="btn-top hidden" href="/configurazione.html">⚙️ Config</a>
+        <a id="adminConfigTop" class="btn-top" href="/configurazione">⚙️ Configurazione</a>
         <button id="logout" class="btn-top hidden">Esci</button>
       </div>
     </div>
@@ -653,9 +1016,26 @@
         <div class="hero-welcome">
           <div>
             <h1>Offerte e ordini</h1>
-            <span id="welcome" class="user-pill">👤 Accesso in corso…</span>
+            <div class="user-status-bar">
+              <span id="welcome" class="user-pill">👤 Accesso in corso…</span>
+              <span id="lastSyncBadge" class="sync-pill">⏱️ Ultimo allineamento: verifica…</span>
+            </div>
           </div>
-          <button class="btn-sub" id="refresh" title="Ricarica dal foglio Google">🔄 Aggiorna registro</button>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <button class="btn-sync-all" id="btnRequestPlusSync"
+              title="Richiede al server Plus 2000 in ufficio di estrarre e caricare su Supabase gli ultimi dati (barcode, giacenze, prezzi)"
+              style="background: linear-gradient(135deg, #0d9488, #059669); border-color: rgba(255,255,255,0.3); box-shadow: 0 2px 8px rgba(13,148,136,0.25);">
+              <span class="sync-btn-icon" id="plusSyncBtnIcon">⚡</span>
+              <span id="plusSyncBtnText">Aggiorna da Plus 2000</span>
+            </button>
+            <button class="btn-sync-all" id="btnSyncAll"
+              title="Ricarica Catalogo, Clienti e Registro da Supabase">
+              <span class="sync-btn-icon" id="syncBtnIcon">🔄</span>
+              <span id="syncBtnText">Ricarica Dati Web</span>
+            </button>
+            <button class="btn-sub" id="refresh" title="Ricarica rapida solo registro pratiche"
+              style="font-size:0.8rem; padding:8px 10px;">📋 Solo registro</button>
+          </div>
         </div>
 
         <div class="actions-grid">
@@ -676,18 +1056,29 @@
         </div>
 
         <div class="sub-actions">
-          <a class="btn-sub" id="devAreaBtn" href="/area-sviluppo.html" style="background:linear-gradient(135deg, #0284c7, #2563eb); color:#fff; font-weight:700; border:none; box-shadow: 0 2px 8px rgba(2,132,199,0.25);">🚀 Area di Sviluppo & Mappa Territoriale</a>
+          <a class="btn-sub" id="commercialHubBtn" href="/commercial-hub/index.html"
+            style="background:linear-gradient(135deg, #0284c7, #4f46e5); color:#fff; font-weight:700; border:none; box-shadow: 0 2px 8px rgba(79,70,229,0.25);">💼
+            Commercial Hub (CRM, WhatsApp, Pipeline)</a>
+          <a class="btn-sub" id="devAreaBtn" href="/area-sviluppo.html"
+            style="background:linear-gradient(135deg, #0284c7, #2563eb); color:#fff; font-weight:700; border:none; box-shadow: 0 2px 8px rgba(2,132,199,0.25);">🚀
+            Area di Sviluppo & Mappa Territoriale</a>
+          <a class="btn-sub" id="warehouseBtn" href="/magazzino.html"
+            style="background:#0f766e; color:#fff; font-weight:700; border:none; box-shadow: 0 2px 8px rgba(15,118,110,0.25);">📦
+            Magazzino, Picking & Barcode</a>
+          <button class="btn-sub hidden" id="adminUsersBtn"
+            style="background:#4f46e5; color:#fff; font-weight:700; border:none; box-shadow: 0 2px 8px rgba(79,70,229,0.25);">👥
+            Gestione Accessi & Password</button>
           <a class="btn-sub hidden" id="adminOrdersBtn" href="/gestione-ordini.html">📦 Gestione Ordini & Spedizioni</a>
           <a class="btn-sub" id="visitsBtn" href="/giro-visite.html">📅 Piano Marketing & Giro Visite</a>
-          <a class="btn-sub hidden" id="adminConfigBtn" href="/configurazione.html">⚙️ Configurazione Google Drive</a>
-          <a class="btn-sub" id="manualDocBtn" href="/manuale-amministrazione.doc" download>📖 Manuale Operativo (.doc)</a>
+          <a class="btn-sub" id="adminConfigBtn" href="/configurazione">⚙️ Configurazione</a>
         </div>
       </div>
 
       <!-- Offline alert banner if offline or cached -->
       <div id="offlineNotice" class="offline-banner hidden">
         <span>📶</span>
-        <span id="offlineNoticeText">Modalità offline attiva: stai visualizzando le pratiche salvate sul dispositivo.</span>
+        <span id="offlineNoticeText">Modalità offline attiva: stai visualizzando le pratiche salvate sul
+          dispositivo.</span>
       </div>
 
       <!-- Recent Practices Card -->
@@ -708,23 +1099,27 @@
         <div class="filter-bar">
           <div class="search-box">
             <span class="search-icon">🔍</span>
-            <input id="searchInput" type="search" placeholder="Cerca per cliente, numero documento, agente…" autocomplete="off">
+            <input id="searchInput" type="search" placeholder="Cerca per cliente, numero documento, agente…"
+              autocomplete="off">
             <button id="clearSearch" class="search-clear hidden" aria-label="Cancella ricerca">✕</button>
           </div>
         </div>
 
         <!-- Practices List -->
         <div id="rows" class="practices-list">
-          <div style="text-align:center; padding: 24px; color: var(--muted);">Caricamento pratiche da Google Sheets…</div>
+          <div style="text-align:center; padding: 24px; color: var(--muted);">Caricamento pratiche da Supabase & Plus 2000…
+          </div>
         </div>
       </div>
     </section>
   </main>
 
-  <footer style="text-align: center; padding: 24px 16px 36px; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--line); margin-top: 36px;">
+  <footer
+    style="text-align: center; padding: 24px 16px 36px; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--line); margin-top: 36px;">
     <div id="footerText">© Climawell — Sistema Gestionale Rete Vendite</div>
     <div style="margin-top: 6px;">
-      <a href="/privacy.html" style="color: var(--blue); text-decoration: none; font-weight: 500;">🔒 Informativa Privacy & Cookie Policy (GDPR Reg. UE 2016/679)</a>
+      <a href="/privacy.html" style="color: var(--blue); text-decoration: none; font-weight: 500;">🔒 Informativa
+        Privacy & Cookie Policy (GDPR Reg. UE 2016/679)</a>
     </div>
   </footer>
 
@@ -764,7 +1159,7 @@
       });
       const text = await r.text();
       let d = {};
-      try { d = text ? JSON.parse(text) : {}; } catch {}
+      try { d = text ? JSON.parse(text) : {}; } catch { }
       if (!r.ok) {
         const err = new Error(d.error || 'Operazione non riuscita');
         err.status = r.status;
@@ -805,6 +1200,24 @@
       return s;
     }
 
+    function getPlusDocReference(item) {
+      if (!item) return null;
+      if (item.plus_doc_id && item.plus_doc_id !== 'OK') {
+        const cleaned = String(item.plus_doc_id).replace(/\s*\(ID:.*?\)/i, '').trim();
+        if (cleaned) {
+          const up = cleaned.toUpperCase();
+          return up.startsWith('OFC') || up.startsWith('OCL') || up.startsWith('DDT') ? cleaned : `N° ${cleaned}`;
+        }
+      }
+      const num = String(item.number || item.id || '');
+      const mBanco = num.match(/-BANCO-(\d+)/i);
+      if (mBanco) {
+        const isOrder = item.type === 'Ordine' || num.startsWith('ORD') || num.startsWith('OCL');
+        return `${isOrder ? 'OCL' : 'OFC'} ${mBanco[1]}/2026`;
+      }
+      return null;
+    }
+
     function renderList() {
       const query = $('searchInput').value.trim().toLowerCase();
       $('clearSearch').classList.toggle('hidden', !query);
@@ -813,6 +1226,7 @@
         if (currentFilter === 'offer' && item.type !== 'Offerta') return false;
         if (currentFilter === 'order' && item.type !== 'Ordine') return false;
         if (!query) return true;
+        const plusRef = getPlusDocReference(item) || '';
         const searchCorpus = [
           item.number,
           item.customer_name,
@@ -821,7 +1235,9 @@
           item.agent_name,
           item.agent_code,
           item.status,
-          item.type
+          item.type,
+          item.plus_doc_id,
+          plusRef
         ].filter(Boolean).join(' ').toLowerCase();
         return searchCorpus.includes(query);
       });
@@ -848,6 +1264,7 @@
         const stClass = getStatusClass(stLabel);
         const dateStr = formatDate(x.submitted_at || x.updated_at);
         const totalStr = formatEuro(x.total);
+        const plusRef = getPlusDocReference(x);
 
         return `
           <div class="practice-item" data-index="${idx}">
@@ -856,7 +1273,10 @@
                 <span class="doc-pill ${isOffer ? 'offer' : 'order'}">${isOffer ? '🏷️ OFFERTA' : '📦 ORDINE'}</span>
                 <span class="doc-num">${docNum}</span>
               </div>
-              <span class="status-pill ${stClass}">${stLabel}</span>
+              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
+                ${plusRef ? `<span class="status-pill" style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; font-weight:800; font-size:0.8rem; letter-spacing:0.02em;">📋 Plus: ${plusRef}</span>` : ''}
+                <span class="status-pill ${stClass}">${stLabel}</span>
+              </div>
             </div>
 
             <div class="item-customer">${custName}</div>
@@ -879,7 +1299,7 @@
               </div>
               <div class="item-total-group">
                 <span class="item-total">${totalStr}</span>
-                <small class="item-storage-note">☁️ Registrato su Sheets</small>
+                <small class="item-storage-note" style="color:#059669; font-weight:700;">🟢 Supabase & Plus 2000</small>
               </div>
             </div>
           </div>
@@ -896,10 +1316,39 @@
       });
     }
 
-    function openDetailModal(item) {
+    async function openDetailModal(item) {
       const isOffer = item.type === 'Offerta';
+      const plusRef = getPlusDocReference(item);
       $('modalTitle').textContent = `${item.type}: ${item.number || ''}`;
+
+      let lines = item.payload?.lines || item.lines || [];
+      if (!lines.length && window.ClwData && typeof window.ClwData.getDocumentLines === 'function') {
+        try {
+          const supLines = await window.ClwData.getDocumentLines(item.number || item.id);
+          if (supLines && supLines.length > 0) {
+            lines = supLines.map(l => ({
+              code: l.product_code || l.code,
+              description: l.description,
+              quantity: Number(l.quantity) || 1,
+              listPrice: Number(l.list_price) || 0,
+              net: Number(l.total || l.net_price) || 0
+            }));
+            item.lines = lines;
+          }
+        } catch (e) {
+          console.warn('[Supabase] Errore caricamento righe dettaglio:', e);
+        }
+      }
+
       $('modalContent').innerHTML = `
+        ${plusRef ? `
+        <div class="detail-row" style="background:#eff6ff; border:1.5px solid #0284c7; border-radius:10px; padding:12px 16px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <span style="display:block; color:#0369a1; font-weight:750; font-size:.82rem; text-transform:uppercase; letter-spacing:.05em;">📋 Riferimento Ufficiale Plus 2000</span>
+            <small style="color:#64748b; font-size:.78rem;">Numero documento registrato in Plus 2000 da comunicare al cliente o all'ufficio</small>
+          </div>
+          <strong style="color:#0284c7; font-size:1.25rem; font-family:monospace; font-weight:800; letter-spacing:.02em;">${plusRef}</strong>
+        </div>` : ''}
         <div class="detail-row">
           <span>Numero pratica</span>
           <strong>${item.number || '—'}</strong>
@@ -912,10 +1361,10 @@
           <span>Cliente</span>
           <strong>${item.customer_name || item.customerName || '—'}</strong>
         </div>
-        ${item.customer_id ? `
+        ${item.customer_id || item.customer_code ? `
         <div class="detail-row">
           <span>Codice cliente</span>
-          <strong>${item.customer_id}</strong>
+          <strong>${item.customer_id || item.customer_code}</strong>
         </div>` : ''}
         <div class="detail-row">
           <span>Agente incaricato</span>
@@ -931,7 +1380,7 @@
         </div>
         <div class="detail-row">
           <span>Data invio</span>
-          <strong>${formatDate(item.submitted_at)}</strong>
+          <strong>${formatDate(item.submitted_at || item.date)}</strong>
         </div>
         ${item.updated_at && item.updated_at !== item.submitted_at ? `
         <div class="detail-row">
@@ -963,9 +1412,9 @@
           <span>Offerta di origine</span>
           <strong>${item.origin_offer_id}</strong>
         </div>` : ''}
-        ${item.payload?.lines?.length ? `
+        ${lines && lines.length ? `
         <div style="margin-top:12px;">
-          <strong style="display:block; font-size:.85rem; margin-bottom:6px; color:#0f172a;">Articoli inclusi (${item.payload.lines.length}):</strong>
+          <strong style="display:block; font-size:.85rem; margin-bottom:6px; color:#0f172a;">Articoli inclusi (${lines.length}):</strong>
           <table style="width:100%; border-collapse:collapse; font-size:.78rem; background:#fff; border-radius:6px; overflow:hidden; border:1px solid #e2e8f0;">
             <thead style="background:#f8fafc; text-align:left; color:#475569;">
               <tr>
@@ -976,12 +1425,12 @@
               </tr>
             </thead>
             <tbody>
-              ${item.payload.lines.map(l => `
+              ${lines.map(l => `
                 <tr style="border-top:1px solid #f1f5f9;">
-                  <td style="padding:6px 8px; font-weight:600; color:#1e293b;">${l.code}</td>
-                  <td style="padding:6px 8px; color:#334155;">${l.description}</td>
-                  <td style="padding:6px 8px; text-align:right;">${l.quantity}</td>
-                  <td style="padding:6px 8px; text-align:right; font-weight:600; color:#0f172a;">${formatEuro(l.net || (l.listPrice * l.quantity))}</td>
+                  <td style="padding:6px 8px; font-weight:600; color:#1e293b;">${l.code || l.product_code || ''}</td>
+                  <td style="padding:6px 8px; color:#334155;">${l.description || ''}</td>
+                  <td style="padding:6px 8px; text-align:right;">${l.quantity || l.qty || 1}</td>
+                  <td style="padding:6px 8px; text-align:right; font-weight:600; color:#0f172a;">${formatEuro(l.net || l.total || (Number(l.listPrice || l.list_price || 0) * Number(l.quantity || 1)))}</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -1016,7 +1465,7 @@
       $('detailModal').showModal();
     }
 
-    function openOfferInEditor(offerNumber, asRevision = true) {
+    async function openOfferInEditor(offerNumber, asRevision = true) {
       const offer = allPractices.find(p => p.number === offerNumber || p.id === offerNumber);
       if (!offer) {
         alert(`Offerta ${offerNumber} non trovata nel registro`);
@@ -1024,20 +1473,50 @@
       }
 
       let lines = offer.payload?.lines || [];
+
+      // 1. Prova a recuperare le righe direttamente da Supabase document_lines
+      if (!lines.length && window.ClwData && typeof window.ClwData.getDocumentLines === 'function') {
+        try {
+          const supLines = await window.ClwData.getDocumentLines(offer.number || offerNumber);
+          if (supLines && supLines.length > 0) {
+            lines = supLines.map(l => ({
+              code: l.product_code,
+              description: l.description,
+              listPrice: Number(l.list_price) || 0,
+              quantity: Number(l.quantity) || 1,
+              discounts: [
+                Number(l.discount_1) || 0,
+                Number(l.discount_2) || 0,
+                Number(l.discount_3) || 0,
+                Number(l.discount_4) || 0
+              ],
+              extraDiscount: Number(l.discount_extra || l.extra_discount || l.extraDiscount) || 0,
+              vat: Number(l.vat) || 22,
+              brand: l.brand || '',
+              location: l.location || '',
+              netPrice: Number(l.net_price) || 0
+            }));
+          }
+        } catch (e) {
+          console.warn('[Supabase] Errore recupero righe per modifica:', e);
+        }
+      }
+
+      // 2. Fallback su localStorage
       if (!lines.length) {
         try {
           const loc = JSON.parse(localStorage.getItem(`submission-${offerNumber}`) || '{}');
           lines = loc.payload?.lines || [];
-        } catch {}
+        } catch { }
       }
 
       const offerState = {
         originOfferNumber: offer.number,
-        customer: offer.customer_id || '',
+        customer: offer.customer_code || offer.customer_id || '',
         customerName: offer.customer_name || offer.customerName || '',
         notes: offer.payload?.notes || (typeof offer.notes === 'string' && !offer.notes.startsWith('{') ? offer.notes : ''),
-        validity: offer.payload?.validity || '30 giorni',
-        payment: offer.payload?.payment || '',
+        validity: offer.payload?.validity || (offer.validity_days ? `${offer.validity_days} giorni` : '30 giorni'),
+        payment: offer.payload?.payment || offer.payment_method || '',
         shipping: offer.payload?.shipping || '',
         role: offer.agent_code || currentUser?.agentCode || 'AG01',
         isRevision: asRevision,
@@ -1045,13 +1524,14 @@
           product: {
             code: l.code,
             description: l.description,
-            price: Number(l.listPrice) || 0,
+            price: Number(l.listPrice || l.price) || 0,
             vat: Number(l.vat) || 22,
             brand: l.brand || '',
             stock: 99
           },
-          qty: Number(l.quantity) || 1,
+          qty: Number(l.quantity || l.qty) || 1,
           discounts: l.discounts || [0, 0, 0, 0],
+          extraDiscount: Number(l.extraDiscount || l.discount_extra || l.extra_discount) || 0,
           markup: Number(l.markup) || 0
         }))
       };
@@ -1061,7 +1541,7 @@
         originOfferNumber: offer.number,
         isRevision: asRevision,
         customerName: offer.customer_name,
-        customerId: offer.customer_id
+        customerId: offer.customer_code || offer.customer_id
       }));
 
       window.location.href = `/offerta?${asRevision ? 'revision' : 'edit'}=${encodeURIComponent(offer.number)}`;
@@ -1070,6 +1550,12 @@
     async function convertOfferToOrder(offerNumber) {
       if (!confirm(`Vuoi convertire immediatamente l'offerta ${offerNumber} in un nuovo Ordine di vendita?`)) return;
       try {
+        if (window.ClwData && window.ClwData.isConfigured()) {
+          const d = await window.ClwData.convertOfferToOrder(offerNumber);
+          alert(`Offerta convertita con successo!\nCreato Ordine: ${d.orderNumber}`);
+          await syncAllData(true);
+          return;
+        }
         const d = await api('offers/convert-to-order', {
           method: 'POST',
           body: JSON.stringify({ offerNumber, user: currentUser })
@@ -1103,29 +1589,38 @@
     };
 
     async function load() {
-      // 1. Session check
-      try {
-        const me = await api('session');
-        currentUser = me.user;
-        localStorage.setItem('oa_session_user', JSON.stringify(currentUser));
-      } catch (err) {
-        // If unauthorized (401), show login
-        if (err.status === 401) {
+      // 1. Session check: prova prima da Supabase / Local User
+      let foundUser = null;
+      if (window.ClwData && typeof window.ClwData.getCurrentUser === 'function') {
+        foundUser = window.ClwData.getCurrentUser();
+      }
+      if (!foundUser) {
+        const cachedUser = localStorage.getItem('oa_session_user');
+        if (cachedUser) {
+          try { foundUser = JSON.parse(cachedUser); } catch { }
+        }
+      }
+
+      if (foundUser) {
+        currentUser = foundUser;
+      } else {
+        try {
+          const me = await api('session');
+          currentUser = me.user;
+          localStorage.setItem('oa_session_user', JSON.stringify(currentUser));
+        } catch (err) {
           localStorage.removeItem('oa_session_user');
           $('login').classList.remove('hidden');
           $('app').classList.add('hidden');
           $('logout').classList.add('hidden');
           return;
         }
-        // If network error, try offline user cache
-        const cachedUser = localStorage.getItem('oa_session_user');
-        if (cachedUser) {
-          currentUser = JSON.parse(cachedUser);
-        } else {
-          $('login').classList.remove('hidden');
-          $('app').classList.add('hidden');
-          return;
-        }
+      }
+
+      // Se l'utente è un operatore di magazzino, reindirizza direttamente all'app Magazzino Mobile
+      if (currentUser.role === 'magazziniere' || currentUser.role === 'warehouse') {
+        window.location.href = '/magazzino.html';
+        return;
       }
 
       // User logged in: update UI
@@ -1133,7 +1628,7 @@
       $('app').classList.remove('hidden');
       $('logout').classList.remove('hidden');
 
-      const roleBadge = currentUser.role === 'admin' ? 'Amministrazione' : (currentUser.role === 'area_head' ? 'Capo area' : 'Agente');
+      const roleBadge = currentUser.role === 'admin' ? 'Amministrazione' : (currentUser.role === 'area_head' ? 'Capo area' : (currentUser.role === 'magazziniere' ? 'Magazzino' : 'Agente'));
       $('welcome').textContent = `👤 ${currentUser.name} (${roleBadge})`;
 
       if (currentUser.role === 'admin') {
@@ -1141,66 +1636,84 @@
         $('adminConfigTop').classList.remove('hidden');
         if ($('adminOrdersBtn')) $('adminOrdersBtn').classList.remove('hidden');
         if ($('adminOrdersTop')) $('adminOrdersTop').classList.remove('hidden');
+        if ($('adminUsersTop')) $('adminUsersTop').classList.remove('hidden');
+        if ($('adminUsersBtn')) $('adminUsersBtn').classList.remove('hidden');
       }
 
-      // Dynamic company branding from Google Sheets
-      api('company').then(res => {
-        if (res && res.company) {
-          const comp = res.company;
-          const text = comp.footerText || `© ${comp.displayName || comp.companyName || 'Climawell'} — Sistema Gestionale Rete Vendite`;
-          if ($('footerText')) $('footerText').textContent = text;
-        }
-      }).catch(() => {});
-
-      // 2. Load practices from API or fallback to cached
-      try {
-        $('rows').innerHTML = '<div style="text-align:center; padding: 24px; color: var(--muted);">Sincronizzazione registro Google Sheets…</div>';
-        if (window.companyConfigPromise) {
-          try { await window.companyConfigPromise; } catch {}
-        }
-        const rawRepo = window.companyConfig?.repository?.spreadsheetId;
-        const repoId = (rawRepo && rawRepo.length >= 20 && !rawRepo.includes('1mnW')) ? rawRepo : '1Hi1Nppj4szI4UwfSeC632KkpF0dEQjqxnIVIenn-Fjc';
-        const regParam = `?id=${encodeURIComponent(repoId)}`;
-        const [a, b] = await Promise.all([api(`offers${regParam}`), api(`orders${regParam}`)]);
-        
-        // Mappa univoca per evitare duplicati da ID_Documento condiviso tra offerte e ordini
-        const practiceMap = new Map();
-        (a.offers || []).forEach(x => {
-          const num = x.number || x.offer_number || x.offerNumber || x.id;
-          practiceMap.set(num, { ...x, type: x.type || 'Offerta', number: num });
-        });
-        (b.orders || []).forEach(x => {
-          const num = x.number || x.order_number || x.orderNumber || x.id;
-          if (!practiceMap.has(num)) {
-            practiceMap.set(num, { ...x, type: x.type || 'Ordine', number: num });
-          } else {
-            const isOrder = x.tpDoc === 'OCL' || x.tpDoc === 'ORC' || x.tpDoc === 'ORD' || (x.type === 'Ordine');
-            if (isOrder) {
-              practiceMap.set(num, { ...x, type: 'Ordine', number: num });
-            }
+      // Dynamic company branding direttamente da Supabase (company_profile)
+      if (window.ClwData && typeof window.ClwData.getCompany === 'function') {
+        window.ClwData.getCompany().then(comp => {
+          if (comp) {
+            const text = comp.footer_text || comp.footerText || `© ${comp.display_name || comp.company_name || 'Climawell'} — Sistema Gestionale Rete Vendite`;
+            if ($('footerText')) $('footerText').textContent = text;
           }
-        });
-        allPractices = Array.from(practiceMap.values())
-          .sort((x, y) => String(y.updated_at || y.submitted_at || '').localeCompare(String(x.updated_at || x.submitted_at || '')));
+        }).catch(() => { });
+      }
 
-        localStorage.setItem('oa_cached_practices', JSON.stringify(allPractices));
-        $('statusDot').style.background = '#34d399';
-        $('offlineNotice').classList.add('hidden');
+      // 2. Visualizza subito la cache locale per velocità immediata (stale-while-revalidate)
+      const cached = localStorage.getItem('oa_cached_practices');
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            allPractices = parsed;
+            renderList();
+          }
+        } catch (_) { }
+      }
+
+      // 3. Sincronizzazione in tempo reale esclusivamente con Supabase (UNICA FONTE ATTENDIBILE)
+      try {
+        if (window.ClwData && window.ClwData.isConfigured()) {
+          const supDocs = await window.ClwData.getDocuments();
+          if (Array.isArray(supDocs)) {
+            const seenNumbers = new Set();
+            const uniqueDocs = [];
+            for (const d of supDocs) {
+              const numKey = String(d.number || d.id || '').trim();
+              if (!numKey || seenNumbers.has(numKey)) continue;
+              seenNumbers.add(numKey);
+              uniqueDocs.push(d);
+            }
+            allPractices = uniqueDocs.map(d => {
+              const docTypeRaw = String(d.document_type || d.type || '').toUpperCase();
+              const isOrder = docTypeRaw.includes('ORD') || docTypeRaw === 'OCL';
+              const isDdt = docTypeRaw.includes('DDT');
+              const finalType = isOrder ? 'Ordine' : (isDdt ? 'DDT' : 'Offerta');
+
+              return {
+                id: d.number || d.id,
+                number: d.number || d.id,
+                type: finalType,
+                customer_name: d.customer_name || d.customerName || 'Cliente',
+                customer_code: d.customer_code || d.customer_id || '',
+                agent_name: d.agent_name || '',
+                agent_code: d.agent_code || '',
+                total: Number(d.total) || 0,
+                subtotal: Number(d.subtotal) || 0,
+                status: d.status || 'Inviato',
+                updated_at: d.updated_at || d.created_at || d.document_date,
+                submitted_at: d.created_at || d.updated_at || d.document_date,
+                date: d.document_date || (d.created_at ? d.created_at.slice(0, 10) : ''),
+                plus_doc_id: d.plus_doc_id || null,
+                notes: d.notes || '',
+                lines: []
+              };
+            }).sort((x, y) => String(y.updated_at || y.submitted_at || y.date || '').localeCompare(String(x.updated_at || x.submitted_at || x.date || '')));
+
+            localStorage.setItem('oa_cached_practices', JSON.stringify(allPractices));
+            $('statusDot').style.background = '#34d399';
+            $('offlineNotice').classList.add('hidden');
+          }
+        }
       } catch (err) {
-        console.warn('Errore lettura Google Sheets, recupero cache locale:', err.message);
+        console.warn('[Supabase] Errore lettura pratiche, utilizzo cache locale:', err.message);
         $('statusDot').style.background = '#fbbf24';
-        const cached = localStorage.getItem('oa_cached_practices');
-        if (cached) {
-          allPractices = JSON.parse(cached);
-          $('offlineNoticeText').textContent = 'Connessione a Google Sheets non disponibile al momento. Visualizzazione dati locali.';
+        const cachedFallback = localStorage.getItem('oa_cached_practices');
+        if (cachedFallback) {
+          allPractices = JSON.parse(cachedFallback);
+          $('offlineNoticeText').textContent = 'Connessione a Supabase non disponibile al momento. Visualizzazione dati locali.';
           $('offlineNotice').classList.remove('hidden');
-        } else {
-          $('rows').innerHTML = `
-            <div style="text-align:center; padding: 24px; color: #c5221f;">
-              Impossibile collegarsi al registro Google Sheets: ${err.message}.
-            </div>
-          `;
-          return;
         }
       }
 
@@ -1210,31 +1723,652 @@
     $('loginForm').onsubmit = async e => {
       e.preventDefault();
       $('loginError').textContent = '';
+      const u = $('username').value;
+      const p = $('password').value;
+
       try {
+        // 1. Prova prima con il controllo accessi Supabase personalizzato
+        if (window.ClwData && typeof window.ClwData.login === 'function') {
+          const sRes = await window.ClwData.login(u, p);
+          if (sRes.success) {
+            currentUser = sRes.user;
+            if (currentUser.role === 'magazziniere' || currentUser.role === 'warehouse') {
+              window.location.href = '/magazzino.html';
+              return;
+            }
+            location.reload();
+            return;
+          } else if (sRes.message && !sRes.message.includes('non configurato')) {
+            $('loginError').textContent = sRes.message;
+            return;
+          }
+        }
+
+        // 2. Fallback su API Netlify legacy se attiva
         const res = await api('login', {
           method: 'POST',
-          body: JSON.stringify({ username: $('username').value, password: $('password').value })
+          body: JSON.stringify({ username: u, password: p })
         });
         if (res.token) localStorage.setItem('oa_session_token', res.token);
         if (res.user) localStorage.setItem('oa_session_user', JSON.stringify(res.user));
         location.reload();
       } catch (err) {
-        $('loginError').textContent = err.message;
+        $('loginError').textContent = err.message || 'Credenziali non valide.';
       }
     };
 
     $('logout').onclick = async () => {
+      if (window.ClwData && typeof window.ClwData.logout === 'function') {
+        window.ClwData.logout();
+      }
       try {
         await api('logout', { method: 'POST', body: '{}' });
-      } catch {}
+      } catch { }
       localStorage.removeItem('oa_session_user');
       localStorage.removeItem('oa_session_token');
       localStorage.removeItem('oa_cached_practices');
       location.reload();
     };
 
+    // IndexedDB Support for Full Offline-First Synchronization
+    function openDb() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open('offerte-agenti', 2);
+        req.onupgradeneeded = () => {
+          const db = req.result;
+          if (!db.objectStoreNames.contains('data')) db.createObjectStore('data');
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function dbSet(key, value) {
+      const db = await openDb();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction('data', 'readwrite');
+        tx.objectStore('data').put(value, key);
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    function showSyncToast(message, isError = false) {
+      const toast = $('syncToast');
+      const msg = $('syncToastMsg');
+      if (!toast || !msg) return;
+      msg.textContent = message;
+      toast.className = `sync-toast show${isError ? ' error' : ''}`;
+      setTimeout(() => {
+        toast.className = 'sync-toast';
+      }, 5000);
+    }
+
+    function updateLastSyncUI(isoStr) {
+      const badge = $('lastSyncBadge');
+      if (!badge) return;
+      if (!isoStr) {
+        badge.textContent = '⏱️ Non ancora allineato';
+        badge.className = 'sync-pill pending';
+        return;
+      }
+      try {
+        const d = new Date(isoStr);
+        const now = new Date();
+        const isToday = d.toDateString() === now.toDateString();
+        const timeStr = d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+        const dateStr = isToday ? 'Oggi' : d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
+        badge.textContent = `✅ Allineato: ${dateStr} ${timeStr}`;
+        badge.className = 'sync-pill';
+      } catch {
+        badge.textContent = '✅ Allineato di recente';
+        badge.className = 'sync-pill';
+      }
+    }
+
+    async function syncAllData(isManual = false) {
+      const btn = $('btnSyncAll');
+      const icon = $('syncBtnIcon');
+      const text = $('syncBtnText');
+      const badge = $('lastSyncBadge');
+
+      if (btn) btn.disabled = true;
+      if (icon) icon.classList.add('spin-anim');
+      if (text) text.textContent = 'Sincronizzazione in corso…';
+      if (badge) {
+        badge.textContent = '🔄 Download dati da Supabase…';
+        badge.className = 'sync-pill pending';
+      }
+
+      try {
+        // Sincronizzazione ad alta velocità da Supabase (Database ufficiale Climawell & Plus 2000)
+        if (window.ClwData && window.ClwData.isConfigured()) {
+          if (badge) badge.textContent = '🔄 Download catalogo & agenti da Supabase…';
+          const [supProd, supCust, supAg, supComp, supDocs] = await Promise.all([
+            window.ClwData.getProducts().catch(() => []),
+            window.ClwData.getCustomers().catch(() => []),
+            window.ClwData.getAgents().catch(() => []),
+            window.ClwData.getCompany().catch(() => null),
+            window.ClwData.getDocuments().catch(() => [])
+          ]);
+
+          const formattedAgents = (supAg || []).map(a => ({
+            id: a.code,
+            code: a.code,
+            name: a.name,
+            role: a.role === 'admin' ? 'Amministrazione' : (a.role === 'capo_area' ? 'Capo area' : 'Agente'),
+            head: a.role === 'capo_area',
+            discountLimit: Number(a.discount_limit) || 60,
+            email: a.email || '',
+            phone: a.phone || ''
+          }));
+          if (formattedAgents.length > 0) {
+            await dbSet('agents-data', { agents: formattedAgents, hierarchy: {} }).catch(() => { });
+          }
+
+          const formattedProducts = (supProd || []).map(p => ({
+            id: p.code,
+            code: p.code,
+            description: p.description,
+            brand: p.brand || '',
+            sector: p.sector || '',
+            macroFamily: p.macro_family || '',
+            family: p.family || '',
+            group: [p.brand, p.sector, p.macro_family, p.family].filter(Boolean).join(' · '),
+            price: Number(p.price) || 0,
+            um: p.um || 'PZ',
+            stock: Number(p.stock_qty) || 0,
+            location: p.primary_location || '',
+            barcode: p.barcode || '',
+            vat: Number(p.vat) || 22,
+            maxDiscount: Number(p.max_discount) || 60,
+            imageUrl: p.image_url || '',
+            imageRef: p.image_ref || '',
+            image: p.image_url || ''
+          }));
+
+          const formattedCustomers = (supCust || []).map(c => ({
+            id: c.code,
+            code: c.code,
+            name: c.name,
+            agent: c.agent_code,
+            agentId: c.agent_code,
+            address: c.address || '',
+            city: c.city || '',
+            province: c.province || '',
+            postalCode: c.postal_code || '',
+            phone: c.phone || c.mobile || '',
+            email: c.email || '',
+            vat: c.vat_number || '',
+            taxCode: c.tax_code || '',
+            sdi: c.sdi_code || '0000000',
+            payment: c.payment_method || 'Ri.Ba. 60 gg. f.m.',
+            iban: c.iban || ''
+          }));
+
+          await dbSet('dataset', {
+            meta: {
+              generatedAt: new Date().toISOString(),
+              source: 'Supabase PostgreSQL (Plus 2000)',
+              articleCount: formattedProducts.length,
+              clientCount: formattedCustomers.length,
+              agentCount: formattedAgents.length
+            },
+            articles: formattedProducts,
+            clients: formattedCustomers
+          }).catch(() => { });
+
+          if (supComp) {
+            await dbSet('company-profile', {
+              companyName: supComp.company_name || 'Climawell',
+              displayName: supComp.display_name || 'Climawell',
+              vatNumber: supComp.vat_number || '',
+              address: supComp.address || '',
+              city: supComp.city || '',
+              province: supComp.province || '',
+              phone: supComp.phone || '',
+              email: supComp.email || '',
+              website: supComp.website || '',
+              footerText: supComp.footer_text || ''
+            }).catch(() => { });
+          }
+
+          if (supDocs && supDocs.length > 0) {
+            const seenNumbers = new Set();
+            const uniqueDocs = [];
+            for (const d of supDocs) {
+              const numKey = String(d.number || d.id || '').trim();
+              if (!numKey || seenNumbers.has(numKey)) continue;
+              seenNumbers.add(numKey);
+              uniqueDocs.push(d);
+            }
+            allPractices = uniqueDocs.map(d => ({
+              id: d.number,
+              number: d.number,
+              type: d.document_type === 'OCL' ? 'Ordine' : (d.document_type === 'DDT' ? 'DDT' : 'Offerta'),
+              customer_name: d.customer_name,
+              customer_code: d.customer_code,
+              agent_name: d.agent_name,
+              agent_code: d.agent_code,
+              total: Number(d.total) || 0,
+              subtotal: Number(d.subtotal) || 0,
+              status: d.status || 'Inviato',
+              updated_at: d.updated_at || d.created_at || d.document_date,
+              submitted_at: d.created_at || d.updated_at || d.document_date,
+              date: d.document_date,
+              plus_doc_id: d.plus_doc_id
+            })).sort((x, y) => String(y.updated_at || y.submitted_at || y.date || '').localeCompare(String(x.updated_at || x.submitted_at || x.date || '')));
+            localStorage.setItem('oa_cached_practices', JSON.stringify(allPractices));
+          }
+
+          const nowIso = new Date().toISOString();
+          localStorage.setItem('oa_last_full_sync', nowIso);
+          updateLastSyncUI(nowIso);
+          $('statusDot').style.background = '#34d399';
+          $('offlineNotice').classList.add('hidden');
+          renderList();
+          showSyncToast(`✅ Sincronizzazione Supabase completata! ${formattedProducts.length.toLocaleString('it-IT')} articoli e ${formattedAgents.length} agenti attivi allineati.`);
+          return;
+        }
+      } catch (err) {
+        console.error('Errore sincronizzazione completa:', err);
+        showSyncToast(`⚠️ Errore sincronizzazione: ${err.message}`, true);
+        $('statusDot').style.background = '#fbbf24';
+      } finally {
+        if (btn) btn.disabled = false;
+        if (icon) icon.classList.remove('spin-anim');
+        if (text) text.textContent = 'Sincronizza & Aggiorna Dati';
+      }
+    }
+
+    // --- GESTIONE UTENTI, ACCESSI & PASSWORD (ADMIN) ---
+    const modalUsers = $('modalUsers');
+    const btnCloseUsersModal = $('btnCloseUsersModal');
+    const btnToggleNewUserForm = $('btnToggleNewUserForm');
+    const userFormContainer = $('userFormContainer');
+    const btnCancelUserForm = $('btnCancelUserForm');
+    const btnSaveUser = $('btnSaveUser');
+
+    function openUsersModal() {
+      if (modalUsers) {
+        modalUsers.classList.remove('hidden');
+        loadUsersList();
+      }
+    }
+    function closeUsersModal() {
+      if (modalUsers) modalUsers.classList.add('hidden');
+    }
+
+    if ($('adminUsersTop')) $('adminUsersTop').onclick = openUsersModal;
+    if ($('adminUsersBtn')) $('adminUsersBtn').onclick = openUsersModal;
+    if (btnCloseUsersModal) btnCloseUsersModal.onclick = closeUsersModal;
+    if (btnCancelUserForm) btnCancelUserForm.onclick = () => {
+      userFormContainer.classList.add('hidden');
+      resetUserForm();
+    };
+
+    function resetUserForm() {
+      $('editUserId').value = '';
+      $('inputUsername').value = '';
+      $('inputPassword').value = '';
+      $('inputFullName').value = '';
+      $('selectRole').value = 'agente';
+      $('selectAgentCode').value = '';
+      $('chkActive').checked = true;
+      $('chkCanOrders').checked = true;
+      $('chkCanWarehouse').checked = false;
+      $('userFormTitle').textContent = '➕ Nuovo Utente / Accesso';
+      $('inputUsername').disabled = false;
+    }
+
+    if ($('selectRole')) {
+      $('selectRole').onchange = () => {
+        const r = $('selectRole').value;
+        if (r === 'magazziniere') {
+          $('chkCanWarehouse').checked = true;
+          $('chkCanOrders').checked = false;
+        } else if (r === 'agente') {
+          $('chkCanWarehouse').checked = false;
+          $('chkCanOrders').checked = true;
+        } else if (r === 'admin') {
+          $('chkCanWarehouse').checked = true;
+          $('chkCanOrders').checked = true;
+        }
+      };
+    }
+
+    if (btnToggleNewUserForm) {
+      btnToggleNewUserForm.onclick = () => {
+        resetUserForm();
+        userFormContainer.classList.toggle('hidden');
+      };
+    }
+
+    async function populateAgentSelect() {
+      try {
+        const ags = await window.ClwData.getAgents();
+        if (ags && ags.length > 0) {
+          let opts = '<option value="">Nessun agente collegato (Generico)</option>';
+          ags.forEach(a => {
+            opts += `<option value="${a.code}">${a.code} - ${a.name}</option>`;
+          });
+          $('selectAgentCode').innerHTML = opts;
+        }
+      } catch { }
+    }
+
+    async function loadUsersList() {
+      $('usersTableBody').innerHTML = '<tr><td colspan="7" style="padding:24px; text-align:center; color:var(--muted);">Caricamento utenti in corso...</td></tr>';
+      populateAgentSelect();
+      try {
+        const users = await window.ClwData.listUsers();
+        $('usersCountLabel').textContent = `${users.length} utente/i configurati`;
+        if (!users || users.length === 0) {
+          $('usersTableBody').innerHTML = '<tr><td colspan="7" style="padding:24px; text-align:center; color:var(--muted);">Nessun utente trovato nella tabella app_users. Crea il primo accesso con il pulsante sopra!</td></tr>';
+          return;
+        }
+
+        let html = '';
+        users.forEach(u => {
+          const roleClass = u.role || 'agente';
+          const roleLabel = u.role === 'admin' ? 'Amministrazione' : (u.role === 'magazziniere' ? 'Magazzino' : (u.role === 'capo_area' ? 'Capo Area' : 'Agente'));
+          const statusDot = u.active ? '<span style="color:#10b981; font-weight:700;">🟢 Attivo</span>' : '<span style="color:#ef4444; font-weight:700;">🔴 Disattivo</span>';
+          const pwdDisplay = u.password_clear || '••••••••';
+          html += `
+            <tr style="border-bottom:1px solid #f1f5f9;">
+              <td style="padding:10px 8px;">${statusDot}</td>
+              <td style="padding:10px 8px; font-weight:700; color:var(--navy); font-family:monospace;">${u.username}</td>
+              <td style="padding:10px 8px;">${u.name || '-'}</td>
+              <td style="padding:10px 8px;"><span class="role-badge ${roleClass}">${roleLabel}</span></td>
+              <td style="padding:10px 8px; font-family:monospace; color:#475569;">${u.agent_code || '-'}</td>
+              <td style="padding:10px 8px; font-family:monospace; background:#f8fafc; font-size:0.85rem;" title="Password">${pwdDisplay}</td>
+              <td style="padding:10px 8px; text-align:right; white-space:nowrap;">
+                <button class="btn-top" onclick="editUser('${u.id}')" style="padding:4px 8px; font-size:0.75rem; background:#f1f5f9; color:#334155; margin-right:4px;">✏️ Modifica</button>
+                <button class="btn-top" onclick="deleteUserRow('${u.id}', '${u.username}')" style="padding:4px 8px; font-size:0.75rem; background:#fee2e2; color:#b91c1c; border-color:#fca5a5;">🗑️</button>
+              </td>
+            </tr>
+          `;
+        });
+        $('usersTableBody').innerHTML = html;
+        window._currentLoadedUsers = users;
+      } catch (err) {
+        $('usersTableBody').innerHTML = `<tr><td colspan="7" style="padding:24px; text-align:center; color:#ef4444;">Errore: ${err.message}</td></tr>`;
+      }
+    }
+
+    window.editUser = function (id) {
+      const u = (window._currentLoadedUsers || []).find(x => x.id === id);
+      if (!u) return;
+      $('editUserId').value = u.id;
+      $('inputUsername').value = u.username;
+      $('inputPassword').value = u.password_clear || '';
+      $('inputFullName').value = u.name;
+      $('selectRole').value = u.role || 'agente';
+      $('selectAgentCode').value = u.agent_code || '';
+      $('chkActive').checked = Boolean(u.active);
+      $('chkCanOrders').checked = Boolean(u.can_orders);
+      $('chkCanWarehouse').checked = Boolean(u.can_warehouse);
+      $('userFormTitle').textContent = `✏️ Modifica Utente: ${u.username}`;
+      userFormContainer.classList.remove('hidden');
+      userFormContainer.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    window.deleteUserRow = async function (id, username) {
+      if (!confirm(`Sei sicuro di voler eliminare l'accesso per '${username}'?`)) return;
+      try {
+        await window.ClwData.deleteUser(id);
+        showSyncToast(`Utente ${username} eliminato.`);
+        loadUsersList();
+      } catch (e) {
+        alert('Errore eliminazione utente: ' + e.message);
+      }
+    };
+
+    if (btnSaveUser) {
+      btnSaveUser.onclick = async () => {
+        const username = $('inputUsername').value.trim();
+        const password = $('inputPassword').value.trim();
+        const name = $('inputFullName').value.trim();
+        const role = $('selectRole').value;
+        const agentCode = $('selectAgentCode').value || null;
+        const id = $('editUserId').value || null;
+
+        if (!username || !name) {
+          alert('Nome utente e nome operatore sono obbligatori.');
+          return;
+        }
+        if (!id && !password) {
+          alert('Per un nuovo utente la password è obbligatoria.');
+          return;
+        }
+
+        try {
+          btnSaveUser.disabled = true;
+          btnSaveUser.textContent = 'Salvataggio in corso...';
+          await window.ClwData.saveUser({
+            id,
+            username,
+            password,
+            name,
+            role,
+            agentCode,
+            canWarehouse: $('chkCanWarehouse').checked,
+            canOrders: $('chkCanOrders').checked,
+            active: $('chkActive').checked
+          });
+          showSyncToast(`Utente ${username} salvato con successo!`);
+          userFormContainer.classList.add('hidden');
+          resetUserForm();
+          loadUsersList();
+        } catch (e) {
+          alert('Errore salvataggio utente: ' + e.message);
+        } finally {
+          btnSaveUser.disabled = false;
+          btnSaveUser.textContent = '💾 Salva Utente';
+        }
+      };
+    }
+
+    async function handleRequestPlusSync() {
+      const btn = $('btnRequestPlusSync');
+      const icon = $('plusSyncBtnIcon');
+      const text = $('plusSyncBtnText');
+      const badge = $('lastSyncBadge');
+
+      if (!window.ClwData || !window.ClwData.isConfigured()) {
+        alert('Supabase non è configurato. Controlla la pagina Configurazione.');
+        return;
+      }
+
+      if (btn) btn.disabled = true;
+      if (icon) icon.classList.add('spin-anim');
+      if (text) text.textContent = 'Richiesta a Plus…';
+      if (badge) {
+        badge.textContent = '⚡ Contatto server Plus 2000 in ufficio…';
+        badge.className = 'sync-pill pending';
+      }
+
+      try {
+        const { number } = await window.ClwData.requestPlusSync('ACTIVE');
+        if (text) text.textContent = 'Plus sta elaborando… ⏳';
+        if (badge) badge.textContent = `⏳ Richiesta #${number} in elaborazione su Plus 2000…`;
+
+        let completed = false;
+        let attempts = 0;
+        const maxAttempts = 35; // ~70 secondi max
+
+        while (attempts < maxAttempts) {
+          await new Promise(r => setTimeout(r, 2000));
+          attempts++;
+          const statusRec = await window.ClwData.checkPlusSyncStatus(number);
+          if (statusRec) {
+            if (statusRec.status === 'In Corso') {
+              if (text) text.textContent = 'Plus 2000: scaricamento dati… 📦';
+              if (badge) badge.textContent = `📦 Plus 2000 sta estraendo giacenze, prezzi e barcode…`;
+            } else if (statusRec.status === 'Completato') {
+              completed = true;
+              break;
+            } else if (statusRec.status === 'Errore') {
+              throw new Error(statusRec.notes || 'Errore durante la sincronizzazione su Plus 2000');
+            }
+          }
+        }
+
+        if (completed) {
+          if (text) text.textContent = 'Ricarica app… 🔄';
+          if (badge) badge.textContent = '✅ Plus 2000 completato! Download catalogo fresco…';
+          await window.ClwData.clearLocalCache();
+          await syncAllData(true);
+          alert('🎉 Sincronizzazione da Plus 2000 completata con successo!\nCatalogo, barcode EAN-13, giacenze e clienti aggiornati.');
+        } else {
+          alert('⚠️ Il connettore locale Plus 2000 non ha ancora risposto.\n\nAssicurati che "avvia_sync_continuo.bat" sia in esecuzione sul computer/server dell\'ufficio.');
+        }
+      } catch (err) {
+        console.error('Errore richiesta sync Plus:', err);
+        alert('Errore durante la richiesta di aggiornamento da Plus: ' + err.message);
+      } finally {
+        if (btn) btn.disabled = false;
+        if (icon) icon.classList.remove('spin-anim');
+        if (text) text.textContent = 'Aggiorna da Plus 2000';
+      }
+    }
+
+    if ($('btnRequestPlusSync')) $('btnRequestPlusSync').onclick = handleRequestPlusSync;
+    $('btnSyncAll').onclick = () => syncAllData(true);
     $('refresh').onclick = load;
+
+    updateLastSyncUI(localStorage.getItem('oa_last_full_sync'));
     load();
   </script>
+
+  <!-- Modal Gestione Accessi & Password Utenti -->
+  <div id="modalUsers" class="users-modal-overlay hidden">
+    <div class="users-modal-card">
+      <div class="users-modal-header">
+        <div>
+          <h2 style="margin:0; font-size:1.25rem; color:var(--navy); display:flex; align-items:center; gap:8px;">
+            <span>👥</span> Gestione Accessi & Password Utenti
+          </h2>
+          <small style="color:var(--muted); font-size:0.85rem;">
+            Scegli liberamente login e password per ciascun agente, magazziniere o amministratore
+          </small>
+        </div>
+        <button id="btnCloseUsersModal" class="users-modal-close" title="Chiudi">✕</button>
+      </div>
+
+      <div class="users-modal-body">
+        <!-- Barra Azioni -->
+        <div
+          style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+          <button id="btnToggleNewUserForm" class="btn-top"
+            style="background:#4f46e5; color:#fff; border-color:#4f46e5; font-weight:700; padding:8px 14px; font-size:0.88rem;">
+            ➕ Nuovo Utente / Accesso
+          </button>
+          <span style="font-size:0.85rem; color:var(--muted);" id="usersCountLabel">0 utenti configurati</span>
+        </div>
+
+        <!-- Form Nuovo / Modifica Utente -->
+        <div id="userFormContainer" class="hidden"
+          style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:18px;">
+          <h3 id="userFormTitle" style="margin:0 0 12px; font-size:1rem; color:var(--navy);">Nuovo Utente</h3>
+          <input type="hidden" id="editUserId" value="">
+          <div
+            style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-bottom:12px;">
+            <div>
+              <label style="display:block; font-size:0.8rem; font-weight:700; margin-bottom:4px; color:#334155;">Nome
+                Utente / Login *</label>
+              <input type="text" id="inputUsername" placeholder="es. f.pontrelli, magazzino"
+                style="width:100%; box-sizing:border-box; padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.9rem;"
+                required>
+            </div>
+            <div>
+              <label
+                style="display:block; font-size:0.8rem; font-weight:700; margin-bottom:4px; color:#334155;">Password *
+                <small style="font-weight:400; color:var(--muted);">(visibile all'admin)</small></label>
+              <input type="text" id="inputPassword" placeholder="Scegli password..."
+                style="width:100%; box-sizing:border-box; padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.9rem; font-family:monospace;"
+                required>
+            </div>
+            <div>
+              <label style="display:block; font-size:0.8rem; font-weight:700; margin-bottom:4px; color:#334155;">Nome
+                Completo Operatore *</label>
+              <input type="text" id="inputFullName" placeholder="es. Francesco Pontrelli"
+                style="width:100%; box-sizing:border-box; padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.9rem;"
+                required>
+            </div>
+            <div>
+              <label style="display:block; font-size:0.8rem; font-weight:700; margin-bottom:4px; color:#334155;">Ruolo
+                Operativo *</label>
+              <select id="selectRole"
+                style="width:100%; box-sizing:border-box; padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.9rem; font-weight:600; background:#fff;">
+                <option value="agente">Agente Commerciale (Ordini / Offerte)</option>
+                <option value="magazziniere">Operatore Magazzino (Picking & Barcode)</option>
+                <option value="admin">Amministratore (Controllo Totale)</option>
+                <option value="capo_area">Capo Area Commerciale</option>
+              </select>
+            </div>
+            <div id="colAgentCode">
+              <label style="display:block; font-size:0.8rem; font-weight:700; margin-bottom:4px; color:#334155;">Collega
+                ad Agente Plus 2000</label>
+              <select id="selectAgentCode"
+                style="width:100%; box-sizing:border-box; padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.9rem; background:#fff;">
+                <option value="">Nessun agente collegato (Generico)</option>
+              </select>
+            </div>
+          </div>
+
+          <div
+            style="display:flex; gap:16px; align-items:center; flex-wrap:wrap; margin-bottom:14px; font-size:0.85rem; font-weight:600; color:#334155;">
+            <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+              <input type="checkbox" id="chkActive" checked> Utente Attivo
+            </label>
+            <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+              <input type="checkbox" id="chkCanOrders" checked> Abilita Offerte & Ordini
+            </label>
+            <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+              <input type="checkbox" id="chkCanWarehouse"> Abilita Magazzino Mobile
+            </label>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; gap:8px;">
+            <button type="button" id="btnCancelUserForm" class="btn-top"
+              style="background:#e2e8f0; color:#475569; border-color:#cbd5e1;">Annulla</button>
+            <button type="button" id="btnSaveUser" class="btn-top"
+              style="background:#10b981; color:#fff; border-color:#10b981; font-weight:700;">💾 Salva Utente</button>
+          </div>
+        </div>
+
+        <!-- Tabella Utenti -->
+        <div style="overflow-x:auto;">
+          <table style="width:100%; border-collapse:collapse; font-size:0.88rem; text-align:left;">
+            <thead>
+              <tr
+                style="border-bottom:2px solid #e2e8f0; color:#64748b; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.5px;">
+                <th style="padding:10px 8px;">Stato</th>
+                <th style="padding:10px 8px;">Login</th>
+                <th style="padding:10px 8px;">Operatore</th>
+                <th style="padding:10px 8px;">Ruolo</th>
+                <th style="padding:10px 8px;">Agente Plus</th>
+                <th style="padding:10px 8px;">Password</th>
+                <th style="padding:10px 8px; text-align:right;">Azioni</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody">
+              <tr>
+                <td colspan="7" style="padding:24px; text-align:center; color:var(--muted);">Caricamento utenti da
+                  Supabase...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="syncToast" class="sync-toast">
+    <span id="syncToastMsg">Dati sincronizzati con successo!</span>
+  </div>
 </body>
+
 </html>
