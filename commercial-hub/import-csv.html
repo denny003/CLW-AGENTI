@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Importatore CSV — Climawell Commercial Hub</title>
+  <link rel="icon" href="/favicon.svg">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .import-box {
+      border: 2px dashed var(--line);
+      border-radius: 12px;
+      padding: 32px;
+      text-align: center;
+      background: #ffffff;
+      cursor: pointer;
+      transition: border-color 0.15s ease;
+      margin-bottom: 20px;
+    }
+    .import-box:hover {
+      border-color: var(--blue);
+    }
+    .import-icon {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+    .status-msg {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-top: 14px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .status-msg.info { background: #e0f2fe; color: #0369a1; }
+    .status-msg.success { background: #dcfce7; color: #15803d; }
+    .status-msg.error { background: #fee2e2; color: #b91c1c; }
+  </style>
+</head>
+<body style="background:var(--bg); display:block; padding:30px;">
+
+  <div style="max-width:900px; margin:0 auto;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+      <div>
+        <h1 style="font-size:1.5rem; color:var(--ink);">📥 Importatore CSV Assistito</h1>
+        <p style="color:var(--muted); font-size:0.85rem;">Carica anagrafiche clienti o catalogo articoli direttamente nel database Supabase.</p>
+      </div>
+      <a href="index.html" class="btn-hub secondary">← Torna all'Hub</a>
+    </div>
+
+    <div class="card-section">
+      <div class="card-section-head">
+        <h2>Seleziona Destinazione Dati</h2>
+      </div>
+
+      <div style="display:flex; gap:16px; margin-bottom:20px;">
+        <label style="font-weight:700; font-size:0.85rem; cursor:pointer;">
+          <input type="radio" name="importType" value="customers" checked> 👥 Clienti & Consensi (hub_customers)
+        </label>
+        <label style="font-weight:700; font-size:0.85rem; cursor:pointer;">
+          <input type="radio" name="importType" value="products"> 📦 Catalogo Articoli (hub_products)
+        </label>
+      </div>
+
+      <div class="import-box" onclick="document.getElementById('csvFileInput').click()">
+        <div class="import-icon">📄</div>
+        <strong>Trascina qui il file CSV oppure clicca per sfogliare</strong>
+        <p style="font-size:0.75rem; color:var(--muted); margin-top:6px;">Supporta file delimitati da virgola (,) o punto e virgola (;). Codifica consigliata UTF-8.</p>
+        <input type="file" id="csvFileInput" accept=".csv,text/csv" style="display:none;">
+      </div>
+
+      <div id="statusContainer"></div>
+
+      <div id="previewSection" class="hidden" style="margin-top:20px;">
+        <h3 style="font-size:1rem; margin-bottom:12px;">Anteprima Record Rilevati: <span id="recordCount">0</span></h3>
+        <div class="hub-table-wrapper" style="max-height:280px; overflow-y:auto;">
+          <table class="hub-table" id="previewTable">
+            <thead id="previewHead"></thead>
+            <tbody id="previewBody"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:16px; display:flex; justify-content:flex-end; gap:10px;">
+          <button type="button" class="btn-hub secondary" onclick="location.reload()">Annulla</button>
+          <button type="button" class="btn-hub primary" id="btnConfirmImport">🚀 Conferma & Salva su Supabase</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/config/companyConfig.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabaseClient.js"></script>
+
+  <script>
+    const fileInput = document.getElementById('csvFileInput');
+    let parsedRows = [];
+    let detectedHeaders = [];
+
+    fileInput.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        parseCSV(evt.target.result);
+      };
+      reader.readAsText(file);
+    };
+
+    function parseCSV(text) {
+      const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+      if (lines.length < 2) {
+        showMsg('Il file CSV deve contenere almeno una riga di intestazione e un record.', 'error');
+        return;
+      }
+
+      const sep = lines[0].includes(';') ? ';' : ',';
+      detectedHeaders = lines[0].split(sep).map(h => h.trim().replace(/^["']|["']$/g, ''));
+      parsedRows = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].split(sep).map(c => c.trim().replace(/^["']|["']$/g, ''));
+        if (cols.length === detectedHeaders.length) {
+          const rowObj = {};
+          detectedHeaders.forEach((h, idx) => rowObj[h] = cols[idx]);
+          parsedRows.push(rowObj);
+        }
+      }
+
+      showPreview(detectedHeaders, parsedRows);
+    }
+
+    function showPreview(headers, rows) {
+      document.getElementById('previewSection').classList.remove('hidden');
+      document.getElementById('recordCount').textContent = rows.length;
+
+      const thead = document.getElementById('previewHead');
+      thead.innerHTML = '<tr>' + headers.slice(0, 6).map(h => `<th>${h}</th>`).join('') + '</tr>';
+
+      const tbody = document.getElementById('previewBody');
+      tbody.innerHTML = rows.slice(0, 8).map(r => {
+        return '<tr>' + headers.slice(0, 6).map(h => `<td>${r[h] || '—'}</td>`).join('') + '</tr>';
+      }).join('');
+    }
+
+    function showMsg(text, type = 'info') {
+      const box = document.getElementById('statusContainer');
+      box.innerHTML = `<div class="status-msg ${type}">${text}</div>`;
+    }
+
+    function findVal(row, possibleKeys) {
+      const rowKeys = Object.keys(row);
+      for (const pk of possibleKeys) {
+        const match = rowKeys.find(k => k.toLowerCase() === pk.toLowerCase() || k.toLowerCase().includes(pk.toLowerCase()));
+        if (match && row[match] !== undefined) return String(row[match]).trim();
+      }
+      return '';
+    }
+
+    document.getElementById('btnConfirmImport').onclick = async () => {
+      const btn = document.getElementById('btnConfirmImport');
+      const importType = document.querySelector('input[name="importType"]:checked').value;
+      btn.disabled = true;
+      btn.textContent = '⏳ Salvataggio in corso su Supabase...';
+      showMsg('Inizializzazione caricamento su Supabase...', 'info');
+
+      try {
+        const client = window.supabase && window.ClwData ? window.ClwData.getConfig() : null;
+        const supaUrl = localStorage.getItem('clw_supabase_url') || window.SUPABASE_CONFIG?.url || 'https://fadgdncfhfpwkcbxcntc.supabase.co';
+        const supaKey = localStorage.getItem('clw_supabase_key') || window.SUPABASE_CONFIG?.anonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhZGdkbmNmaGZwd2tjYnhjbnRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4NzYzOTIsImV4cCI6MjEwNzQ1MjM5Mn0.ucGTqDigQVa6ZkBTH3l8Rvo7JHF7RVxvEv-3NGcMlfo';
+
+        const supa = window.supabase.createClient(supaUrl, supaKey);
+
+        if (importType === 'customers') {
+          const records = parsedRows.map((r, idx) => {
+            const code = findVal(r, ['codice', 'code', 'customer_code', 'id', 'conto']) || `CLI-${Date.now()}-${idx}`;
+            const name = findVal(r, ['ragione sociale', 'business_name', 'name', 'nominativo', 'cliente']) || 'Cliente Senza Nome';
+            const phone = findVal(r, ['telefono', 'phone', 'tel']);
+            const mobile = findVal(r, ['cellulare', 'mobile', 'whatsapp', 'cell']);
+            const city = findVal(r, ['città', 'citta', 'city', 'comune']);
+            const prov = findVal(r, ['provincia', 'prov', 'province']);
+            const addr = findVal(r, ['indirizzo', 'address', 'via']);
+            const cap = findVal(r, ['cap', 'postal_code', 'zip']);
+            const email = findVal(r, ['email', 'mail', 'e-mail']);
+            const vat = findVal(r, ['partita iva', 'piva', 'vat_number', 'vat']);
+            const cf = findVal(r, ['codice fiscale', 'cf', 'fiscal_code']);
+
+            return {
+              customer_code: code,
+              business_name: name,
+              phone: phone,
+              mobile_whatsapp: mobile || phone,
+              city: city,
+              province: prov,
+              address: addr,
+              postal_code: cap,
+              email: email,
+              vat_number: vat,
+              fiscal_code: cf,
+              consent_wa: 'in_attesa',
+              consent_email: 'in_attesa',
+              updated_at: new Date().toISOString()
+            };
+          });
+
+          const chunkSize = 50;
+          let inserted = 0;
+          for (let i = 0; i < records.length; i += chunkSize) {
+            const chunk = records.slice(i, i + chunkSize);
+            const { error } = await supa.from('hub_customers').upsert(chunk, { onConflict: 'customer_code' });
+            if (error) throw error;
+            inserted += chunk.length;
+            showMsg(`Salvati ${inserted} di ${records.length} clienti...`, 'info');
+          }
+
+          showMsg(`✅ Successo! ${records.length} clienti salvati/aggiornati in hub_customers.`, 'success');
+        } else {
+          const records = parsedRows.map((r, idx) => {
+            const code = findVal(r, ['codice', 'product_code', 'code', 'articolo']) || `ART-${idx}`;
+            const desc = findVal(r, ['descrizione', 'description', 'desc']) || 'Articolo';
+            const brand = findVal(r, ['marca', 'brand', 'produttore']);
+            const price = parseFloat(findVal(r, ['prezzo', 'list_price', 'listino', 'price']).replace(',', '.')) || 0;
+            const stock = parseFloat(findVal(r, ['giacenza', 'stock_qty', 'disponibile', 'qta']).replace(',', '.')) || 0;
+            const barcode = findVal(r, ['barcode', 'ean', 'barcode_ean']);
+
+            return {
+              product_code: code,
+              description: desc,
+              brand: brand,
+              list_price: price,
+              stock_qty: stock,
+              available_qty: stock,
+              barcode_ean: barcode,
+              updated_at: new Date().toISOString()
+            };
+          });
+
+          const chunkSize = 50;
+          let inserted = 0;
+          for (let i = 0; i < records.length; i += chunkSize) {
+            const chunk = records.slice(i, i + chunkSize);
+            const { error } = await supa.from('hub_products').upsert(chunk, { onConflict: 'product_code' });
+            if (error) throw error;
+            inserted += chunk.length;
+            showMsg(`Salvati ${inserted} di ${records.length} articoli...`, 'info');
+          }
+
+          showMsg(`✅ Successo! ${records.length} articoli salvati/aggiornati in hub_products.`, 'success');
+        }
+
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1500);
+
+      } catch (err) {
+        console.error('Errore salvataggio:', err);
+        showMsg(`❌ Errore durante il salvataggio in Supabase: ${err.message}`, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Riprova Salvataggio';
+      }
+    };
+  </script>
+</body>
+</html>
