@@ -168,6 +168,7 @@
     cart: [], // Array di { code, qty }
     paymentRules: { ...DEFAULT_PAYMENT_RULES },
     buyerType: 'B2B', // 'B2B' (Azienda P.IVA) oppure 'B2C' (Privato C.F.)
+    priceMode: 'B2B', // 'B2B' (Prezzi netti + IVA) oppure 'B2C' (Prezzi IVA 22% inclusa)
     activePaymentTab: 'stripe', // 'stripe' | 'prepaid_bank' | 'assisted'
     currentCategory: 'TOP10',
     brandFilter: 'ALL',
@@ -187,6 +188,20 @@
       publishableKey: 'pk_test_51P7DemoSaaSDanieleLupi00000000000000',
       connectedAccountId: 'acct_climawell_b2b',
       applicationFeePercent: 2.5
+    }
+  };
+
+  // Directory Consulenti Commerciali e Tecnici Climawell
+  const KNOWN_AGENTS = {
+    '1136': {
+      code: '1136',
+      name: 'Daniele Lupi',
+      role: 'Consulente Tecnico Senior',
+      zone: 'Firenze & Toscana',
+      phone: '055 4289074',
+      telHref: 'tel:0554289074',
+      waNumber: '390554289074',
+      initials: 'DL'
     }
   };
 
@@ -263,15 +278,27 @@
     } catch (e) {}
   }
 
-  // 1. Lettura parametri URL (?prodotto= / ?cart=COD1:2,COD2:1 / ?agent= / ?client=)
+  // 1. Lettura parametri URL (?prodotto= / ?cart=COD1:2,COD2:1 / ?agente= / ?client=)
   function parseUrlContext() {
     const params = new URLSearchParams(window.location.search);
 
-    if (params.get('agent')) {
-      EcomState.context.agentCode = params.get('agent');
+    const agentFromUrl = params.get('agente') || params.get('agent');
+    if (agentFromUrl) {
+      EcomState.context.agentCode = agentFromUrl.trim();
+      try { localStorage.setItem('clw_agent_code', EcomState.context.agentCode); } catch (e) {}
     } else if (localStorage.getItem('clw_agent_code')) {
       EcomState.context.agentCode = localStorage.getItem('clw_agent_code');
     }
+
+    // Modalità Prezzi B2B o B2C
+    const savedPriceMode = localStorage.getItem('clw_price_mode');
+    if (savedPriceMode === 'B2C' || savedPriceMode === 'B2B') {
+      EcomState.priceMode = savedPriceMode;
+    }
+    const btnB2B = document.getElementById('btnPriceModeB2B');
+    const btnB2C = document.getElementById('btnPriceModeB2C');
+    if (btnB2B) btnB2B.classList.toggle('active', EcomState.priceMode === 'B2B');
+    if (btnB2C) btnB2C.classList.toggle('active', EcomState.priceMode === 'B2C');
 
     EcomState.context.clientCode = params.get('client') || params.get('cliente') || null;
     EcomState.context.clientEmail = params.get('email') || null;
@@ -279,9 +306,42 @@
     EcomState.context.preloadCartParam = params.get('cart') || params.get('bundle') || null;
     EcomState.context.campaignId = params.get('campaign') || null;
 
+    // Risoluzione Scheda Consulente Assegnato
+    const ag = KNOWN_AGENTS[EcomState.context.agentCode] || {
+      code: EcomState.context.agentCode,
+      name: `Agente Climawell (${EcomState.context.agentCode})`,
+      role: 'Consulente Commerciale & Tecnico',
+      zone: 'Firenze & Toscana',
+      phone: '055 4289074',
+      telHref: 'tel:0554289074',
+      waNumber: '390554289074',
+      initials: 'CL'
+    };
+
+    const nameEl = document.getElementById('agentNameDisplay');
+    if (nameEl) nameEl.textContent = ag.name;
+
+    const avatarEl = document.querySelector('.agent-avatar');
+    if (avatarEl) avatarEl.textContent = ag.initials;
+
     const agentLabel = document.getElementById('agentContextLabel');
     if (agentLabel) {
-      agentLabel.innerHTML = `👤 Rete Commerciale Climawell: <strong>Agente ${escapeHtml(EcomState.context.agentCode)}</strong>`;
+      agentLabel.innerHTML = `Rif. Agente: <strong>${escapeHtml(ag.code)}</strong> &bull; Zona ${escapeHtml(ag.zone)}`;
+    }
+
+    const waLink = document.getElementById('agentWaLink');
+    if (waLink) {
+      const waMsg = `Salve ${ag.name}, ti contatto dallo Store Climawell per richiedere consulenza e disponibilità su un articolo.`;
+      waLink.href = `https://wa.me/${ag.waNumber}?text=${encodeURIComponent(waMsg)}`;
+      const waSpan = waLink.querySelector('span');
+      if (waSpan) waSpan.textContent = `Chiedi a ${ag.name.split(' ')[0]}`;
+    }
+
+    const telLink = document.getElementById('agentTelLink');
+    if (telLink) {
+      telLink.href = ag.telHref;
+      const telSpan = telLink.querySelector('span');
+      if (telSpan) telSpan.textContent = ag.phone;
     }
 
     const clientLabel = document.getElementById('clientContextLabel');
@@ -733,7 +793,14 @@
         ? Math.round((1 - p.price / p.listPrice) * 100)
         : 0;
 
-      const priceWithCardExtra = extraCardPct > 0 ? p.price * (1 - extraCardPct / 100) : p.price;
+      const isB2C = EcomState.priceMode === 'B2C';
+      const vatRate = 0.22;
+      const displayPrice = isB2C ? p.price * (1 + vatRate) : p.price;
+      const displayListPrice = p.listPrice > p.price ? (isB2C ? p.listPrice * (1 + vatRate) : p.listPrice) : 0;
+      const displayCardPrice = extraCardPct > 0 ? displayPrice * (1 - extraCardPct / 100) : displayPrice;
+      const priceSubText = isB2C
+        ? 'Prezzo IVA 22% Inclusa • Detraibile Casa/Ecobonus'
+        : 'Prezzo Netto B2B + IVA • Sped. 24/48h o Ritiro Banco';
 
       const highlights = (p.highlights && p.highlights.length > 0)
         ? p.highlights.slice(0, 3)
@@ -760,22 +827,25 @@
             </ul>
             <div class="card-pricing" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
               <meta itemprop="priceCurrency" content="EUR">
-              <meta itemprop="price" content="${Number(p.price || 0).toFixed(2)}">
+              <meta itemprop="price" content="${Number(displayPrice).toFixed(2)}">
               <link itemprop="availability" href="${isStock ? 'https://schema.org/InStock' : 'https://schema.org/PreOrder'}">
               <div class="price-box" style="width:100%;">
-                ${p.listPrice > p.price ? `
+                ${displayListPrice > displayPrice ? `
                   <div>
-                    <span class="list-price">Listino € ${euro(p.listPrice)}</span>
+                    <span class="list-price">Listino € ${euro(displayListPrice)}</span>
                     ${discountPct > 0 ? `<span class="discount-pill">-${discountPct}%</span>` : ''}
                   </div>
                 ` : ''}
                 <div style="display:flex; justify-content:space-between; align-items:baseline; width:100%;">
-                  <span class="net-price">€ ${euro(p.price)}</span>
-                  ${extraCardPct > 0 ? `<span style="font-size:0.72rem; font-weight:800; color:#059669; background:#ecfdf5; padding:2px 6px; border-radius:4px;">💳 € ${euro(priceWithCardExtra)} (-${extraCardPct}% Carta)</span>` : ''}
+                  <span class="net-price">€ ${euro(displayPrice)}</span>
+                  ${extraCardPct > 0 ? `<span style="font-size:0.72rem; font-weight:800; color:#059669; background:#ecfdf5; padding:2px 6px; border-radius:4px;">💳 € ${euro(displayCardPrice)} (-${extraCardPct}% Carta)</span>` : ''}
                 </div>
-                <span class="price-sub">Prezzo Netto + IVA • Sped. 24/48h</span>
+                <span class="price-sub">${priceSubText}</span>
               </div>
             </div>
+            <button type="button" class="btn-card-details" data-quickview-code="${escapeHtml(p.code)}" title="Vedi scheda tecnica, compatibilità e bonus fiscali">
+              🔍 Scheda Tecnica &amp; Detrazioni
+            </button>
             <div class="card-actions-row">
               <button type="button" class="btn-card-add-cart" data-addcart-code="${escapeHtml(p.code)}" style="flex:1;" title="Aggiungi al carrello multi-prodotto">
                 🛒 ${inCartQty > 0 ? `Nel Carrello (${inCartQty})` : '+ Carrello'}
@@ -791,6 +861,14 @@
         </article>
       `;
     }).join('');
+
+    // Listener "🔍 Scheda Tecnica & Detrazioni" (Quick View Modal)
+    grid.querySelectorAll('[data-quickview-code]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const code = btn.getAttribute('data-quickview-code');
+        openQuickViewModal(code);
+      });
+    });
 
     // Listener "+ Carrello" (aggiunge al carrello multi-prodotto senza aprire subito il modal)
     grid.querySelectorAll('[data-addcart-code]').forEach(btn => {
@@ -2224,8 +2302,91 @@
     }
   }
 
+  // 11. Modalità Prezzi B2B (IVA Esclusa) vs Privati B2C (IVA 22% Inclusa)
+  function setPriceMode(mode) {
+    EcomState.priceMode = mode;
+    try { localStorage.setItem('clw_price_mode', mode); } catch (e) {}
+    const btnB2B = document.getElementById('btnPriceModeB2B');
+    const btnB2C = document.getElementById('btnPriceModeB2C');
+    if (btnB2B) btnB2B.classList.toggle('active', mode === 'B2B');
+    if (btnB2C) btnB2C.classList.toggle('active', mode === 'B2C');
+    renderProductsGrid();
+    showToast(`Mostro prezzi per: ${mode === 'B2B' ? '🏢 Aziende & P.IVA (Prezzi Netti + IVA)' : '🏠 Privati (Prezzi IVA 22% Inclusa)'}`);
+  }
+
+  // 11-bis. Scheda Tecnica Veloce (Quick View Modal) con Detrazioni & WhatsApp
+  function openQuickViewModal(code) {
+    const prod = getProductByCode(code);
+    if (!prod) return;
+    const modal = document.getElementById('quickViewModal');
+    if (!modal) return;
+
+    const isB2C = EcomState.priceMode === 'B2C';
+    const vatRate = 0.22;
+    const dispPrice = isB2C ? prod.price * (1 + vatRate) : prod.price;
+    const priceSub = isB2C ? 'Prezzo Finale con IVA 22% Inclusa' : 'Prezzo Netto + IVA (Fattura B2B)';
+
+    const titleEl = document.getElementById('qvTitle');
+    const codeEl = document.getElementById('qvCode');
+    const brandEl = document.getElementById('qvBrand');
+    const priceEl = document.getElementById('qvPrice');
+    const priceSubEl = document.getElementById('qvPriceSub');
+    const descEl = document.getElementById('qvDesc');
+    const imgEl = document.getElementById('qvImage');
+    const highlightsEl = document.getElementById('qvHighlights');
+    const stockEl = document.getElementById('qvStock');
+    const waBtn = document.getElementById('btnQuickViewWa');
+    const addCartBtn = document.getElementById('btnQuickViewAddCart');
+
+    if (titleEl) titleEl.textContent = prod.seoTitle || prod.description;
+    if (codeEl) codeEl.textContent = prod.code;
+    if (brandEl) brandEl.textContent = prod.brand;
+    if (priceEl) priceEl.textContent = `€ ${euro(dispPrice)}`;
+    if (priceSubEl) priceSubEl.textContent = priceSub;
+    if (descEl) descEl.textContent = prod.seoDescription || prod.description;
+    if (imgEl) {
+      imgEl.src = prod.imageUrl || getSmartProductVisual(prod);
+      imgEl.alt = `${prod.seoTitle || prod.description} - ${prod.code}`;
+    }
+    if (stockEl) {
+      stockEl.textContent = prod.stock > 0 ? `🟢 Disponibile a magazzino (${prod.stock} pz)` : '🟡 Su ordinazione rapida (3-5 gg)';
+    }
+    if (highlightsEl) {
+      const hList = (prod.highlights && prod.highlights.length > 0) ? prod.highlights : getDefaultHighlights(prod);
+      highlightsEl.innerHTML = hList.map(h => `<li>✓ ${escapeHtml(h)}</li>`).join('');
+    }
+    if (waBtn) {
+      const ag = KNOWN_AGENTS[EcomState.context.agentCode] || { waNumber: '390554289074', name: 'Daniele Lupi' };
+      const waMsg = `Salve ${ag.name}, vorrei consulenza tecnica e conferma disponibilità per l'articolo "${prod.code} - ${prod.seoTitle || prod.description}".`;
+      waBtn.href = `https://wa.me/${ag.waNumber}?text=${encodeURIComponent(waMsg)}`;
+      const waSpan = waBtn.querySelector('span');
+      if (waSpan) waSpan.textContent = `Chiedi a ${ag.name.split(' ')[0]} su WhatsApp`;
+    }
+    if (addCartBtn) {
+      addCartBtn.onclick = () => {
+        addToCart(prod.code, 1, false);
+        closeQuickViewModal();
+      };
+    }
+
+    modal.classList.add('active');
+  }
+
+  function closeQuickViewModal() {
+    const modal = document.getElementById('quickViewModal');
+    if (modal) modal.classList.remove('active');
+  }
+
   // 12. Event Listeners
   function setupEventListeners() {
+    // Switch Modalità Prezzo B2B (IVA Escl.) / B2C (IVA Incl.)
+    document.getElementById('btnPriceModeB2B')?.addEventListener('click', () => setPriceMode('B2B'));
+    document.getElementById('btnPriceModeB2C')?.addEventListener('click', () => setPriceMode('B2C'));
+
+    // Chiusura Quick View Modal
+    document.getElementById('btnCloseQuickView')?.addEventListener('click', closeQuickViewModal);
+    document.getElementById('quickViewBackdrop')?.addEventListener('click', closeQuickViewModal);
+
     // Ricerca live
     const searchInput = document.getElementById('ecomSearchInput');
     const btnClearSearch = document.getElementById('btnClearSearch');

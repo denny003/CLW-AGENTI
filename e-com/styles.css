@@ -2200,3 +2200,284 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* ========================================================
+   NUOVI STILI HOMEPAGE E-COM 2026: VISTA CLIENTE & TRUST
+   ======================================================== */
+
+/* Switch Prezzi B2B (IVA Escl.) / Privati (IVA Incl.) */
+.price-mode-switch-wrapper {
+  display: flex;
+  align-items: center;
+  background: #f1f5f9;
+  padding: 3px;
+  border-radius: 30px;
+  border: 1px solid #cbd5e1;
+}
+
+.price-mode-btn {
+  border: none;
+  background: transparent;
+  padding: 6px 14px;
+  border-radius: 24px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.price-mode-btn:hover {
+  color: #0f172a;
+}
+
+.price-mode-btn.active {
+  background: #0284c7;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
+}
+
+.price-mode-btn.active.b2c {
+  background: #059669;
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.35);
+}
+
+/* Badge e Pulsanti Consulente Commerciale Dedicato (Agente 1136) */
+.agent-contact-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-agent-wa {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #25D366;
+  color: #ffffff !important;
+  text-decoration: none;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+}
+
+.btn-agent-wa:hover {
+  background: #1eb956;
+  transform: translateY(-1px);
+}
+
+.btn-agent-call {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff !important;
+  text-decoration: none;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-agent-call:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Griglia Trust Cards nel Banner Hero Commerciale */
+.hero-trust-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.hero-trust-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  color: #ffffff;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.hero-trust-card:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.hero-trust-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 8px;
+  border-radius: 10px;
+}
+
+.hero-trust-text h4 {
+  font-size: 0.88rem;
+  font-weight: 800;
+  margin-bottom: 2px;
+  color: #ffffff;
+}
+
+.hero-trust-text p {
+  font-size: 0.74rem;
+  color: #cbd5e1;
+  line-height: 1.35;
+  margin: 0;
+}
+
+/* Pulsante Scheda Tecnica / Quick View sulla Card */
+.btn-card-details {
+  background: #f1f5f9;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 6px 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.btn-card-details:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+}
+
+/* Modal Quick View Scheda Tecnica */
+.quick-view-dialog {
+  max-width: 780px !important;
+}
+
+.quick-view-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 720px) {
+  .quick-view-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.quick-view-img-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.quick-view-img-box img {
+  max-width: 100%;
+  max-height: 240px;
+  object-fit: contain;
+}
+
+.quick-view-spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  margin: 12px 0;
+}
+
+.quick-view-spec-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.quick-view-spec-table td.label {
+  color: #64748b;
+  font-weight: 600;
+  width: 40%;
+}
+
+.quick-view-spec-table td.value {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.fiscal-badges-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0;
+}
+
+.fiscal-badge {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #6ee7b7;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+/* Trustbar Rassicurante Pre-Footer */
+.trustbar-section {
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 24px 16px;
+  margin-top: 40px;
+}
+
+.trustbar-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.trustbar-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.trustbar-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+  background: #f1f5f9;
+  padding: 10px;
+  border-radius: 12px;
+  color: #0284c7;
+}
+
+.trustbar-item strong {
+  font-size: 0.88rem;
+  color: #0f172a;
+  display: block;
+}
+
+.trustbar-item p {
+  font-size: 0.74rem;
+  color: #64748b;
+  margin: 2px 0 0 0;
+}
