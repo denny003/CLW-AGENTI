@@ -1736,7 +1736,7 @@
         if (!matchesTab) return false;
         if (!term) return true;
         const linesText = getOrderLines(ord).map(l => `${l.code || l.product_code || ''} ${l.description || ''}`).join(' ');
-        const haystack = `${ord.number} ${ord.customer_name} ${ord.agent_name} ${ord.ddt_number || ''} ${ord.carrier || ''} ${linesText}`.toLowerCase();
+        const haystack = `${ord.number} ${ord.customer_name || ''} ${ord.customer_code || ''} ${ord.agent_name || ''} ${ord.agent_code || ''} ${ord.ddt_number || ''} ${ord.carrier || ''} ${linesText}`.toLowerCase();
         return haystack.includes(term);
       });
 
@@ -3255,6 +3255,15 @@
     if (window.location.hash === '#produzione') {
       switchMainView('production');
     }
+
+    // Support direct filtering by agent (e.g. /gestione-ordini.html?agente=1136 or ?agent=1136)
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const agentFilter = urlParams.get('agente') || urlParams.get('agent');
+      if (agentFilter && $('searchInput')) {
+        $('searchInput').value = agentFilter;
+      }
+    } catch (e) {}
 
     loadOrders();
   </script>

@@ -2292,12 +2292,13 @@ body {
   background: rgba(255, 255, 255, 0.25);
 }
 
-/* Griglia Trust Cards nel Banner Hero Commerciale */
+/* Griglia Trust Cards compressa in una sola riga nel Banner Hero Commerciale */
 .hero-trust-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 14px;
-  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
 }
 
 .hero-trust-card {
@@ -2305,40 +2306,43 @@ body {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  padding: 14px 16px;
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
+  border-radius: 20px;
+  padding: 5px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   color: #ffffff;
+  font-size: 0.8rem;
   transition: transform 0.2s ease, background 0.2s ease;
 }
 
 .hero-trust-card:hover {
-  transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.18);
 }
 
 .hero-trust-icon {
-  font-size: 1.6rem;
+  font-size: 1rem;
   line-height: 1;
-  background: rgba(255, 255, 255, 0.15);
-  padding: 8px;
-  border-radius: 10px;
 }
 
-.hero-trust-text h4 {
-  font-size: 0.88rem;
-  font-weight: 800;
-  margin-bottom: 2px;
+.hero-trust-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+}
+
+.hero-trust-text strong {
   color: #ffffff;
+  font-weight: 750;
+  white-space: nowrap;
 }
 
-.hero-trust-text p {
-  font-size: 0.74rem;
+.hero-trust-text span {
   color: #cbd5e1;
-  line-height: 1.35;
-  margin: 0;
+  font-size: 0.76rem;
+  white-space: nowrap;
 }
 
 /* Pulsante Scheda Tecnica / Quick View sulla Card */

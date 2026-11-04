@@ -141,6 +141,32 @@
       listPrice: 460.00,
       stock: 14,
       imageUrl: ''
+    },
+    {
+      code: 'ATXF35E',
+      seoTitle: 'Climatizzatore Daikin Siesta ATXF35E 12000 BTU Inverter R32 Pompa di Calore A++',
+      seoDescription: 'Monosplit Daikin Siesta 12000 BTU 3,5 kW con gas ecologico R32, telecomando LCD e bassissimo consumo energetico in raffrescamento e riscaldamento.',
+      highlights: ['Qualità e affidabilità Daikin Siesta', 'Classe energetica A++ / A+', 'Pronta consegna con spedizione rapida'],
+      badge: '⭐ Novità Daikin Siesta',
+      brand: 'DAIKIN',
+      family: 'CLIMA',
+      price: 495.00,
+      listPrice: 680.00,
+      stock: 11,
+      imageUrl: ''
+    },
+    {
+      code: '780650',
+      seoTitle: 'Porta Doccia Battente per Nicchia 2B Cristallo 6mm 70-80 cm Profilo Argento',
+      seoDescription: 'Porta doccia per installazione in nicchia 2B con apertura battente, vetro temperato trasparente 6 mm e profili ad alta resistenza anticorrosione.',
+      highlights: ['Vetro temperato di sicurezza 6 mm', 'Regolazione estensibilità fino a 80 cm', 'Guarnizione magnetica tenuta stagna'],
+      badge: '🚿 Nicchia Bagno 2B',
+      brand: '2B',
+      family: '2B',
+      price: 245.00,
+      listPrice: 350.00,
+      stock: 7,
+      imageUrl: ''
     }
   ];
 
@@ -148,6 +174,7 @@
   const DEFAULT_PAYMENT_RULES = {
     extraDiscountCardPct: 4.0,
     extraDiscountBankPct: 2.0,
+    standardShippingCost: 6.99, // Costo trasporto corriere standard (modificabile dall'Amministratore)
     companyIban: 'IT60 X054 2811 1010 0000 0123 456',
     b2cAllowCard: true,
     b2cAllowPrepaidBank: true,
@@ -198,9 +225,9 @@
       name: 'Daniele Lupi',
       role: 'Consulente Tecnico Senior',
       zone: 'Firenze & Toscana',
-      phone: '055 4289074',
-      telHref: 'tel:0554289074',
-      waNumber: '390554289074',
+      phone: '388 1299371',
+      telHref: 'tel:3881299371',
+      waNumber: '393881299371',
       initials: 'DL'
     }
   };
@@ -226,7 +253,7 @@
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          EcomState.top10Config = parsed.slice(0, 10);
+          EcomState.top10Config = parsed.slice(0, 12);
           return;
         }
       }
@@ -236,7 +263,7 @@
 
   function saveTop10ConfigToStorage() {
     try {
-      localStorage.setItem(STORAGE_KEY_TOP10, JSON.stringify(EcomState.top10Config.slice(0, 10)));
+      localStorage.setItem(STORAGE_KEY_TOP10, JSON.stringify(EcomState.top10Config.slice(0, 12)));
     } catch (e) {}
   }
 
@@ -312,9 +339,9 @@
       name: `Agente Climawell (${EcomState.context.agentCode})`,
       role: 'Consulente Commerciale & Tecnico',
       zone: 'Firenze & Toscana',
-      phone: '055 4289074',
-      telHref: 'tel:0554289074',
-      waNumber: '390554289074',
+      phone: '388 1299371',
+      telHref: 'tel:3881299371',
+      waNumber: '393881299371',
       initials: 'CL'
     };
 
@@ -427,7 +454,7 @@
     });
 
     const featuredItems = [];
-    const top10List = EcomState.top10Config.slice(0, 10);
+    const top10List = EcomState.top10Config.slice(0, 12);
 
     top10List.forEach((cfg, idx) => {
       const key = String(cfg.code || '').trim().toUpperCase();
@@ -738,7 +765,7 @@
     });
 
     if (cat === 'TOP10' && !q) {
-      list = list.slice(0, 10);
+      list = list.slice(0, 12);
     } else {
       list = list.slice(0, 48);
     }
@@ -978,7 +1005,7 @@
 
   // 7. MOTORE SEO 2026: JSON-LD Google Merchant Listings & Meta Tag
   function updateSeoStructuredDataAndMeta() {
-    const top10Products = EcomState.products.filter(p => p.isFeaturedTop10).slice(0, 10);
+    const top10Products = EcomState.products.filter(p => p.isFeaturedTop10).slice(0, 12);
     const baseUrl = 'https://clw-agenti.netlify.app/e-com/';
 
     const itemListElements = top10Products.map((p, index) => {
@@ -1076,7 +1103,7 @@
         {
           '@type': 'ItemList',
           '@id': `${baseUrl}#top10-showcase`,
-          'name': 'Top 10 Prodotti Climatizzazione, Pompe di Calore e Box Doccia Climawell',
+          'name': 'Top 12 Prodotti Climatizzazione, Pompe di Calore e Box Doccia Climawell',
           'numberOfItems': itemListElements.length,
           'itemListElement': itemListElements
         }
@@ -1142,6 +1169,19 @@
       b2bSelect.innerHTML = opts.join('');
       const lblBtn = document.getElementById('btnB2bTermLabel');
       if (lblBtn) lblBtn.textContent = b2bSelect.value;
+    }
+
+    // Aggiorna etichette costi spedizione nel selettore consegna
+    const deliverySelect = document.getElementById('orderDeliveryType');
+    if (deliverySelect) {
+      const shipCost = Number(r.standardShippingCost !== undefined ? r.standardShippingCost : 6.99);
+      const currentVal = deliverySelect.value || 'SPEDIZIONE_SEDE';
+      deliverySelect.innerHTML = `
+        <option value="SPEDIZIONE_SEDE">🚚 Spedizione presso sede / domicilio (24/48h) — € ${euro(shipCost)}</option>
+        <option value="SPEDIZIONE_CANTIERE">🏗️ Spedizione diretta in cantiere — € ${euro(shipCost)}</option>
+        <option value="RITIRO_BANCO">🏬 Ritiro a banco Magazzino Climawell (Firenze) — GRATIS (€ 0,00)</option>
+      `;
+      deliverySelect.value = currentVal;
     }
   }
 
@@ -1331,8 +1371,16 @@
       extraDiscountPct = 0; // Pagamento dilazionato Ri.Ba. 60-90gg non ha sconto cassa extra
     }
 
+    // Modalità di consegna e calcolo spese di trasporto
+    const deliverySelect = document.getElementById('orderDeliveryType');
+    const deliveryType = deliverySelect ? deliverySelect.value : 'SPEDIZIONE_SEDE';
+    const isPickup = deliveryType === 'RITIRO_BANCO';
+    const standardShipping = Number(EcomState.paymentRules.standardShippingCost !== undefined ? EcomState.paymentRules.standardShippingCost : 6.99);
+    const shippingCost = isPickup ? 0 : standardShipping;
+
     const extraDiscountAmount = rawSubtotal * (extraDiscountPct / 100);
-    const finalSubtotal = Math.max(0, rawSubtotal - extraDiscountAmount);
+    const goodsSubtotal = Math.max(0, rawSubtotal - extraDiscountAmount);
+    const finalSubtotal = goodsSubtotal + shippingCost;
     const vatRate = 22;
     const vatAmount = finalSubtotal * (vatRate / 100);
     const grandTotal = finalSubtotal + vatAmount;
@@ -1348,6 +1396,10 @@
       rawSubtotal,
       extraDiscountPct,
       extraDiscountAmount,
+      goodsSubtotal,
+      shippingCost,
+      isPickup,
+      deliveryType,
       finalSubtotal,
       vatRate,
       vatAmount,
@@ -1379,9 +1431,26 @@
       }
     }
 
+    // Gestione visualizzazione Spese Spedizione / Ritiro a Banco
+    const shipVal = document.getElementById('summaryShippingVal');
+    const shipLbl = document.getElementById('summaryShippingLabel');
+    if (shipVal) {
+      if (fin.isPickup) {
+        shipVal.textContent = 'GRATIS (€ 0,00)';
+        shipVal.style.color = '#059669';
+      } else {
+        shipVal.textContent = `€ ${euro(fin.shippingCost)}`;
+        shipVal.style.color = '#0f172a';
+      }
+    }
+    if (shipLbl) {
+      shipLbl.textContent = fin.isPickup ? '🏬 Ritiro al Banco Magazzino (Firenze):' : '🚚 Spedizione Corriere Espresso (24/48h):';
+    }
+
     setTxt('summarySubtotal', `€ ${euro(fin.finalSubtotal)}`);
     setTxt('summaryVat', `€ ${euro(fin.vatAmount)}`);
     setTxt('summaryGrandTotal', `€ ${euro(fin.grandTotal)}`);
+    setTxt('btnStripeAmountText', `€ ${euro(fin.grandTotal)}`);
 
     // Upsell Banner nella tab B2B Ri.Ba.
     setTxt('b2bUpsellSaveEuro', `€ ${euro(fin.potentialCardSaveGross)}`);
@@ -1405,6 +1474,7 @@
 
     setVal('cfgExtraDiscountCard', r.extraDiscountCardPct);
     setVal('cfgExtraDiscountBank', r.extraDiscountBankPct);
+    setVal('cfgStandardShippingCost', r.standardShippingCost !== undefined ? r.standardShippingCost : 6.99);
     setVal('cfgCompanyIban', r.companyIban);
     setChk('cfgB2cAllowCard', r.b2cAllowCard);
     setChk('cfgB2cAllowPrepaidBank', r.b2cAllowPrepaidBank);
@@ -1444,6 +1514,7 @@
     EcomState.paymentRules = {
       extraDiscountCardPct: parseFloat(document.getElementById('cfgExtraDiscountCard')?.value) || 0,
       extraDiscountBankPct: parseFloat(document.getElementById('cfgExtraDiscountBank')?.value) || 0,
+      standardShippingCost: parseFloat(document.getElementById('cfgStandardShippingCost')?.value) || 6.99,
       companyIban: (document.getElementById('cfgCompanyIban')?.value || '').trim(),
       b2cAllowCard: !!document.getElementById('cfgB2cAllowCard')?.checked,
       b2cAllowPrepaidBank: !!document.getElementById('cfgB2cAllowPrepaidBank')?.checked,
@@ -1606,8 +1677,8 @@
     const counter = document.getElementById('managerTop10Counter');
     if (!container) return;
 
-    const list = EcomState.top10Config.slice(0, 10);
-    if (counter) counter.textContent = `${list.length} / 10`;
+    const list = EcomState.top10Config.slice(0, 12);
+    if (counter) counter.textContent = `${list.length} / 12`;
 
     container.innerHTML = list.map((item, idx) => {
       const thumbSrc = item.imageUrl || getSmartProductVisual(item);
@@ -1744,6 +1815,7 @@
       `----------------------------------`,
       `🔹 *Totale Merce Listino Netto:* € ${euro(fin.rawSubtotal)}`,
       ...(fin.extraDiscountPct > 0 ? [`🎁 *Sconto Extra Pagamento Anticipato (-${fin.extraDiscountPct}%):* - € ${euro(fin.extraDiscountAmount)}`] : []),
+      `🚚 *Spese di Spedizione:* ${fin.isPickup ? 'GRATIS (Ritiro al banco Firenze)' : '€ ' + euro(fin.shippingCost)}`,
       `🔹 *Imponibile Netto Finale:* € ${euro(fin.finalSubtotal)}`,
       `🔹 *Totale Ordine IVA Inclusa:* € ${euro(fin.grandTotal)}`,
       `💳 *Condizione Pagamento:* ${paymentDescription}`,
@@ -1855,7 +1927,7 @@
     const order = buildOrderMessage(payDesc);
     logOrderCrm('whatsapp', order.customer, order.financials, order.agent, { payment_label: payDesc }, f);
 
-    const companyPhone = (window.CLIMAWELL_CONFIG && window.CLIMAWELL_CONFIG.whatsappOrderPhone) || '390554289074';
+    const companyPhone = (window.CLIMAWELL_CONFIG && window.CLIMAWELL_CONFIG.whatsappOrderPhone) || '393881299371';
     const waUrl = `https://wa.me/${companyPhone}?text=${encodeURIComponent(order.text)}`;
     window.open(waUrl, '_blank');
     clearCart();
@@ -2332,11 +2404,13 @@
     const priceEl = document.getElementById('qvPrice');
     const priceSubEl = document.getElementById('qvPriceSub');
     const descEl = document.getElementById('qvDesc');
-    const imgEl = document.getElementById('qvImage');
+    const imgEl = document.getElementById('qvImg') || document.getElementById('qvImage');
     const highlightsEl = document.getElementById('qvHighlights');
     const stockEl = document.getElementById('qvStock');
-    const waBtn = document.getElementById('btnQuickViewWa');
-    const addCartBtn = document.getElementById('btnQuickViewAddCart');
+    const cardPriceEl = document.getElementById('qvCardPrice');
+    const waBtn = document.getElementById('qvBtnWhatsApp') || document.getElementById('btnQuickViewWa');
+    const addCartBtn = document.getElementById('qvBtnAddToCart') || document.getElementById('btnQuickViewAddCart');
+    const buyNowBtn = document.getElementById('qvBtnBuyNow');
 
     if (titleEl) titleEl.textContent = prod.seoTitle || prod.description;
     if (codeEl) codeEl.textContent = prod.code;
@@ -2344,28 +2418,57 @@
     if (priceEl) priceEl.textContent = `€ ${euro(dispPrice)}`;
     if (priceSubEl) priceSubEl.textContent = priceSub;
     if (descEl) descEl.textContent = prod.seoDescription || prod.description;
-    if (imgEl) {
-      imgEl.src = prod.imageUrl || getSmartProductVisual(prod);
-      imgEl.alt = `${prod.seoTitle || prod.description} - ${prod.code}`;
+
+    if (cardPriceEl) {
+      const cardDiscount = Number(EcomState.paymentRules.extraDiscountCardPct || 0);
+      const cardPriceVal = cardDiscount > 0 ? dispPrice * (1 - cardDiscount / 100) : dispPrice;
+      cardPriceEl.textContent = `€ ${euro(cardPriceVal)}`;
     }
+
+    if (imgEl) {
+      const imgSrc = prod.imageUrl || getSmartProductVisual(prod);
+      imgEl.src = imgSrc;
+      imgEl.alt = `${prod.seoTitle || prod.description} - ${prod.code}`;
+      imgEl.onerror = () => {
+        imgEl.onerror = null;
+        imgEl.src = getSmartProductVisual(prod);
+      };
+    }
+
     if (stockEl) {
       stockEl.textContent = prod.stock > 0 ? `🟢 Disponibile a magazzino (${prod.stock} pz)` : '🟡 Su ordinazione rapida (3-5 gg)';
     }
+
     if (highlightsEl) {
       const hList = (prod.highlights && prod.highlights.length > 0) ? prod.highlights : getDefaultHighlights(prod);
       highlightsEl.innerHTML = hList.map(h => `<li>✓ ${escapeHtml(h)}</li>`).join('');
     }
+
     if (waBtn) {
-      const ag = KNOWN_AGENTS[EcomState.context.agentCode] || { waNumber: '390554289074', name: 'Daniele Lupi' };
-      const waMsg = `Salve ${ag.name}, vorrei consulenza tecnica e conferma disponibilità per l'articolo "${prod.code} - ${prod.seoTitle || prod.description}".`;
+      const ag = KNOWN_AGENTS[EcomState.context.agentCode] || { waNumber: '393881299371', name: 'Daniele Lupi' };
+      const waMsg = `Buongiorno Daniele, vorrei maggiori informazioni su un prodotto Climawell Store: "${prod.code} - ${prod.seoTitle || prod.description}".`;
       waBtn.href = `https://wa.me/${ag.waNumber}?text=${encodeURIComponent(waMsg)}`;
       const waSpan = waBtn.querySelector('span');
-      if (waSpan) waSpan.textContent = `Chiedi a ${ag.name.split(' ')[0]} su WhatsApp`;
+      if (waSpan) waSpan.textContent = `Chiedi su WhatsApp a ${ag.name.split(' ')[0]}`;
     }
+
     if (addCartBtn) {
       addCartBtn.onclick = () => {
         addToCart(prod.code, 1, false);
         closeQuickViewModal();
+      };
+    }
+
+    if (buyNowBtn) {
+      buyNowBtn.onclick = () => {
+        closeQuickViewModal();
+        const exists = EcomState.cart.find(c => c.code.toUpperCase() === prod.code.toUpperCase());
+        if (!exists) {
+          addToCart(prod.code, 1, true);
+        } else {
+          EcomState.selectedProduct = prod;
+          openOrderModal();
+        }
       };
     }
 
@@ -2470,6 +2573,11 @@
       }
     });
 
+    // Ricalcolo al cambio modalità di consegna (Spedizione vs Ritiro al Banco)
+    document.getElementById('orderDeliveryType')?.addEventListener('change', () => {
+      updateOrderSummary();
+    });
+
     // Rilevamento automatico mentre il cliente compila Ragione Sociale o P.IVA/C.F.
     document.getElementById('orderCustomerInput')?.addEventListener('input', evaluateBuyerAndPaymentAccess);
     document.getElementById('orderTaxIdInput')?.addEventListener('input', (e) => {
@@ -2551,8 +2659,8 @@
         showToast('⚠️ Seleziona prima un articolo dal menu a tendina del listino');
         return;
       }
-      if (EcomState.top10Config.length >= 10) {
-        showToast('⚠️ Hai già 10 articoli in vetrina. Rimuovine uno prima di aggiungerne un altro.');
+      if (EcomState.top10Config.length >= 12) {
+        showToast('⚠️ Hai già 12 articoli in vetrina. Rimuovine uno prima di aggiungerne un altro.');
         return;
       }
       const found = getProductByCode(code);
@@ -2572,7 +2680,7 @@
       });
       renderVetrinaManagerList();
       populateManagerCatalogSelect(document.getElementById('managerCatalogSearch')?.value || '');
-      showToast(`✅ Articolo ${found.code} aggiunto alla Vetrina Top 10!`);
+      showToast(`✅ Articolo ${found.code} aggiunto alla Vetrina Top 12!`);
     });
 
     document.getElementById('btnResetDefaultTop10')?.addEventListener('click', () => {
@@ -2582,7 +2690,7 @@
       renderVetrinaManagerList();
       applyFilters();
       updateSeoStructuredDataAndMeta();
-      showToast('↺ Ripristinati i 10 articoli consigliati in vetrina!');
+      showToast('↺ Ripristinati i 12 articoli consigliati in vetrina!');
     });
 
     document.getElementById('btnSaveTop10Config')?.addEventListener('click', () => {
