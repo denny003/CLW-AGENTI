@@ -16,6 +16,18 @@ const HubState = {
     activity: 'ALL',
     legalForm: 'ALL'
   },
+  productFilters: {
+    search: '',
+    onlyAvailable: true,
+    brand: 'ALL',
+    sector: 'ALL',
+    macroFamily: 'ALL',
+    family: 'ALL',
+    classCode: 'ALL',
+    groupCode: 'ALL',
+    page: 1,
+    pageSize: 50
+  },
   opportunities: [
     { id: '1', title: 'Impianto Pompa di Calore R32', customer: 'Termoidraulica Fiorentina Srl', value: 8500, stage: 'nuovo', agent: 'Lupi Daniele' },
     { id: '2', title: 'Fornitura 12 Barriere Aria', customer: 'Clima Service Pisa', value: 14200, stage: 'proposta', agent: 'Poli Francesco' },
@@ -33,6 +45,7 @@ const HubState = {
 
 // Funzione di formattazione valuta
 const euro = val => new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(Number(val) || 0);
+const escapeHtml = str => String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 
 // Inizializzazione Modulo
 document.addEventListener('DOMContentLoaded', async () => {
@@ -166,6 +179,17 @@ async function loadHubData() {
       if (window.ClwData.getProducts) {
         const prods = await window.ClwData.getProducts();
         if (prods && prods.length) HubState.products = prods;
+      }
+      if (!HubState.products || HubState.products.length === 0) {
+        try {
+          const resp = await fetch('/seed-data.json');
+          if (resp.ok) {
+            const seed = await resp.json();
+            if (seed.articles && seed.articles.length) {
+              HubState.products = seed.articles;
+            }
+          }
+        } catch (_) {}
       }
 
       if (window.ClwData.getHubOpportunities) {
@@ -615,54 +639,746 @@ function renderCrmSection(container) {
   `;
 }
 
-// 4. Prodotti
+// 4. Prodotti - CATALOGO ARTICOLI & LISTINI PLUS2000
+function getProductMeta(p) {
+  if (!p) return {};
+  const code = String(p.product_code || p.code || p.id || '').trim();
+  const desc = String(p.description || p.desc || p.name || '—').trim();
+  const brand = String(p.brand || p.marca || '').trim();
+  const sector = String(p.sector || p.settore || '').trim();
+  const macroFamily = String(p.macro_family || p.macroFamily || p.macro || '').trim();
+  const family = String(p.family || p.famiglia || '').trim();
+  const classCode = String(p.class_code || p.classe || p.class || p.jclasse || '').trim();
+  const groupCode = String(p.group_code || p.group || p.gruppo || p.jgruppo || '').trim();
+  const price = Number(p.list_price ?? p.price ?? p.listino ?? 0);
+  const stock = Number(p.stock_qty ?? p.available_qty ?? p.stock ?? p.giacenza ?? 0);
+  const location = String(p.primary_location || p.location || p.ubicazione || p.ubi || '').trim();
+  const barcode = String(p.barcode || p.barcode_ean || p.ean || p.ean13 || '').trim();
+  const discountFamily = String(p.discount_family || p.discountCode || p.discount_code || p.sconto || p.jscontoven || '').trim();
+
+  let maxDiscount = null;
+  if (p.max_discount !== undefined && p.max_discount !== null && p.max_discount !== '') {
+    maxDiscount = Number(p.max_discount);
+  } else if (p.maxDiscount !== undefined && p.maxDiscount !== null && p.maxDiscount !== '') {
+    maxDiscount = Number(p.maxDiscount);
+  } else if (p.sconto_max !== undefined && p.sconto_max !== null && p.sconto_max !== '') {
+    maxDiscount = Number(p.sconto_max);
+  }
+
+  const imageUrl = p.image_url || p.imageUrl || (p.image_ref ? `https://www.domuspartes.it/immagini/${p.image_ref}` : '');
+  const isAvailable = stock > 0;
+
+  return {
+    raw: p,
+    code,
+    desc,
+    brand,
+    sector,
+    macroFamily,
+    family,
+    classCode,
+    groupCode,
+    price,
+    stock,
+    location,
+    barcode,
+    discountFamily,
+    maxDiscount,
+    imageUrl,
+    isAvailable
+  };
+}
+
+let lastFilteredProducts = [];
+
 function renderProductsSection(container) {
+  // Prepara liste uniche per i filtri dai prodotti caricati
+  const metas = HubState.products.map(getProductMeta);
+
+  const brands = [...new Set(metas.map(m => m.brand).filter(Boolean))].sort((a,b) => a.localeCompare(b));
+  const sectors = [...new Set(metas.map(m => m.sector).filter(Boolean))].sort((a,b) => a.localeCompare(b));
+  const macroFamilies = [...new Set(metas.map(m => m.macroFamily).filter(Boolean))].sort((a,b) => a.localeCompare(b));
+  const families = [...new Set(metas.map(m => m.family).filter(Boolean))].sort((a,b) => a.localeCompare(b));
+  const classes = [...new Set(metas.map(m => m.classCode).filter(Boolean))].sort((a,b) => a.localeCompare(b));
+  const groups = [...new Set(metas.map(m => m.groupCode).filter(Boolean))].sort((a,b) => a.localeCompare(b));
+
+  // KPI di sintesi
+  const totalArticles = metas.length;
+  const availableArticles = metas.filter(m => m.isAvailable).length;
+  const totalStockUnits = metas.reduce((sum, m) => sum + (m.stock > 0 ? m.stock : 0), 0);
+  const totalStockValue = metas.reduce((sum, m) => sum + (m.stock > 0 ? m.stock * m.price : 0), 0);
+
+  const pf = HubState.productFilters;
+
   container.innerHTML = `
-    <div class="card-section">
-      <div class="card-section-head">
-        <h2>Catalogo Articoli & Giacenze</h2>
-        <span class="badge-status opt-in">Collegato a PLUS2000 / Supabase</span>
+    <!-- KPI BANNER CATALOGO -->
+    <div class="kpi-grid" style="margin-bottom:20px;">
+      <div class="kpi-card">
+        <span class="label">Articoli Disponibili</span>
+        <span class="value" style="color:var(--green);">${availableArticles.toLocaleString('it-IT')}</span>
+        <span class="trend">su ${totalArticles.toLocaleString('it-IT')} articoli totali a catalogo</span>
       </div>
-      <p style="color:var(--muted); font-size:0.85rem; margin-bottom:14px;">
-        Gli articoli e le disponibilità vengono mantenuti sincronizzati dal connettore con le tabelle <code>hub_products</code> / <code>products</code>.
-      </p>
-      <div class="hub-table-wrapper">
-        <table class="hub-table">
+      <div class="kpi-card">
+        <span class="label">Pezzi in Giacenza Totale</span>
+        <span class="value">${totalStockUnits.toLocaleString('it-IT')} PZ</span>
+        <span class="trend">Disponibilità reale magazzino</span>
+      </div>
+      <div class="kpi-card">
+        <span class="label">Marche Gestite</span>
+        <span class="value" style="color:var(--blue);">${brands.length}</span>
+        <span class="trend">Produttori e partner ufficiali</span>
+      </div>
+      <div class="kpi-card">
+        <span class="label">Valore Giacenza (Listino)</span>
+        <span class="value">${euro(totalStockValue)}</span>
+        <span class="trend">Prezzo Listino VEN1</span>
+      </div>
+    </div>
+
+    <!-- CARD PRINCIPALE CATALOGO -->
+    <div class="card-section">
+      <div class="card-section-head" style="flex-wrap:wrap; gap:12px;">
+        <div>
+          <h2>Catalogo Articoli & Listini Plus2000</h2>
+          <p style="color:var(--muted); font-size:0.83rem; margin-top:2px;">
+            Filtra gli articoli per disponibilità, classificazione gerarchica, ubicazione magazzino, barcode e scaglioni di sconto.
+          </p>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <button class="btn-hub secondary" id="btnReloadProducts" title="Ricarica dal database Supabase/Plus">
+            🔄 Aggiorna
+          </button>
+          <button class="btn-hub primary" id="btnExportProductsCsv" title="Esporta la selezione corrente in formato CSV per Excel">
+            📥 Esporta CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- BARRA FILTRI AVANZATI -->
+      <div class="product-filters-card">
+        <!-- RIGA 1: RICERCA TESTUALE + TOGGLE DISPONIBILI -->
+        <div class="product-search-bar">
+          <div class="product-search-input-wrap">
+            <span class="product-search-icon">🔍</span>
+            <input type="text" id="prodSearchInput" placeholder="Cerca codice articolo, descrizione, barcode EAN, marca, ubicazione..." value="${escapeHtml(pf.search)}">
+            ${pf.search ? '<button class="product-search-clear" id="prodSearchClear">✕</button>' : ''}
+          </div>
+
+          <label class="product-toggle-box ${pf.onlyAvailable ? 'active' : ''}" id="lblOnlyAvailable" title="Mostra unicamente gli articoli con giacenza a magazzino maggiore di zero">
+            <input type="checkbox" id="chkOnlyAvailable" ${pf.onlyAvailable ? 'checked' : ''}>
+            <span style="font-size:0.85rem; font-weight:750; color:${pf.onlyAvailable ? 'var(--green)' : 'var(--ink)'};">
+              ✅ Solo disponibili (Giacenza &gt; 0)
+            </span>
+          </label>
+        </div>
+
+        <!-- RIGA 2: FILTRI A CASCATA (Marca, Settore, Macrofamiglia, Famiglia, Classe, Gruppo) -->
+        <div class="product-filters-grid">
+          <div class="filter-control-wrap">
+            <label for="prodFilterBrand">Marca (${brands.length})</label>
+            <select id="prodFilterBrand">
+              <option value="ALL">Tutte le marche</option>
+              ${brands.map(b => `<option value="${escapeHtml(b)}" ${pf.brand === b ? 'selected' : ''}>${escapeHtml(b)}</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="filter-control-wrap">
+            <label for="prodFilterSector">Settore (${sectors.length})</label>
+            <select id="prodFilterSector">
+              <option value="ALL">Tutti i settori</option>
+              ${sectors.map(s => `<option value="${escapeHtml(s)}" ${pf.sector === s ? 'selected' : ''}>${escapeHtml(s)}</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="filter-control-wrap">
+            <label for="prodFilterMacro">Macrofamiglia (${macroFamilies.length})</label>
+            <select id="prodFilterMacro">
+              <option value="ALL">Tutte le macrofamiglie</option>
+              ${macroFamilies.map(m => `<option value="${escapeHtml(m)}" ${pf.macroFamily === m ? 'selected' : ''}>${escapeHtml(m)}</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="filter-control-wrap">
+            <label for="prodFilterFamily">Famiglia (${families.length})</label>
+            <select id="prodFilterFamily">
+              <option value="ALL">Tutte le famiglie</option>
+              ${families.map(f => `<option value="${escapeHtml(f)}" ${pf.family === f ? 'selected' : ''}>${escapeHtml(f)}</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="filter-control-wrap">
+            <label for="prodFilterClass">Classe (${classes.length})</label>
+            <select id="prodFilterClass">
+              <option value="ALL">Tutte le classi</option>
+              ${classes.map(c => `<option value="${escapeHtml(c)}" ${pf.classCode === c ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="filter-control-wrap">
+            <label for="prodFilterGroup">Gruppo (${groups.length})</label>
+            <select id="prodFilterGroup">
+              <option value="ALL">Tutti i gruppi</option>
+              ${groups.map(g => `<option value="${escapeHtml(g)}" ${pf.groupCode === g ? 'selected' : ''}>${escapeHtml(g)}</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="filter-control-wrap" style="align-self:flex-end;">
+            <button class="btn-hub secondary" id="btnResetProdFilters" style="width:100%; height:36px; font-size:0.8rem; justify-content:center;">
+              ↺ Azzera Filtri
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SOTTOINTESTAZIONE CONTEGGI & RIGHE PER PAGINA -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; font-size:0.82rem; color:var(--muted); flex-wrap:wrap; gap:8px;">
+        <div>
+          Mostrati <strong id="prodFilteredCount" style="color:var(--ink);">0</strong> articoli filtrati su <strong>${totalArticles.toLocaleString('it-IT')}</strong> totali
+          <span id="prodAvailabilityIndicator" style="margin-left:8px; font-size:0.75rem; color:var(--green); font-weight:700;"></span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span>Per pagina:</span>
+          <select id="prodPageSizeSelect" style="padding:4px 8px; border-radius:6px; border:1px solid var(--line); font-size:0.8rem;">
+            <option value="25" ${pf.pageSize === 25 ? 'selected' : ''}>25</option>
+            <option value="50" ${pf.pageSize === 50 ? 'selected' : ''}>50</option>
+            <option value="100" ${pf.pageSize === 100 ? 'selected' : ''}>100</option>
+            <option value="200" ${pf.pageSize === 200 ? 'selected' : ''}>200</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- TABELLA CATALOGO -->
+      <div class="hub-table-wrapper" style="max-height: 650px; overflow-y: auto;">
+        <table class="hub-table" id="hubProductsTable">
           <thead>
             <tr>
-              <th>Codice</th>
-              <th>Descrizione</th>
-              <th>Marca</th>
-              <th>Listino</th>
-              <th>Disponibile</th>
-              <th>Marketplace</th>
+              <th style="min-width:110px;">Codice Art.</th>
+              <th style="min-width:240px;">Descrizione</th>
+              <th style="min-width:130px;">Marca</th>
+              <th style="min-width:180px;">Settore / Macro / Famiglia</th>
+              <th style="min-width:130px;">Classe / Gruppo</th>
+              <th style="min-width:100px; text-align:right;">Listino</th>
+              <th style="min-width:110px; text-align:center;">Disponibile</th>
+              <th style="min-width:110px;">Ubicazione</th>
+              <th style="min-width:130px;">Barcode EAN</th>
+              <th style="min-width:110px; text-align:center;">Classe Sconto</th>
+              <th style="min-width:110px; text-align:center;">Sconto Max</th>
+              <th style="min-width:70px; text-align:center;">Dettaglio</th>
             </tr>
           </thead>
-          <tbody>
-            ${HubState.products.length > 0 ? HubState.products.slice(0, 20).map(p => `
-              <tr>
-                <td><strong>${p.product_code || p.code || '—'}</strong></td>
-                <td>${p.description || '—'}</td>
-                <td>${p.brand || '—'}</td>
-                <td>${euro(p.list_price || p.price || 0)}</td>
-                <td><span style="color:var(--green); font-weight:700;">${p.available_qty ?? p.stock ?? '—'} PZ</span></td>
-                <td><span class="badge-status ${p.is_marketplace_enabled ? 'opt-in' : 'pending'}">${p.is_marketplace_enabled ? 'Abilitato' : 'Bozza'}</span></td>
-              </tr>
-            `).join('') : `
-              <tr>
-                <td><strong>MS230</strong></td>
-                <td>Unità Interna Climatizzatore Inverter R32</td>
-                <td>MITSUBISHI ELECTRIC</td>
-                <td>€ 640,00</td>
-                <td><span style="color:var(--green); font-weight:700;">14 PZ</span></td>
-                <td><span class="badge-status opt-in">eBay / Amazon</span></td>
-              </tr>
-            `}
+          <tbody id="hubProductsTbody">
+            <!-- Righe iniettate dinamicamente da applyProductFilters -->
           </tbody>
         </table>
       </div>
+
+      <!-- BARRA DI PAGINAZIONE -->
+      <div class="hub-pagination-bar" id="hubProductsPagination">
+        <!-- Controlli iniettati da renderProductPagination -->
+      </div>
     </div>
   `;
+
+  // BINDING EVENTI
+  const searchInput = document.getElementById('prodSearchInput');
+  const searchClear = document.getElementById('prodSearchClear');
+  const chkOnlyAvailable = document.getElementById('chkOnlyAvailable');
+  const lblOnlyAvailable = document.getElementById('lblOnlyAvailable');
+  const brandSelect = document.getElementById('prodFilterBrand');
+  const sectorSelect = document.getElementById('prodFilterSector');
+  const macroSelect = document.getElementById('prodFilterMacro');
+  const familySelect = document.getElementById('prodFilterFamily');
+  const classSelect = document.getElementById('prodFilterClass');
+  const groupSelect = document.getElementById('prodFilterGroup');
+  const pageSizeSelect = document.getElementById('prodPageSizeSelect');
+  const btnReset = document.getElementById('btnResetProdFilters');
+  const btnReload = document.getElementById('btnReloadProducts');
+  const btnExport = document.getElementById('btnExportProductsCsv');
+
+  let debounceTimer = null;
+  searchInput.oninput = e => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      HubState.productFilters.search = e.target.value;
+      HubState.productFilters.page = 1;
+      applyProductFilters();
+    }, 200);
+  };
+
+  if (searchClear) {
+    searchClear.onclick = () => {
+      searchInput.value = '';
+      HubState.productFilters.search = '';
+      HubState.productFilters.page = 1;
+      applyProductFilters();
+    };
+  }
+
+  chkOnlyAvailable.onchange = e => {
+    HubState.productFilters.onlyAvailable = e.target.checked;
+    HubState.productFilters.page = 1;
+    if (lblOnlyAvailable) {
+      lblOnlyAvailable.classList.toggle('active', e.target.checked);
+    }
+    applyProductFilters();
+  };
+
+  brandSelect.onchange = e => {
+    HubState.productFilters.brand = e.target.value;
+    HubState.productFilters.page = 1;
+    applyProductFilters();
+  };
+
+  sectorSelect.onchange = e => {
+    HubState.productFilters.sector = e.target.value;
+    HubState.productFilters.page = 1;
+    applyProductFilters();
+  };
+
+  macroSelect.onchange = e => {
+    HubState.productFilters.macroFamily = e.target.value;
+    HubState.productFilters.page = 1;
+    applyProductFilters();
+  };
+
+  familySelect.onchange = e => {
+    HubState.productFilters.family = e.target.value;
+    HubState.productFilters.page = 1;
+    applyProductFilters();
+  };
+
+  classSelect.onchange = e => {
+    HubState.productFilters.classCode = e.target.value;
+    HubState.productFilters.page = 1;
+    applyProductFilters();
+  };
+
+  groupSelect.onchange = e => {
+    HubState.productFilters.groupCode = e.target.value;
+    HubState.productFilters.page = 1;
+    applyProductFilters();
+  };
+
+  pageSizeSelect.onchange = e => {
+    HubState.productFilters.pageSize = Number(e.target.value) || 50;
+    HubState.productFilters.page = 1;
+    applyProductFilters();
+  };
+
+  btnReset.onclick = () => {
+    HubState.productFilters = {
+      search: '',
+      onlyAvailable: true, // Default: solo disponibili
+      brand: 'ALL',
+      sector: 'ALL',
+      macroFamily: 'ALL',
+      family: 'ALL',
+      classCode: 'ALL',
+      groupCode: 'ALL',
+      page: 1,
+      pageSize: 50
+    };
+    searchInput.value = '';
+    chkOnlyAvailable.checked = true;
+    if (lblOnlyAvailable) lblOnlyAvailable.classList.add('active');
+    brandSelect.value = 'ALL';
+    sectorSelect.value = 'ALL';
+    macroSelect.value = 'ALL';
+    familySelect.value = 'ALL';
+    classSelect.value = 'ALL';
+    groupSelect.value = 'ALL';
+    pageSizeSelect.value = '50';
+    applyProductFilters();
+  };
+
+  btnReload.onclick = async () => {
+    btnReload.disabled = true;
+    btnReload.textContent = '⏳ Caricamento...';
+    try {
+      if (window.ClwData && window.ClwData.getProducts) {
+        const prods = await window.ClwData.getProducts({ forceRefresh: true });
+        if (prods && prods.length) HubState.products = prods;
+      }
+      renderProductsSection(container);
+    } catch (e) {
+      alert('Errore ricaricamento: ' + e.message);
+    } finally {
+      btnReload.disabled = false;
+      btnReload.textContent = '🔄 Aggiorna';
+    }
+  };
+
+  btnExport.onclick = () => {
+    exportProductsToCsv(lastFilteredProducts);
+  };
+
+  applyProductFilters();
+}
+
+function applyProductFilters() {
+  const tbody = document.getElementById('hubProductsTbody');
+  const countEl = document.getElementById('prodFilteredCount');
+  const availInd = document.getElementById('prodAvailabilityIndicator');
+  const paginEl = document.getElementById('hubProductsPagination');
+  if (!tbody) return;
+
+  const pf = HubState.productFilters;
+  const q = (pf.search || '').toLowerCase().trim();
+  const qClean = q.replace(/\s+/g, '');
+
+  const fBrand = pf.brand;
+  const fSector = pf.sector;
+  const fMacro = pf.macroFamily;
+  const fFamily = pf.family;
+  const fClass = pf.classCode;
+  const fGroup = pf.groupCode;
+  const onlyAvail = pf.onlyAvailable;
+
+  const filtered = HubState.products.map(getProductMeta).filter(m => {
+    // 1. Filtro disponibilità
+    if (onlyAvail && !m.isAvailable) {
+      return false;
+    }
+
+    // 2. Filtro testuale rapido
+    if (q) {
+      const matchCode = m.code.toLowerCase().includes(q) || m.code.toLowerCase().replace(/\s+/g, '').includes(qClean);
+      const matchDesc = m.desc.toLowerCase().includes(q);
+      const matchBrand = m.brand.toLowerCase().includes(q);
+      const matchBarcode = m.barcode.toLowerCase().includes(q) || m.barcode.replace(/\s+/g, '').includes(qClean);
+      const matchLoc = m.location.toLowerCase().includes(q);
+      if (!matchCode && !matchDesc && !matchBrand && !matchBarcode && !matchLoc) {
+        return false;
+      }
+    }
+
+    // 3. Filtro Marca
+    if (fBrand !== 'ALL' && m.brand !== fBrand) {
+      return false;
+    }
+
+    // 4. Filtro Settore
+    if (fSector !== 'ALL' && m.sector !== fSector) {
+      return false;
+    }
+
+    // 5. Filtro Macrofamiglia
+    if (fMacro !== 'ALL' && m.macroFamily !== fMacro) {
+      return false;
+    }
+
+    // 6. Filtro Famiglia
+    if (fFamily !== 'ALL' && m.family !== fFamily) {
+      return false;
+    }
+
+    // 7. Filtro Classe
+    if (fClass !== 'ALL' && m.classCode !== fClass) {
+      return false;
+    }
+
+    // 8. Filtro Gruppo
+    if (fGroup !== 'ALL' && m.groupCode !== fGroup) {
+      return false;
+    }
+
+    return true;
+  });
+
+  lastFilteredProducts = filtered;
+
+  if (countEl) countEl.textContent = filtered.length.toLocaleString('it-IT');
+  if (availInd) {
+    availInd.textContent = onlyAvail ? '(solo giacenza > 0)' : '(catalogo completo inclusi esauriti)';
+    availInd.style.color = onlyAvail ? 'var(--green)' : 'var(--muted)';
+  }
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="12" style="text-align:center; padding:40px 20px; color:var(--muted);">
+          <div style="font-size:2.2rem; margin-bottom:8px;">🔍</div>
+          <strong style="font-size:1rem; color:var(--ink);">Nessun articolo trovato</strong>
+          <p style="font-size:0.85rem; margin-top:4px;">
+            ${onlyAvail ? 'Nessun articolo con giacenza disponibile corrisponde ai filtri selezionati. Prova a deselezionare "Solo disponibili" o ad azzerare i filtri.' : 'Nessun articolo corrisponde ai parametri di ricerca selezionati.'}
+          </p>
+        </td>
+      </tr>
+    `;
+    if (paginEl) paginEl.innerHTML = '';
+    return;
+  }
+
+  // Paginazione
+  const pageSize = pf.pageSize || 50;
+  const totalPages = Math.ceil(filtered.length / pageSize) || 1;
+  if (pf.page > totalPages) pf.page = totalPages;
+  if (pf.page < 1) pf.page = 1;
+
+  const startIdx = (pf.page - 1) * pageSize;
+  const pageItems = filtered.slice(startIdx, startIdx + pageSize);
+
+  tbody.innerHTML = pageItems.map(m => {
+    // Pillole di classificazione
+    const catTags = [
+      m.sector ? `<span class="badge-category-pill" title="Settore">${escapeHtml(m.sector)}</span>` : '',
+      m.macroFamily ? `<span class="badge-category-pill" title="Macrofamiglia">${escapeHtml(m.macroFamily)}</span>` : '',
+      m.family ? `<span class="badge-category-pill" title="Famiglia">${escapeHtml(m.family)}</span>` : ''
+    ].filter(Boolean).join('');
+
+    const classGroupTags = [
+      m.classCode ? `<span class="badge-category-pill" title="Classe">${escapeHtml(m.classCode)}</span>` : '',
+      m.groupCode ? `<span class="badge-category-pill" title="Gruppo">${escapeHtml(m.groupCode)}</span>` : ''
+    ].filter(Boolean).join('');
+
+    // Formattazione Barcode
+    let barcodeDisplay = '<span style="color:var(--muted); font-size:0.75rem;">—</span>';
+    if (m.barcode) {
+      const parts = m.barcode.split(',').map(s => s.trim()).filter(Boolean);
+      const primary = parts[0];
+      const extraCount = parts.length > 1 ? ` (+${parts.length - 1})` : '';
+      barcodeDisplay = `<span class="badge-barcode" title="${escapeHtml(m.barcode)}">🏷️ ${escapeHtml(primary)}${extraCount}</span>`;
+    }
+
+    // Formattazione Ubicazione
+    let locationDisplay = '<span style="color:var(--muted); font-size:0.75rem;">—</span>';
+    if (m.location) {
+      locationDisplay = `<span class="badge-location" title="Ubicazione di magazzino: ${escapeHtml(m.location)}">📍 ${escapeHtml(m.location)}</span>`;
+    }
+
+    // Formattazione Sconto Max
+    let maxDiscountDisplay = '<span style="color:var(--muted); font-size:0.75rem;">—</span>';
+    if (m.maxDiscount !== null && !isNaN(m.maxDiscount) && m.maxDiscount > 0) {
+      maxDiscountDisplay = `<span class="badge-max-discount" title="Sconto massimo consentito: ${m.maxDiscount}%">Max ${m.maxDiscount}%</span>`;
+    }
+
+    // Formattazione Classe Sconto
+    let discountFamilyDisplay = '<span style="color:var(--muted); font-size:0.75rem;">—</span>';
+    if (m.discountFamily) {
+      discountFamilyDisplay = `<span class="badge-discount-family" title="Famiglia/Classe di sconto: ${escapeHtml(m.discountFamily)}">${escapeHtml(m.discountFamily)}</span>`;
+    }
+
+    return `
+      <tr>
+        <td>
+          <strong style="color:var(--blue); cursor:pointer;" onclick="showProductDetailModal('${escapeHtml(m.code)}')">${escapeHtml(m.code)}</strong>
+        </td>
+        <td>
+          <div style="font-weight:600; font-size:0.83rem;">${escapeHtml(m.desc)}</div>
+        </td>
+        <td>
+          <span style="font-weight:700; color:var(--ink);">${escapeHtml(m.brand || '—')}</span>
+        </td>
+        <td>
+          <div>${catTags || '<span style="color:var(--muted); font-size:0.75rem;">—</span>'}</div>
+        </td>
+        <td>
+          <div>${classGroupTags || '<span style="color:var(--muted); font-size:0.75rem;">—</span>'}</div>
+        </td>
+        <td style="text-align:right; font-weight:800; color:var(--ink);">
+          ${euro(m.price)}
+        </td>
+        <td style="text-align:center;">
+          <span class="badge-stock ${m.isAvailable ? 'in-stock' : 'out-of-stock'}">
+            ${m.isAvailable ? '✅ ' : ''}${m.stock.toLocaleString('it-IT')} PZ
+          </span>
+        </td>
+        <td>${locationDisplay}</td>
+        <td>${barcodeDisplay}</td>
+        <td style="text-align:center;">${discountFamilyDisplay}</td>
+        <td style="text-align:center;">${maxDiscountDisplay}</td>
+        <td style="text-align:center;">
+          <button class="btn-hub secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="showProductDetailModal('${escapeHtml(m.code)}')" title="Visualizza scheda articolo completa">
+            👁️
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  renderProductPagination(paginEl, filtered.length, totalPages, pf.page, pageSize);
+}
+
+function renderProductPagination(container, totalItems, totalPages, currentPage, pageSize) {
+  if (!container) return;
+  if (totalItems <= pageSize && currentPage === 1) {
+    container.innerHTML = `
+      <div style="color:var(--muted); font-size:0.8rem;">
+        Mostrati tutti i <strong>${totalItems.toLocaleString('it-IT')}</strong> articoli
+      </div>
+    `;
+    return;
+  }
+
+  const startIdx = (currentPage - 1) * pageSize + 1;
+  const endIdx = Math.min(currentPage * pageSize, totalItems);
+
+  container.innerHTML = `
+    <div style="color:var(--muted); font-size:0.8rem;">
+      Articoli <strong>${startIdx.toLocaleString('it-IT')} - ${endIdx.toLocaleString('it-IT')}</strong> di <strong>${totalItems.toLocaleString('it-IT')}</strong> (Pagina ${currentPage} di ${totalPages})
+    </div>
+    <div class="pagination-controls">
+      <button class="btn-page" ${currentPage <= 1 ? 'disabled' : ''} onclick="changeProductPage(1)" title="Prima pagina">
+        ⏮️ Prima
+      </button>
+      <button class="btn-page" ${currentPage <= 1 ? 'disabled' : ''} onclick="changeProductPage(${currentPage - 1})" title="Pagina precedente">
+        ◀️ Precedente
+      </button>
+      <span style="font-weight:750; padding:0 8px;">Pag. ${currentPage} / ${totalPages}</span>
+      <button class="btn-page" ${currentPage >= totalPages ? 'disabled' : ''} onclick="changeProductPage(${currentPage + 1})" title="Pagina successiva">
+        Successiva ▶️
+      </button>
+      <button class="btn-page" ${currentPage >= totalPages ? 'disabled' : ''} onclick="changeProductPage(${totalPages})" title="Ultima pagina">
+        Ultima ⏭️
+      </button>
+    </div>
+  `;
+}
+
+window.changeProductPage = function(page) {
+  HubState.productFilters.page = page;
+  applyProductFilters();
+  const tableWrapper = document.querySelector('.hub-table-wrapper');
+  if (tableWrapper) tableWrapper.scrollTop = 0;
+};
+
+window.showProductDetailModal = function(code) {
+  const prod = HubState.products.find(p => {
+    const m = getProductMeta(p);
+    return m.code === code;
+  });
+  if (!prod) return;
+  const m = getProductMeta(prod);
+
+  // Rimuovi eventuali modali aperti
+  const existingModal = document.getElementById('hubProductDetailModal');
+  if (existingModal) existingModal.remove();
+
+  const modalHtml = `
+    <div class="hub-modal-backdrop" id="hubProductDetailModal" onclick="if(event.target === this) this.remove();">
+      <div class="hub-modal-card">
+        <button class="hub-modal-close" onclick="document.getElementById('hubProductDetailModal').remove();">✕</button>
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--line);">
+          <div>
+            <span class="badge-status opt-in" style="font-size:0.75rem; margin-bottom:4px;">Articolo Plus 2000</span>
+            <h2 style="font-size:1.25rem; font-weight:800; color:var(--ink);">${escapeHtml(m.code)}</h2>
+            <div style="font-weight:600; color:var(--muted); font-size:0.9rem; margin-top:2px;">${escapeHtml(m.desc)}</div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:18px;">
+          <div style="background:#f8fafc; border:1px solid var(--line); border-radius:8px; padding:12px;">
+            <div style="font-size:0.7rem; font-weight:750; color:var(--muted); text-transform:uppercase;">Marca</div>
+            <div style="font-size:1rem; font-weight:800; color:var(--ink); margin-top:2px;">${escapeHtml(m.brand || '—')}</div>
+          </div>
+
+          <div style="background:#f8fafc; border:1px solid var(--line); border-radius:8px; padding:12px;">
+            <div style="font-size:0.7rem; font-weight:750; color:var(--muted); text-transform:uppercase;">Listino Prezzi VEN1</div>
+            <div style="font-size:1.1rem; font-weight:900; color:var(--blue); margin-top:2px;">${euro(m.price)}</div>
+          </div>
+
+          <div style="background:#f8fafc; border:1px solid var(--line); border-radius:8px; padding:12px;">
+            <div style="font-size:0.7rem; font-weight:750; color:var(--muted); text-transform:uppercase;">Giacenza Disponibile</div>
+            <div style="font-size:1.1rem; font-weight:900; color:${m.isAvailable ? 'var(--green)' : 'var(--muted)'}; margin-top:2px;">
+              ${m.stock.toLocaleString('it-IT')} PZ
+            </div>
+          </div>
+
+          <div style="background:#f8fafc; border:1px solid var(--line); border-radius:8px; padding:12px;">
+            <div style="font-size:0.7rem; font-weight:750; color:var(--muted); text-transform:uppercase;">Ubicazione Scaffale</div>
+            <div style="font-size:1rem; font-weight:800; color:#1d4ed8; margin-top:2px;">
+              ${m.location ? `📍 ${escapeHtml(m.location)}` : '—'}
+            </div>
+          </div>
+        </div>
+
+        <!-- DETTAGLI CLASSIFICAZIONE E SCONTO -->
+        <div style="border:1px solid var(--line); border-radius:8px; padding:14px; margin-bottom:16px; background:#fff;">
+          <h4 style="font-size:0.85rem; font-weight:800; margin-bottom:10px; color:var(--ink);">Classificazione Merceologica & Sconti</h4>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:0.82rem;">
+            <div><strong>Settore:</strong> ${escapeHtml(m.sector || '—')}</div>
+            <div><strong>Macrofamiglia:</strong> ${escapeHtml(m.macroFamily || '—')}</div>
+            <div><strong>Famiglia:</strong> ${escapeHtml(m.family || '—')}</div>
+            <div><strong>Classe:</strong> ${escapeHtml(m.classCode || '—')}</div>
+            <div><strong>Gruppo:</strong> ${escapeHtml(m.groupCode || '—')}</div>
+            <div><strong>Classe Sconto:</strong> ${m.discountFamily ? `<span class="badge-discount-family">${escapeHtml(m.discountFamily)}</span>` : '—'}</div>
+            <div><strong>Sconto Max:</strong> ${m.maxDiscount !== null ? `<span class="badge-max-discount">Max ${m.maxDiscount}%</span>` : '—'}</div>
+            <div><strong>Barcode EAN:</strong> ${m.barcode ? `<span class="badge-barcode">🏷️ ${escapeHtml(m.barcode)}</span>` : '—'}</div>
+          </div>
+        </div>
+
+        ${m.imageUrl ? `
+          <div style="text-align:center; padding:10px; background:#f8fafc; border:1px solid var(--line); border-radius:8px; margin-bottom:16px;">
+            <img src="${escapeHtml(m.imageUrl)}" alt="${escapeHtml(m.code)}" style="max-height:180px; max-width:100%; object-fit:contain; border-radius:4px;" onerror="this.parentElement.style.display='none';">
+          </div>
+        ` : ''}
+
+        <div style="display:flex; justify-content:flex-end; gap:8px;">
+          <a href="/offerta?new=1&type=offer&addCode=${encodeURIComponent(m.code)}" class="btn-hub primary" style="font-size:0.82rem;">
+            ✍️ Includi in Nuova Offerta
+          </a>
+          <button class="btn-hub secondary" onclick="document.getElementById('hubProductDetailModal').remove();" style="font-size:0.82rem;">
+            Chiudi
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+};
+
+function exportProductsToCsv(products) {
+  if (!products || !products.length) {
+    alert('Nessun articolo filtrato da esportare.');
+    return;
+  }
+
+  const headers = [
+    'Codice Articolo',
+    'Descrizione',
+    'Marca',
+    'Settore',
+    'Macrofamiglia',
+    'Famiglia',
+    'Classe',
+    'Gruppo',
+    'Prezzo Listino EUR',
+    'Giacenza PZ',
+    'Ubicazione',
+    'Barcode EAN',
+    'Classe Sconto',
+    'Sconto Max Percentuale'
+  ];
+
+  const rows = products.map(m => [
+    `"${(m.code || '').replace(/"/g, '""')}"`,
+    `"${(m.desc || '').replace(/"/g, '""')}"`,
+    `"${(m.brand || '').replace(/"/g, '""')}"`,
+    `"${(m.sector || '').replace(/"/g, '""')}"`,
+    `"${(m.macroFamily || '').replace(/"/g, '""')}"`,
+    `"${(m.family || '').replace(/"/g, '""')}"`,
+    `"${(m.classCode || '').replace(/"/g, '""')}"`,
+    `"${(m.groupCode || '').replace(/"/g, '""')}"`,
+    m.price.toFixed(2).replace('.', ','),
+    m.stock.toString().replace('.', ','),
+    `"${(m.location || '').replace(/"/g, '""')}"`,
+    `"${(m.barcode || '').replace(/"/g, '""')}"`,
+    `"${(m.discountFamily || '').replace(/"/g, '""')}"`,
+    m.maxDiscount !== null ? m.maxDiscount.toString().replace('.', ',') : ''
+  ]);
+
+  const csvContent = '\uFEFF' + [headers.join(';'), ...rows.map(r => r.join(';'))].join('\r\r\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const dateStr = new Date().toISOString().slice(0, 10);
+  a.download = `Climawell_Catalogo_Articoli_${dateStr}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 // 5. WhatsApp & Marketing (Brevo DEM + Meta WhatsApp)
