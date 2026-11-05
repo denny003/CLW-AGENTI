@@ -489,6 +489,186 @@
       transition: opacity 0.2s ease;
     }
     .toast.show { opacity: 1; }
+
+    /* Gestione Ordini & Controllo Disponibilita */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .kpi-card {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      text-align: center;
+    }
+    .kpi-num {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--navy);
+      line-height: 1.1;
+    }
+    .kpi-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.2px;
+      margin-top: 3px;
+    }
+    .kpi-card.ready { border-color: #86efac; background: #f0fdf4; }
+    .kpi-card.ready .kpi-num { color: #15803d; }
+    .kpi-card.in-picking { border-color: #93c5fd; background: #eff6ff; }
+    .kpi-card.in-picking .kpi-num { color: #1d4ed8; }
+
+    .filter-pills-bar {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      margin-bottom: 12px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .filter-pill-btn {
+      white-space: nowrap;
+      border: 1px solid var(--border);
+      background: #fff;
+      padding: 5px 11px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #475569;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .filter-pill-btn:hover { background: #f1f5f9; }
+    .filter-pill-btn.active {
+      background: var(--navy);
+      color: #fff;
+      border-color: var(--navy);
+    }
+
+    /* Card Ordine Selezionato */
+    .order-detail-box {
+      background: #ffffff;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 14px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    }
+    .order-detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+    .order-num-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--navy);
+    }
+    .status-chip {
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.2px;
+    }
+    .status-chip.aperto { background: #ffedd5; color: #c2410c; }
+    .status-chip.preparazione { background: #dbeafe; color: #1d4ed8; }
+    .status-chip.pronto { background: #dcfce7; color: #15803d; }
+
+    /* Box Controllo Disponibilita Materiale */
+    .stock-check-box {
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 10px;
+      margin-bottom: 6px;
+    }
+    .stock-check-box.ready {
+      background: #f0fdf4;
+      border: 2px solid #86efac;
+    }
+    .stock-check-box.partial {
+      background: #fffbeb;
+      border: 2px solid #fde68a;
+    }
+    .stock-check-box.missing {
+      background: #fef2f2;
+      border: 2px solid #fecaca;
+    }
+    .stock-status-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .stock-pill {
+      font-weight: 800;
+      font-size: 0.8rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .stock-pill.green { background: #15803d; color: #fff; }
+    .stock-pill.yellow { background: #b45309; color: #fff; }
+    .stock-pill.red { background: #b91c1c; color: #fff; }
+
+    .btn-assign-warehouse {
+      width: 100%;
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 10px;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+      transition: all 0.2s ease;
+    }
+    .btn-assign-warehouse:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(2, 132, 199, 0.4);
+    }
+    .btn-assign-warehouse.partial {
+      background: linear-gradient(135deg, #d97706, #b45309);
+      box-shadow: 0 4px 14px rgba(217, 119, 6, 0.3);
+    }
+
+    .stock-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 6px;
+    }
+    .stock-chip.ok {
+      background: #dcfce7;
+      color: #15803d;
+      border: 1px solid #86efac;
+    }
+    .stock-chip.low {
+      background: #fee2e2;
+      color: #b91c1c;
+      border: 1px solid #fca5a5;
+    }
   </style>
 </head>
 <body>
@@ -526,20 +706,54 @@
     <!-- TAB 1: PICKING & PREPARAZIONE ORDINI -->
     <section id="tabPicking" class="tab-content">
       <div class="card">
-        <h2 style="margin:0 0 10px; font-size:1.15rem; color:var(--navy);">🎯 Preparazione Ordine (Picking)</h2>
-        <p style="margin:0 0 14px; font-size:0.85rem; color:var(--muted);">
-          Gli articoli sono ordinati secondo il <strong>percorso ottico in magazzino</strong> per ubicazione.
-        </p>
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+          <div>
+            <h2 style="margin:0; font-size:1.15rem; color:var(--navy);">🎯 Preparazione Ordini & Picking</h2>
+            <div style="font-size:0.8rem; color:var(--muted); margin-top:2px;">Ordini Plus 2000 aperti (evasione = N) • Verifica disponibilità materiale</div>
+          </div>
+          <button id="btnSyncPlusOrders" class="btn-step" style="font-size:0.78rem; padding:6px 12px; border-radius:8px; border:1px solid #0284c7; color:#0284c7; background:#f0f9ff; display:flex; align-items:center; gap:5px; font-weight:700; cursor:pointer;" title="Sincronizza ordini e giacenze da Plus 2000">
+            🔄 <span>Sync Plus</span>
+          </button>
+        </div>
+
+        <!-- KPI Contatori Rapidi -->
+        <div class="kpi-row">
+          <div class="kpi-card">
+            <div class="kpi-num" id="statTotalOrders">0</div>
+            <div class="kpi-label">Ordini Aperti</div>
+          </div>
+          <div class="kpi-card ready">
+            <div class="kpi-num" id="statReadyOrders">0</div>
+            <div class="kpi-label">Materiale Pronto</div>
+          </div>
+          <div class="kpi-card in-picking">
+            <div class="kpi-num" id="statInPickingOrders">0</div>
+            <div class="kpi-label">In Picking</div>
+          </div>
+        </div>
+
+        <!-- Filtri Rapidi -->
+        <div class="filter-pills-bar">
+          <button type="button" class="filter-pill-btn active" data-filter="all">Tutti gli aperti</button>
+          <button type="button" class="filter-pill-btn" data-filter="ready">🟢 Materiale Pronto (100%)</button>
+          <button type="button" class="filter-pill-btn" data-filter="in_progress">📦 In Preparazione Magazzino</button>
+          <button type="button" class="filter-pill-btn" data-filter="to_assign">⏳ Da Assegnare a Magazzino</button>
+        </div>
 
         <label style="display:block; font-size:0.8rem; font-weight:700; margin-bottom:6px;">Seleziona Ordine Cliente da Preparare:</label>
-        <select id="selOrderToPick" style="width:100%; padding:10px; border-radius:8px; border:2px solid var(--border); font-size:0.95rem; font-weight:600; background:#fff; margin-bottom:14px;">
+        <select id="selOrderToPick" style="width:100%; padding:10px 12px; border-radius:8px; border:2px solid var(--border); font-size:0.95rem; font-weight:600; background:#fff; margin-bottom:12px;">
           <option value="">Caricamento ordini aperti…</option>
         </select>
 
         <div class="scan-bar">
-          <input type="text" id="pickBarcodeInput" class="scan-input" placeholder="Inquadra Barcode o digita codice…" autofocus>
+          <input type="text" id="pickBarcodeInput" class="scan-input" placeholder="Inquadra Barcode o digita codice per spunta…" autofocus>
           <button class="btn-camera" id="btnScanPicking" title="Apri Fotocamera">📷</button>
         </div>
+      </div>
+
+      <!-- Scheda Dettaglio Ordine Selezionato & Verifica Disponibilita Materiale -->
+      <div id="orderDetailCard" class="order-detail-box hidden">
+        <!-- Generato dinamicamente in JS -->
       </div>
 
       <!-- Picking items checklist -->
@@ -547,13 +761,13 @@
         <div class="empty-state">
           <div class="empty-icon">📋</div>
           <strong>Nessun ordine selezionato</strong>
-          <div>Seleziona un ordine dal menu sopra per avviare il percorso di picking.</div>
+          <div>Seleziona un ordine dal menu sopra per verificare il materiale e avviare il picking.</div>
         </div>
       </div>
 
       <!-- Completa ordine footer button -->
       <div id="pickingFooter" class="card hidden" style="margin-top:14px; text-align:center;">
-        <div style="font-size:0.95rem; font-weight:700; margin-bottom:10px;">Avanzamento: <span id="pickingProgress">0 / 0</span> articoli spuntati</div>
+        <div style="font-size:0.95rem; font-weight:700; margin-bottom:10px;">Avanzamento Picking: <span id="pickingProgress">0 / 0</span> articoli spuntati</div>
         <button id="btnCompleteOrder" class="btn-primary" style="background:var(--success);">
           ✅ Completa Preparazione & Segna Pronto per Spedizione
         </button>
@@ -625,15 +839,10 @@
           Accompagna l'installatore in corsia, scansiona i prodotti prelevati e genera un <strong>Preventivo</strong> o un <strong>DDT di Consegna Immediata</strong>.
         </p>
 
-        <label style="display:block; font-size:0.82rem; font-weight:700; color:var(--navy); margin-bottom:6px;">👤 Cliente al Banco (Cerca per Iniziale o Numero Conto):</label>
-        <div style="display:flex; gap:8px; margin-bottom:8px;">
-          <input type="text" id="txtSearchCounterCustomer" class="scan-input" style="flex:1; padding:9px 12px; font-size:0.92rem; border:2px solid #0284c7; background:#f0f9ff;" placeholder="🔍 Digita iniziale o n° conto (es. 151, FORASASSI)..." autocomplete="off">
-          <button type="button" id="btnClearCounterCust" class="btn-step" style="padding:0 12px; font-size:0.9rem; border-radius:8px;" title="Azzera">✕</button>
-        </div>
-        <select id="selCounterCustomer" style="width:100%; padding:10px; border-radius:8px; border:2px solid var(--border); font-size:0.95rem; font-weight:600; background:#fff; margin-bottom:6px;">
+        <label style="display:block; font-size:0.8rem; font-weight:700; margin-bottom:6px;">Seleziona Cliente Presente al Banco:</label>
+        <select id="selCounterCustomer" style="width:100%; padding:10px; border-radius:8px; border:2px solid var(--border); font-size:0.95rem; font-weight:600; background:#fff; margin-bottom:14px;">
           <option value="">Seleziona cliente dall'anagrafica…</option>
         </select>
-        <div id="counterCustFeedback" style="font-size:0.78rem; color:#0369a1; margin-bottom:14px; font-weight:600; min-height:16px;"></div>
 
         <div class="scan-bar">
           <input type="text" id="counterBarcodeInput" class="scan-input" placeholder="Scansiona prodotto dal ripiano…">
@@ -930,7 +1139,294 @@
       if (e.key === 'Enter') await handleCounterBarcode(e.target.value.trim());
     };
 
-    // --- TAB 1: PICKING ---
+    // --- TAB 1: PICKING & CONTROLLO DISPONIBILITÀ MATERIALE ---
+    let selectedOrder = null;
+    let activeOrderFilter = 'all';
+    let productMap = new Map();
+
+    function updateProductMap() {
+      productMap.clear();
+      for (const p of allProducts) {
+        const code = String(p.code || '').trim().toUpperCase();
+        if (code) productMap.set(code, p);
+      }
+    }
+
+    // Calcola disponibilità materiale per un ordine rispetto alle giacenze live
+    function computeOrderStock(ord) {
+      const lines = ord.document_lines || ord.lines || [];
+      let readyLines = 0;
+      let totalQty = 0;
+      let readyQty = 0;
+
+      for (const l of lines) {
+        const code = String(l.product_code || '').trim().toUpperCase();
+        const prod = productMap.get(code);
+        const stock = Number(prod?.stock_qty != null ? prod.stock_qty : (prod?.stock != null ? prod.stock : 0));
+        const req = Number(l.quantity || 1);
+        const isReady = (stock >= req);
+        l.current_stock = stock;
+        l.is_stock_ready = isReady;
+        l.prod_brand = prod?.brand || l.brand || 'Climawell';
+        l.prod_loc = l.location || prod?.primary_location || prod?.location || 'Magazzino';
+
+        totalQty += req;
+        if (isReady) {
+          readyLines++;
+          readyQty += req;
+        } else {
+          readyQty += Math.max(0, Math.min(req, stock));
+        }
+      }
+
+      const totalLines = lines.length;
+      const is100Ready = (totalLines > 0 && readyLines === totalLines);
+      const isPartialReady = (readyLines > 0 && readyLines < totalLines);
+      const isOutOfStock = (totalLines > 0 && readyLines === 0);
+
+      return {
+        totalLines,
+        readyLines,
+        totalQty,
+        readyQty,
+        is100Ready,
+        isPartialReady,
+        isOutOfStock
+      };
+    }
+
+    // Renderizza selettore ordini e aggiorna KPI
+    function renderOrderSelector(filter = activeOrderFilter) {
+      activeOrderFilter = filter;
+      document.querySelectorAll('.filter-pill-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.filter === filter);
+      });
+
+      let countTotal = activeOrders.length;
+      let countReady = 0;
+      let countInPicking = 0;
+
+      const enrichedOrders = activeOrders.map(ord => {
+        const stockInfo = computeOrderStock(ord);
+        if (stockInfo.is100Ready) countReady++;
+        if (ord.status === 'In Preparazione') countInPicking++;
+        return { ...ord, stockInfo };
+      });
+
+      const elTotal = document.getElementById('statTotalOrders');
+      const elReady = document.getElementById('statReadyOrders');
+      const elInPicking = document.getElementById('statInPickingOrders');
+      if (elTotal) elTotal.textContent = countTotal;
+      if (elReady) elReady.textContent = countReady;
+      if (elInPicking) elInPicking.textContent = countInPicking;
+
+      let filtered = enrichedOrders;
+      if (filter === 'ready') {
+        filtered = enrichedOrders.filter(o => o.stockInfo.is100Ready);
+      } else if (filter === 'in_progress') {
+        filtered = enrichedOrders.filter(o => o.status === 'In Preparazione');
+      } else if (filter === 'to_assign') {
+        filtered = enrichedOrders.filter(o => o.status !== 'In Preparazione' && o.status !== 'Preparato');
+      }
+
+      const sel = document.getElementById('selOrderToPick');
+      if (!sel) return;
+
+      if (!filtered.length) {
+        sel.innerHTML = '<option value="">Nessun ordine trovato per questo filtro</option>';
+        const dCard = document.getElementById('orderDetailCard');
+        if (dCard) dCard.classList.add('hidden');
+        currentPickingLines = [];
+        selectedOrder = null;
+        renderPickingLines();
+        return;
+      }
+
+      const curVal = sel.value;
+      sel.innerHTML = '<option value="">-- Seleziona ordine cliente da preparare --</option>' +
+        filtered.map(o => {
+          let prefix = '';
+          if (o.status === 'In Preparazione') {
+            prefix = '📦 [IN PICKING] ';
+          } else if (o.stockInfo.is100Ready) {
+            prefix = '🟢 [PRONTO 100%] ';
+          } else if (o.stockInfo.isPartialReady) {
+            const pct = Math.round((o.stockInfo.readyLines / o.stockInfo.totalLines) * 100);
+            prefix = `🟡 [PARZIALE ${pct}%] `;
+          } else {
+            prefix = '🔴 [MANCANTE] ';
+          }
+          const cName = o.customer_name || 'Cliente';
+          const linesCount = o.stockInfo.totalLines;
+          return `<option value="${o.number}">${prefix}${o.number} - ${cName} (${linesCount} ${linesCount === 1 ? 'riga' : 'righe'})</option>`;
+        }).join('');
+
+      if (curVal && filtered.some(o => o.number === curVal)) {
+        sel.value = curVal;
+      } else if (selectedOrder && filtered.some(o => o.number === selectedOrder.number)) {
+        sel.value = selectedOrder.number;
+      }
+    }
+
+    // Gestione selezione ordine
+    function onOrderSelected(orderNumber) {
+      const ord = activeOrders.find(o => o.number === orderNumber || o.id === orderNumber);
+      selectedOrder = ord;
+      const detailCard = document.getElementById('orderDetailCard');
+
+      if (!ord) {
+        if (detailCard) detailCard.classList.add('hidden');
+        currentPickingLines = [];
+        renderPickingLines();
+        return;
+      }
+
+      const stockInfo = computeOrderStock(ord);
+      currentPickingLines = (ord.document_lines || ord.lines || []).map(l => ({
+        ...l,
+        picked_qty: Number(l.picked_qty) || 0,
+        is_completed: Boolean(l.is_completed)
+      }));
+
+      let statusBadgeCls = 'aperto';
+      let statusLabel = '⏳ Aperto (Evaso = N)';
+      if (ord.status === 'In Preparazione') {
+        statusBadgeCls = 'preparazione';
+        statusLabel = '📦 In Preparazione Magazzino';
+      } else if (ord.status === 'Preparato') {
+        statusBadgeCls = 'pronto';
+        statusLabel = '✅ Preparato per Spedizione';
+      }
+
+      let stockHtml = '';
+      if (stockInfo.is100Ready) {
+        stockHtml = `
+          <div class="stock-check-box ready">
+            <div class="stock-status-banner">
+              <span class="stock-pill green">🟢 MATERIALE 100% PRONTO A MAGAZZINO</span>
+              <span style="font-size:0.8rem; font-weight:700; color:#15803d;">${stockInfo.readyLines}/${stockInfo.totalLines} articoli disponibili (${stockInfo.totalQty} PZ)</span>
+            </div>
+            <div style="font-size:0.85rem; color:#166534; margin-top:4px;">
+              Tutti i prodotti dell'ordine sono a scaffale nelle quantità richieste.
+            </div>
+            ${ord.status !== 'In Preparazione' && ord.status !== 'Preparato' ? `
+              <button type="button" class="btn-assign-warehouse" onclick="window.passaOrdineAlMagazzino('${ord.number}')">
+                🚀 PASSA AL MAGAZZINO PER PREPARARLO (Avvia Picking)
+              </button>
+            ` : `
+              <div style="margin-top:8px; font-size:0.85rem; font-weight:700; color:#1d4ed8; background:#eff6ff; padding:8px 12px; border-radius:8px;">
+                📦 Ordine attualmente IN CARICO AL MAGAZZINO per il picking (Operatore: ${ord.picked_by || 'Magazziniere'}).
+              </div>
+            `}
+          </div>
+        `;
+      } else if (stockInfo.isPartialReady) {
+        stockHtml = `
+          <div class="stock-check-box partial">
+            <div class="stock-status-banner">
+              <span class="stock-pill yellow">🟡 DISPONIBILITÀ PARZIALE (${stockInfo.readyLines}/${stockInfo.totalLines} articoli a terra)</span>
+              <span style="font-size:0.8rem; font-weight:700; color:#b45309;">${stockInfo.readyQty}/${stockInfo.totalQty} PZ pronti</span>
+            </div>
+            <div style="font-size:0.85rem; color:#92400e; margin-top:4px;">
+              Alcuni articoli non hanno giacenza sufficiente a magazzino per coprire l'ordine per intero.
+            </div>
+            ${ord.status !== 'In Preparazione' && ord.status !== 'Preparato' ? `
+              <button type="button" class="btn-assign-warehouse partial" onclick="window.passaOrdineAlMagazzino('${ord.number}', true)">
+                📦 Passa al Magazzino (Preparazione Parziale)
+              </button>
+            ` : `
+              <div style="margin-top:8px; font-size:0.85rem; font-weight:700; color:#1d4ed8; background:#eff6ff; padding:8px 12px; border-radius:8px;">
+                📦 Ordine in preparazione parziale a magazzino.
+              </div>
+            `}
+          </div>
+        `;
+      } else {
+        stockHtml = `
+          <div class="stock-check-box missing">
+            <div class="stock-status-banner">
+              <span class="stock-pill red">🔴 MATERIALE NON DISPONIBILE A MAGAZZINO</span>
+              <span style="font-size:0.8rem; font-weight:700; color:#b91c1c;">0/${stockInfo.totalLines} articoli a terra</span>
+            </div>
+            <div style="font-size:0.85rem; color:#991b1b; margin-top:4px;">
+              Nessun articolo ha giacenza sufficiente. In attesa di carico da fornitore.
+            </div>
+          </div>
+        `;
+      }
+
+      if (detailCard) {
+        detailCard.innerHTML = `
+          <div class="order-detail-header">
+            <div>
+              <div class="order-num-badge">${ord.number}</div>
+              <div style="font-size:0.9rem; font-weight:700; color:#0f172a; margin-top:2px;">${ord.customer_name}</div>
+              <div style="font-size:0.78rem; color:var(--muted);">${ord.destination_address || 'Sede'} • Data: ${ord.document_date || 'Oggi'}</div>
+            </div>
+            <span class="status-chip ${statusBadgeCls}">${statusLabel}</span>
+          </div>
+          ${ord.notes ? `<div style="font-size:0.8rem; background:#f8fafc; border-left:3px solid #0284c7; padding:6px 10px; margin-bottom:8px; color:#334155;"><strong>Riferimento:</strong> ${ord.notes}</div>` : ''}
+          ${stockHtml}
+        `;
+        detailCard.classList.remove('hidden');
+      }
+
+      renderPickingLines();
+    }
+
+    // Azione Passa al Magazzino per Preparare
+    window.passaOrdineAlMagazzino = async (orderNumber, isPartial = false) => {
+      const user = window.ClwData.getCurrentUser();
+      const opName = user?.name || user?.username || 'Magazzino';
+
+      toast(`Assegnazione ordine ${orderNumber} al magazzino in corso… ⏳`);
+      try {
+        await window.ClwData.assignOrderToWarehouse(orderNumber, opName);
+        soundBeep(true);
+        toast(`✅ Ordine ${orderNumber} passato al magazzino per la preparazione!`);
+        
+        const ord = activeOrders.find(o => o.number === orderNumber);
+        if (ord) {
+          ord.status = 'In Preparazione';
+          ord.picked_by = opName;
+        }
+        renderOrderSelector(activeOrderFilter);
+        onOrderSelected(orderNumber);
+        document.getElementById('pickBarcodeInput').focus();
+      } catch (err) {
+        console.error('Errore passaggio ordine al magazzino:', err);
+        toast('❌ Errore durante l\'aggiornamento dell\'ordine: ' + (err.message || err));
+        soundBeep(false);
+      }
+    };
+
+    function setupPickingControls() {
+      // Filtri pills click listener
+      document.querySelectorAll('.filter-pill-btn').forEach(btn => {
+        btn.onclick = () => renderOrderSelector(btn.dataset.filter);
+      });
+
+      // Pulsante Sync Plus
+      const btnSync = document.getElementById('btnSyncPlusOrders');
+      if (btnSync) {
+        btnSync.onclick = async () => {
+          toast('Sincronizzazione ordini da Plus 2000 in corso… ⏳');
+          try {
+            if (typeof window.ClwData.requestPlusSync === 'function') {
+              await window.ClwData.requestPlusSync('ACTIVE');
+            }
+            await initData(true);
+            toast('✅ Ordini e giacenze sincronizzati da Plus 2000!');
+            soundBeep(true);
+          } catch (err) {
+            console.warn('Avviso sync:', err);
+            await initData(true);
+            toast('Dati ricaricati!');
+          }
+        };
+      }
+    }
+
     function handlePickingBarcode(code) {
       if (!currentPickingLines.length) {
         toast('Seleziona prima un ordine');
@@ -967,13 +1463,15 @@
         return;
       }
 
-      // Sort by warehouse location for walking path optimization
       currentPickingLines.sort((a, b) => String(a.location || 'ZZZ').localeCompare(String(b.location || 'ZZZ')));
 
       let completedCount = 0;
       container.innerHTML = currentPickingLines.map((l, idx) => {
         if (l.is_completed) completedCount++;
-        const loc = l.location || 'Magazzino';
+        const loc = l.location || l.prod_loc || 'Magazzino';
+        const isReady = (l.is_stock_ready != null) ? l.is_stock_ready : true;
+        const stockQty = l.current_stock != null ? l.current_stock : '--';
+
         return `
           <div class="pick-item ${l.is_completed ? 'done' : ''}">
             <div class="pick-header">
@@ -982,8 +1480,9 @@
             </div>
             <div class="pick-desc">${l.description}</div>
             <div class="pick-meta">
-              <span style="font-size:0.8rem; color:var(--muted);">Marca: <strong>${l.brand || '—'}</strong></span>
-              <span style="font-size:0.8rem; color:var(--muted);">Da prelevare: <strong>${l.quantity} PZ</strong></span>
+              <span style="font-size:0.8rem; color:var(--muted);">Marca: <strong>${l.brand || l.prod_brand || '—'}</strong></span>
+              <span class="stock-chip ${isReady ? 'ok' : 'low'}">Giacenza: <strong>${stockQty} ${l.um || 'PZ'}</strong></span>
+              <span style="font-size:0.8rem; color:var(--muted);">Da prelevare: <strong>${l.quantity} ${l.um || 'PZ'}</strong></span>
             </div>
             <div class="pick-actions">
               <div class="counter-control">
@@ -1020,28 +1519,30 @@
     };
 
     document.getElementById('selOrderToPick').onchange = (e) => {
-      const ordNumber = e.target.value;
-      const ord = activeOrders.find(o => o.number === ordNumber || o.id === ordNumber);
-      if (!ord) {
-        currentPickingLines = [];
-        renderPickingLines();
-        return;
-      }
-      currentPickingLines = (ord.document_lines || ord.lines || []).map(l => ({
-        ...l,
-        picked_qty: Number(l.picked_qty) || 0,
-        is_completed: Boolean(l.is_completed)
-      }));
-      renderPickingLines();
+      onOrderSelected(e.target.value);
     };
 
     document.getElementById('btnCompleteOrder').onclick = async () => {
+      if (!selectedOrder) return;
       const allDone = currentPickingLines.every(l => l.is_completed);
       if (!allDone && !confirm('Alcune righe non sono state completate al 100%. Confermi la preparazione parziale?')) {
         return;
       }
-      toast('Ordine contrassegnato: Preparato per Spedizione! 📦');
-      soundBeep(true);
+      const user = window.ClwData.getCurrentUser();
+      const opName = user?.name || user?.username || 'Magazziniere';
+
+      toast(`Salvataggio completamento preparazione ${selectedOrder.number}… ⏳`);
+      try {
+        await window.ClwData.completeWarehousePicking(selectedOrder.number, currentPickingLines, opName);
+        soundBeep(true);
+        toast(`✅ Ordine ${selectedOrder.number} contrassegnato: Preparato per Spedizione! 📦`);
+        selectedOrder.status = 'Preparato';
+        await initData();
+      } catch (err) {
+        console.error('Errore completamento ordine:', err);
+        toast('❌ Errore durante il salvataggio: ' + (err.message || err));
+        soundBeep(false);
+      }
     };
 
     // --- TAB 2: INVENTARIO ---
@@ -1111,13 +1612,11 @@
         return;
       }
       soundBeep(true);
-      const existingIdx = counterCart.findIndex(c => c.code === prod.code);
-      if (existingIdx >= 0) {
-        counterCart[existingIdx].quantity += 1;
-        const it = counterCart.splice(existingIdx, 1)[0];
-        counterCart.unshift(it); // Porta l'articolo in cima alla lista
+      const existing = counterCart.find(c => c.code === prod.code);
+      if (existing) {
+        existing.quantity += 1;
       } else {
-        counterCart.unshift({ // Inserisce il nuovo articolo in cima
+        counterCart.push({
           code: prod.code,
           description: prod.description,
           brand: prod.brand,
@@ -1292,75 +1791,18 @@
       allProducts = await window.ClwData.getProducts();
       allCustomers = await window.ClwData.getCustomers();
 
-      // Popola e gestisce ricerca rapida clienti
-      const searchInp = document.getElementById('txtSearchCounterCustomer');
+      // Populate customer select
       const custSelect = document.getElementById('selCounterCustomer');
-      const clearBtn = document.getElementById('btnClearCounterCust');
-      const feedback = document.getElementById('counterCustFeedback');
-
-      function filterCounterCustomers(query) {
-        const q = (query || '').trim().toLowerCase();
-        let matched = allCustomers;
-        if (q) {
-          matched = allCustomers.filter(c => {
-            const code = String(c.code || c.id || '').toLowerCase();
-            const name = String(c.name || '').toLowerCase();
-            const city = String(c.city || '').toLowerCase();
-            return code === q || code.startsWith(q) || code.includes(q) || name.includes(q) || city.includes(q);
-          });
-        }
-
-        custSelect.innerHTML = '<option value="">-- Seleziona cliente dall\'anagrafica --</option>' +
-          matched.map(c => `<option value="${c.code || c.id}">${c.code ? `[${c.code}] ` : ''}${c.name}${c.city ? ` (${c.city})` : ''}</option>`).join('');
-
-        if (q) {
-          feedback.textContent = `Trovati ${matched.length} clienti per "${q}"`;
-          if (matched.length === 1) {
-            custSelect.value = matched[0].code || matched[0].id;
-            feedback.textContent = `✅ Selezionato: [${matched[0].code}] ${matched[0].name}`;
-          } else if (matched.length > 1) {
-            const exactCode = matched.find(c => String(c.code).toLowerCase() === q);
-            if (exactCode) {
-              custSelect.value = exactCode.code || exactCode.id;
-              feedback.textContent = `✅ Trovato conto [${exactCode.code}]: ${exactCode.name}`;
-            }
-          }
-        } else {
-          feedback.textContent = `${allCustomers.length} clienti pronti per vendita a banco`;
-        }
-      }
-
-      filterCounterCustomers('');
-      if (searchInp) {
-        searchInp.oninput = (e) => filterCounterCustomers(e.target.value);
-        searchInp.onkeydown = (e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            if (custSelect.options.length > 1) {
-              custSelect.selectedIndex = 1;
-              const opt = custSelect.options[1];
-              feedback.textContent = `✅ Selezionato: ${opt.text}`;
-              document.getElementById('counterBarcodeInput').focus();
-            }
-          }
-        };
-      }
-      if (clearBtn) {
-        clearBtn.onclick = () => {
-          searchInp.value = '';
-          filterCounterCustomers('');
-          searchInp.focus();
-        };
-      }
+      custSelect.innerHTML = '<option value="">Seleziona cliente dall\'anagrafica…</option>' +
+        allCustomers.map(c => `<option value="${c.code || c.id}">${c.code ? c.code + ' - ' : ''}${c.name}</option>`).join('');
 
       // Load warehouse orders
       activeOrders = await window.ClwData.getWarehouseOrders();
-      const ordSelect = document.getElementById('selOrderToPick');
-      if (activeOrders.length) {
-        ordSelect.innerHTML = '<option value="">-- Seleziona ordine da preparare --</option>' +
-          activeOrders.map(o => `<option value="${o.number}">${o.number} - ${o.customer_name} (${o.status})</option>`).join('');
-      } else {
-        ordSelect.innerHTML = '<option value="">Nessun ordine aperto da preparare</option>';
+      updateProductMap();
+      setupPickingControls();
+      renderOrderSelector(activeOrderFilter);
+      if (selectedOrder) {
+        onOrderSelected(selectedOrder.number);
       }
     }
 

@@ -567,24 +567,33 @@
           const { data: orders, error } = await client
             .from('documents')
             .select('*')
-            .eq('document_type', 'OCL')
-            .in('status', ['Inviato', 'Approvato', 'In Preparazione', 'Preparato'])
+            .in('document_type', ['OCL', 'ORD'])
+            .in('status', ['Aperto', 'In Attesa', 'In Lavorazione', 'Inviato', 'Approvato', 'In Preparazione', 'Preparato'])
             .order('created_at', { ascending: false });
+
           if (!error && Array.isArray(orders) && orders.length > 0) {
-            const allLinesRes = await client
+            const orderNums = orders.map(o => o.number).filter(Boolean);
+            const { data: allLines, error: linesErr } = await client
               .from('document_lines')
               .select('*')
+              .in('document_number', orderNums)
               .order('line_number', { ascending: true });
-            const allLines = (!allLinesRes.error && Array.isArray(allLinesRes.data)) ? allLinesRes.data : [];
+
+            const lines = (!linesErr && Array.isArray(allLines)) ? allLines : [];
             const linesByDoc = new Map();
-            for (const l of allLines) {
+            for (const l of lines) {
               const key = String(l.document_number || '').trim();
               if (!key) continue;
               if (!linesByDoc.has(key)) linesByDoc.set(key, []);
               linesByDoc.get(key).push(l);
             }
 
-            return orders.map(ord => {
+            const openOrders = orders.filter(o => {
+              const ev = String(o.evaso || '').trim().toUpperCase();
+              return ev !== 'S' && ev !== 'SI' && ev !== '1';
+            });
+
+            return openOrders.map(ord => {
               const num = String(ord.number || '').trim();
               let docLines = linesByDoc.get(num) || [];
               if (!docLines.length && /^ORD-/i.test(num)) {
@@ -594,10 +603,17 @@
                 const m = String(ord.notes).match(/Offerta\s+([A-Z0-9_-]+)/i);
                 if (m && m[1]) docLines = linesByDoc.get(m[1].trim()) || [];
               }
+
+              // Filtra solo le righe ancora da evadere/processare (Evaso = 'N')
+              const unfulfilledLines = docLines.filter(l => {
+                const evRiga = String(l.evaso || '').trim().toUpperCase();
+                return evRiga !== 'S' && evRiga !== 'SI' && evRiga !== '1';
+              });
+
               return {
                 ...ord,
-                document_lines: docLines,
-                lines: docLines
+                document_lines: unfulfilledLines,
+                lines: unfulfilledLines
               };
             });
           }
@@ -606,6 +622,65 @@
         }
       }
       return [];
+    },
+
+    /**
+     * Passa un ordine aperto al magazzino per la preparazione (Picking)
+     */
+    async assignOrderToWarehouse(orderNumber, operatorName = 'Magazziniere') {
+      const client = initClient();
+      if (client) {
+        const { data, error } = await client
+          .from('documents')
+          .update({
+            status: 'In Preparazione',
+            picked_by: operatorName,
+            updated_at: new Date().toISOString()
+          })
+          .eq('number', orderNumber)
+          .select();
+        if (error) throw error;
+        return data && data[0] ? data[0] : { ok: true, number: orderNumber, status: 'In Preparazione' };
+      }
+      return { ok: true, number: orderNumber, status: 'In Preparazione', localOnly: true };
+    },
+
+    /**
+     * Segna un ordine come Preparato al 100% per spedizione/DDT
+     */
+    async completeWarehousePicking(orderNumber, pickedLines = [], operatorName = 'Magazziniere') {
+      const client = initClient();
+      if (client) {
+        const { data: docData, error: docErr } = await client
+          .from('documents')
+          .update({
+            status: 'Preparato',
+            picked_by: operatorName,
+            picked_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq('number', orderNumber)
+          .select();
+        if (docErr) throw docErr;
+
+        if (Array.isArray(pickedLines) && pickedLines.length > 0) {
+          for (const l of pickedLines) {
+            if (l.id) {
+              await client
+                .from('document_lines')
+                .update({
+                  picked_qty: Number(l.picked_qty) || Number(l.quantity) || 0,
+                  is_completed: Boolean(l.is_completed),
+                  picked_by: operatorName,
+                  picked_at: new Date().toISOString()
+                })
+                .eq('id', l.id);
+            }
+          }
+        }
+        return { ok: true, orderNumber, status: 'Preparato' };
+      }
+      return { ok: true, orderNumber, status: 'Preparato', localOnly: true };
     },
 
     /**
